@@ -1,1 +1,78 @@
-<p>auth works!</p>
+<div class="flex items-center justify-center min-h-screen bg-background p-4">
+  <div class="w-full max-w-md">
+    <p-card styleClass="shadow-lg border-round-xl">
+      <ng-template pTemplate="title">
+        <div class="text-center mb-4">
+          <h2 class="text-3xl font-bold text-primary mb-2">Welcome Back</h2>
+          <p class="text-body m-0">Sign in to continue to Geoplan</p>
+        </div>
+      </ng-template>
+
+      <ng-template pTemplate="content">
+        <p-message *ngFor="let msg of errorMessages" [severity]="msg.severity" [text]="msg.detail" class="mb-4 block"></p-message>
+
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4 mt-2">
+          
+          <!-- Email Field -->
+          <div class="flex flex-col gap-2">
+            <label for="email" class="font-medium">Email Address</label>
+            <input 
+              pInputText 
+              id="email" 
+              type="email" 
+              formControlName="email" 
+              placeholder="Enter your email" 
+              autocomplete="email"
+              class="w-full"
+              [ngClass]="{'ng-invalid ng-dirty': loginForm.get('email')?.invalid && loginForm.get('email')?.touched}"
+            />
+            <small *ngIf="loginForm.get('email')?.hasError('required') && loginForm.get('email')?.touched" class="text-red-500">
+              Email is required.
+            </small>
+            <small *ngIf="loginForm.get('email')?.hasError('email') && loginForm.get('email')?.touched" class="text-red-500">
+              Please enter a valid email address.
+            </small>
+          </div>
+
+          <!-- Password Field -->
+          <div class="flex flex-col gap-2">
+            <label for="password" class="font-medium">Password</label>
+            <p-password 
+              id="password" 
+              formControlName="password" 
+              [feedback]="false" 
+              [toggleMask]="true"
+              placeholder="Enter your password"
+              styleClass="w-full"
+              [inputStyle]="{'width': '100%'}"
+              autocomplete="current-password"
+              [ngClass]="{'ng-invalid ng-dirty': loginForm.get('password')?.invalid && loginForm.get('password')?.touched}"
+            ></p-password>
+            <small *ngIf="loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched" class="text-red-500">
+              Password is required.
+            </small>
+          </div>
+
+          <!-- Security Notice -->
+          <div class="text-xs text-body mt-2 flex gap-2 p-3 bg-secondary border-round">
+            <i class="pi pi-shield text-primary"></i>
+            <span>
+              <strong>Security Notice:</strong> Your connection must be secure. Ensure you are on a trusted network before logging in.
+            </span>
+          </div>
+
+          <!-- Submit Button -->
+          <p-button 
+            type="submit" 
+            label="Sign In" 
+            icon="pi pi-sign-in" 
+            styleClass="w-full mt-4" 
+            [loading]="isLoading"
+            [disabled]="loginForm.invalid && loginForm.touched">
+          </p-button>
+          
+        </form>
+      </ng-template>
+    </p-card>
+  </div>
+</div>

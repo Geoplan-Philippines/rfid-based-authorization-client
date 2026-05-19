@@ -4,6 +4,7 @@ import { MainLayout } from './layout/main-layout/main-layout';
 import { Dashboard } from './modules/dashboard/dashboard';
 import { Auth } from './modules/auth/auth';
 import { Reports } from './modules/reports/reports';
+import { Home } from './modules/home/home';
 
 export const routes: Routes = [
   {
@@ -23,5 +24,10 @@ export const routes: Routes = [
     children: [
       { path: '', component: Reports }
     ]
+  },
+  {
+    path: 'home',
+    component: Home,
   }
+
 ];
