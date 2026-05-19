@@ -1,0 +1,40 @@
+@if (layoutService.sidebarOpen()) {
+  <div
+    class="fixed inset-0 bg-foreground/20 z-30 md:hidden transition-opacity"
+    (click)="layoutService.closeSidebar()"
+    aria-hidden="true"
+  ></div>
+}
+
+<aside
+  class="absolute inset-y-0 left-0 z-40 w-64 bg-background border-r border-border transform transition-transform duration-200 ease-in-out md:relative md:translate-x-0 md:h-full overflow-y-auto"
+  [class.-translate-x-full]="!layoutService.sidebarOpen()"
+  [class.translate-x-0]="layoutService.sidebarOpen()"
+>
+  <nav class="flex flex-col gap-7 py-5">
+    @for (section of navSections; track section.title) {
+      <div>
+        <h3 class="mb-2 px-5 text-[11px] font-semibold tracking-[0.12em] uppercase text-body/60">
+          {{ section.title }}
+        </h3>
+        <ul class="flex flex-col">
+          @for (item of section.items; track item.route) {
+            <li>
+              <a
+                [routerLink]="item.route"
+                routerLinkActive
+                #rla="routerLinkActive"
+                [class]="itemBase + ' ' + (rla.isActive ? itemActive : itemInactive)"
+                [attr.aria-current]="rla.isActive ? 'page' : null"
+                (click)="layoutService.closeSidebar()"
+              >
+                <i class="pi {{ item.icon }} text-base w-4 text-center" aria-hidden="true"></i>
+                <span class="truncate">{{ item.label }}</span>
+              </a>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+  </nav>
+</aside>

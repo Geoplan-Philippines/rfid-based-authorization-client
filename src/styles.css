@@ -1,0 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Work+Sans:wght@400;500;600&display=swap');
+
+@import 'tailwindcss';
+@import "primeicons/primeicons.css";
+
+:root {
+  --background: #F8FBFF;
+  --foreground: #0B161F;
+  --text-heading: #0B161F;
+  --text-body: #365261;
+
+  --primary: #0B4EA2;
+  --primary-hover: #03285A;
+  --primary-foreground: #FFFFFF;
+  --secondary: #E8F1FF;
+  --secondary-foreground: #0B4EA2;
+  --accent: #22D3EE;
+  --accent-foreground: #083344;
+
+  --border: #DBE5F0;
+  --input: #DBE5F0;
+  --ring: #22D3EE;
+
+  --destructive: #FF4B4B;
+  --muted-destructive: #FFE1DE;
+  --success: #3DBE81;
+  --muted-success: #D1EDE0;
+  --success-foreground: #FFFFFF;
+
+  --radius: 0.25rem;
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-heading: var(--text-heading);
+  --color-body: var(--text-body);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-destructive: var(--destructive);
+  --color-muted-destructive: var(--muted-destructive);
+  --color-success: var(--success);
+  --color-muted-success: var(--muted-success);
+
+  --radius-base: var(--radius);
+
+  --font-heading: 'Poppins', sans-serif;
+  --font-body: 'Work Sans', sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--color-background);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+}
+
+button, input, textarea, select {
+  font-family: var(--font-body);
+}
+
+.main-container {
+  @apply px-4 mx-auto max-w-7xl w-full;
+}
