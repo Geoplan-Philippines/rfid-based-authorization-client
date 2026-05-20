@@ -1,5 +1,4 @@
-import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -12,10 +11,15 @@ import { MessageModule } from 'primeng/message';
 
 import { AuthService } from '../../core/auth/auth.service';
 
+interface ErrorMessage {
+  severity: 'success' | 'info' | 'warn' | 'error';
+  summary: string;
+  detail: string;
+}
+
 @Component({
   selector: 'app-auth',
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     CardModule,
     InputTextModule,
@@ -25,6 +29,7 @@ import { AuthService } from '../../core/auth/auth.service';
   ],
   templateUrl: './auth.html',
   styleUrl: './auth.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Auth {
   private fb = inject(FormBuilder);
@@ -32,8 +37,8 @@ export class Auth {
   private router = inject(Router);
 
   loginForm: FormGroup;
-  isLoading = false;
-  errorMessages: any[] = [];
+  isLoading = signal(false);
+  errorMessages = signal<ErrorMessage[]>([]);
 
   constructor() {
     this.loginForm = this.fb.group({
@@ -48,27 +53,26 @@ export class Auth {
       return;
     }
 
-    this.isLoading = true;
-    this.errorMessages = [];
+    this.isLoading.set(true);
+    this.errorMessages.set([]);
 
     const credentials = this.loginForm.value;
 
     this.authService.login(credentials).subscribe({
-      next: (response) => {
-        this.isLoading = false;
+      next: () => {
+        this.isLoading.set(false);
         // Security Auditor Note:
         // Proper handling of tokens (e.g., storing in HttpOnly cookies instead of localStorage)
         // is recommended to mitigate XSS attacks.
-        console.log('Login successful', response);
         this.router.navigate(['/dashboard']);
       },
       error: (err) => {
-        this.isLoading = false;
+        this.isLoading.set(false);
         // Security Auditor Note:
         // Do not expose verbose error details to the user to prevent enumeration attacks.
-        this.errorMessages = [
+        this.errorMessages.set([
           { severity: 'error', summary: 'Error', detail: 'Invalid credentials or server error.' }
-        ];
+        ]);
         console.error('Login failed', err);
       }
     });
