@@ -6,7 +6,7 @@
         [text]="true"
         severity="secondary"
         class="md:hidden"
-        (onClick)="layoutService.toggleSidebar()"
+        (onClick)="toggleSidebar()"
         aria-label="Toggle sidebar"
       />
       <span class="text-xl font-bold tracking-tight text-heading">Ang Matibay</span>
@@ -20,10 +20,10 @@
         <p-avatar
           shape="circle"
           image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png"
-          [attr.aria-label]="'User profile for ' + (authService.currentUser()?.name || authService.currentUser()?.email)"
+          [attr.aria-label]="'User profile for ' + displayName()"
         />
         <span class="text-sm font-medium hidden sm:block">
-          {{ authService.currentUser()?.name || authService.currentUser()?.email }}
+          {{ displayName() }}
         </span>
       </div>
 

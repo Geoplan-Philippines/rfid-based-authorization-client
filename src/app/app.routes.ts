@@ -3,15 +3,12 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
 import { loginGuard } from './core/auth/login.guard';
 import { MainLayout } from './layout/main-layout/main-layout';
-import { Dashboard } from './modules/dashboard/dashboard';
-import { Auth } from './modules/auth/auth';
-import { Reports } from './modules/reports/reports';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   {
     path: 'auth/login',
-    component: Auth,
+    loadComponent: () => import('./modules/auth/auth').then(m => m.Auth),
     canActivate: [loginGuard]
   },
   {
@@ -19,7 +16,7 @@ export const routes: Routes = [
     component: MainLayout,
     canActivate: [authGuard],
     children: [
-      { path: '', component: Dashboard }
+      { path: '', loadComponent: () => import('./modules/dashboard/dashboard').then(m => m.Dashboard) }
     ]
   },
   {
@@ -27,7 +24,7 @@ export const routes: Routes = [
     component: MainLayout,
     canActivate: [authGuard],
     children: [
-      { path: '', component: Reports }
+      { path: '', loadComponent: () => import('./modules/reports/reports').then(m => m.Reports) }
     ]
   },
   { path: '**', redirectTo: 'dashboard' }

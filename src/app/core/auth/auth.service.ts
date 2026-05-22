@@ -38,6 +38,7 @@ export class AuthService {
 
   private readonly _isAuthenticated = signal(false);
   private readonly _currentUser = signal<User | null>(null);
+  private readonly _token = signal<string | null>(null);
 
   readonly isAuthenticated = this._isAuthenticated.asReadonly();
   readonly currentUser = this._currentUser.asReadonly();
@@ -46,14 +47,26 @@ export class AuthService {
     this.restoreSession();
   }
 
+  private isTokenExpired(token: string): boolean {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return typeof payload.exp === 'number' && payload.exp * 1000 < Date.now();
+    } catch {
+      return true;
+    }
+  }
+
   private restoreSession(): void {
     const stored = localStorage.getItem(SESSION_KEY);
     if (!stored) return;
     try {
       const session: AuthSession = JSON.parse(stored);
-      if (session.token && session.user) {
+      if (session.token && session.user && !this.isTokenExpired(session.token)) {
         this._isAuthenticated.set(true);
         this._currentUser.set(session.user);
+        this._token.set(session.token);
+      } else {
+        localStorage.removeItem(SESSION_KEY);
       }
     } catch {
       localStorage.removeItem(SESSION_KEY);
@@ -61,14 +74,7 @@ export class AuthService {
   }
 
   getToken(): string | null {
-    const stored = localStorage.getItem(SESSION_KEY);
-    if (!stored) return null;
-    try {
-      const session: AuthSession = JSON.parse(stored);
-      return session.token ?? null;
-    } catch {
-      return null;
-    }
+    return this._token();
   }
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
@@ -79,6 +85,7 @@ export class AuthService {
         localStorage.setItem(SESSION_KEY, JSON.stringify(session));
         this._isAuthenticated.set(true);
         this._currentUser.set(user);
+        this._token.set(accessToken);
       })
     );
   }
@@ -87,5 +94,6 @@ export class AuthService {
     localStorage.removeItem(SESSION_KEY);
     this._isAuthenticated.set(false);
     this._currentUser.set(null);
+    this._token.set(null);
   }
 }
