@@ -1,26 +1,39 @@
 <header class="px-4 border-b border-border bg-background">
   <nav class="h-16 flex justify-between items-center">
     <div class="flex items-center gap-3">
-      <p-button 
-        icon="pi pi-bars" 
+      <p-button
+        icon="pi pi-bars"
         [text]="true"
-        severity="secondary" 
+        severity="secondary"
         class="md:hidden"
+        (onClick)="layoutService.toggleSidebar()"
+        aria-label="Toggle sidebar"
       />
-      
       <span class="text-xl font-bold tracking-tight text-heading">Ang Matibay</span>
     </div>
 
     <div class="flex items-center gap-2">
-      <p-button icon="pi pi-bell" [text]="true" severity="secondary" />
-      <p-button icon="pi pi-cog" [text]="true" severity="secondary" />
-      <p-avatar
-        shape="circle"
-        image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png"
-        class="w-8 h-8 cursor-pointer border-border border-2 hover:border-primary transition-colors ml-2"
-        [attr.aria-label]="'User profile'"
+      <p-button icon="pi pi-bell" [text]="true" severity="secondary" aria-label="Notifications" />
+      <p-button icon="pi pi-cog" [text]="true" severity="secondary" aria-label="Settings" />
+
+      <div class="flex items-center gap-2 ml-2">
+        <p-avatar
+          shape="circle"
+          image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png"
+          [attr.aria-label]="'User profile for ' + (authService.currentUser()?.name || authService.currentUser()?.email)"
+        />
+        <span class="text-sm font-medium hidden sm:block">
+          {{ authService.currentUser()?.name || authService.currentUser()?.email }}
+        </span>
+      </div>
+
+      <p-button
+        icon="pi pi-sign-out"
+        [text]="true"
+        severity="secondary"
+        (onClick)="logout()"
+        aria-label="Sign out"
       />
-      <span>Mikko Clave</span>
     </div>
   </nav>
 </header>
