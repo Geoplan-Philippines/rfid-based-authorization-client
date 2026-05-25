@@ -3,8 +3,8 @@ import { AvatarModule } from 'primeng/avatar';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { User } from '../../core/auth/auth.service';
-import { UserService } from '../../core/users/user.service';
+import { UserService } from './services/user.service';
+import { User } from './types/user.types';
 
 type TagSeverity = 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast';
 
@@ -24,8 +24,6 @@ const ROLE_SEVERITY: Record<string, TagSeverity> = {
 })
 export class Users implements OnInit {
   private userService = inject(UserService);
-
-  readonly loadingRows = [{}];
 
   users = signal<User[]>([]);
   loading = signal(true);

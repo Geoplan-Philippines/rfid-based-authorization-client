@@ -11,28 +11,21 @@
     </div>
   }
 
-  <p-table [value]="loading() ? loadingRows : users()" styleClass="w-full">
-    <ng-template #header>
-      <tr>
-        <th scope="col" [style]="{ background: 'var(--p-primary-800)', color: '#fff' }">Name</th>
-        <th scope="col" [style]="{ background: 'var(--p-primary-800)', color: '#fff' }">Email</th>
-        <th scope="col" [style]="{ background: 'var(--p-primary-800)', color: '#fff' }">Role</th>
-      </tr>
-    </ng-template>
-
-    <ng-template #body let-user>
-      @if (loading()) {
+  @if (loading()) {
+    <div class="flex justify-center py-14">
+      <p-progressSpinner [style]="{ width: '42px', height: '42px' }" aria-label="Loading users" />
+    </div>
+  } @else {
+    <p-table [value]="users()" styleClass="w-full">
+      <ng-template #header>
         <tr>
-          <td colspan="3" class="py-6">
-            <div class="flex justify-center">
-              <p-progressSpinner
-                [style]="{ width: '42px', height: '42px'}"
-                aria-label="Loading users"
-              />
-            </div>
-          </td>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Name</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Email</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Role</th>
         </tr>
-      } @else {
+      </ng-template>
+
+      <ng-template #body let-user>
         <tr>
           <td>
             <div class="flex items-center gap-3">
@@ -49,18 +42,18 @@
             <p-tag [value]="user.role" [severity]="roleSeverity(user.role)" />
           </td>
         </tr>
-      }
-    </ng-template>
+      </ng-template>
 
-    <ng-template #emptymessage>
-      <tr>
-        <td colspan="3">
-          <div class="flex flex-col items-center justify-center py-14" style="color: var(--p-primary-200)">
-            <i class="pi pi-users text-4xl mb-3" aria-hidden="true"></i>
-            <p class="text-sm">No users found.</p>
-          </div>
-        </td>
-      </tr>
-    </ng-template>
-  </p-table>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="3">
+            <div class="flex flex-col items-center justify-center py-14" style="color: var(--p-primary-200)">
+              <i class="pi pi-users text-4xl mb-3" aria-hidden="true"></i>
+              <p class="text-sm">No users found.</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
 </main>

@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
-import { environment } from '../../../environments/environment';
-import { User } from '../auth/auth.service';
+import { environment } from '../../../../environments/environment';
+import { User } from '../types/user.types';
 
 interface UsersResponse {
   statusCode: number;
