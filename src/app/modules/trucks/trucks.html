@@ -1,0 +1,80 @@
+<main class="flex flex-col w-full p-6 overflow-auto">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold" style="color: var(--text-heading)">Trucks</h1>
+    <p class="text-sm text-body/60 mt-1">Registered trucks and their assignments.</p>
+  </div>
+
+  @if (loading()) {
+    <div class="flex justify-center py-14">
+      <p-progressSpinner [style]="{ width: '42px', height: '42px' }" aria-label="Loading trucks" />
+    </div>
+  } @else if (error()) {
+    <div class="flex items-center gap-2 p-4 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm" role="alert">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <span>{{ error() }}</span>
+    </div>
+  } @else {
+    <p-table [value]="trucks()" styleClass="w-full">
+      <ng-template #header>
+        <tr>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Truck</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Model</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Drivers</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Bound Tag</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Tag Status</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Events</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!"><span class="sr-only">Action</span></th>
+        </tr>
+      </ng-template>
+
+      <ng-template #body let-truck>
+        <tr>
+          <td>
+            <div class="flex items-center gap-3">
+              <p-avatar
+                [label]="plateInitials(truck)"
+                shape="circle"
+                [style]="{ background: 'var(--p-primary-100)', color: 'var(--p-primary-800)', fontWeight: '600' }"
+              />
+              <span class="font-medium">{{ truck.plateNumber }}</span>
+            </div>
+          </td>
+          <td>{{ truck.model }}</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>0</td>
+          <td>
+            <button
+              disabled
+              aria-label="Open details"
+              class="px-3 py-1 text-xs rounded border border-border text-body/40 cursor-not-allowed"
+            >
+              Open
+            </button>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="7">
+            <div class="flex flex-col items-center justify-center py-14" style="color: var(--p-primary-200)">
+              <i class="pi pi-truck text-4xl mb-3" aria-hidden="true"></i>
+              <p class="text-sm">No trucks found.</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <p-paginator
+      [first]="(page() - 1) * limit()"
+      [rows]="limit()"
+      [totalRecords]="total()"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      (onPageChange)="onPageChange($event)"
+    />
+  }
+</main>
+ 

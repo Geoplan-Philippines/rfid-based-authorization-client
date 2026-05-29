@@ -27,6 +27,13 @@ export const NAV_SECTIONS: readonly NavSection[] = [
     ],
   },
   {
+    title: 'Registry',
+    items: [
+      { label: 'Drivers', route: '/drivers', icon: 'pi-id-card' },
+      { label: 'Trucks', route: '/trucks', icon: 'pi-truck' },
+    ],
+  },
+  {
     title: 'Admin',
     items: [
       { label: 'Users', route: '/users', icon: 'pi-users' },
