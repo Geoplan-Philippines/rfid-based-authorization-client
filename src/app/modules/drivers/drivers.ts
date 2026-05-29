@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal, DestroyRef } from '@angular/core';
 import { AvatarModule } from 'primeng/avatar';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TableModule } from 'primeng/table';
 import { DriverService } from './services/driver.service';
 import { Driver } from './types/driver.types';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-drivers',
@@ -14,13 +15,16 @@ import { Driver } from './types/driver.types';
 })
 export class Drivers implements OnInit {
   private driverService = inject(DriverService);
+  private destroyRef = inject(DestroyRef);
 
   drivers = signal<Driver[]>([]);
   loading = signal(true);
   error = signal<string | null>(null);
 
   ngOnInit(): void {
-    this.driverService.getDrivers().subscribe({
+    this.driverService.getDrivers().pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: (data) => {
         this.drivers.set(data);
         this.loading.set(false);

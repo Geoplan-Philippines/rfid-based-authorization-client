@@ -4,16 +4,14 @@
     <p class="text-sm text-body/60 mt-1">Registered trucks and their assignments.</p>
   </div>
 
-  @if (error()) {
-    <div class="mb-4 flex items-center gap-2 p-4 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm" role="alert">
-      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
-      <span>{{ error() }}</span>
-    </div>
-  }
-
   @if (loading()) {
     <div class="flex justify-center py-14">
       <p-progressSpinner [style]="{ width: '42px', height: '42px' }" aria-label="Loading trucks" />
+    </div>
+  } @else if (error()) {
+    <div class="flex items-center gap-2 p-4 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm" role="alert">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <span>{{ error() }}</span>
     </div>
   } @else {
     <p-table [value]="trucks()" styleClass="w-full">
@@ -25,7 +23,7 @@
           <th scope="col" class="bg-primary! text-primary-foreground!">Bound Tag</th>
           <th scope="col" class="bg-primary! text-primary-foreground!">Tag Status</th>
           <th scope="col" class="bg-primary! text-primary-foreground!">Events</th>
-          <th scope="col" class="bg-primary! text-primary-foreground!"></th>
+          <th scope="col" class="bg-primary! text-primary-foreground!"><span class="sr-only">Action</span></th>
         </tr>
       </ng-template>
 

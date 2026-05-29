@@ -1,4 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+
 import { Drivers } from './drivers';
 
 describe('Drivers', () => {
@@ -8,6 +11,7 @@ describe('Drivers', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Drivers],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compile();
 
     fixture = TestBed.createComponent(Drivers);
