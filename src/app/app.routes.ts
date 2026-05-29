@@ -35,5 +35,21 @@ export const routes: Routes = [
       { path: '', loadComponent: () => import('./modules/users/users').then(m => m.Users) }
     ]
   },
+  {
+    path: 'drivers',
+    component: MainLayout,
+    canActivate: [authGuard],
+    children: [
+      { path: '', loadComponent: () => import('./modules/drivers/drivers').then(m => m.Drivers) }
+    ]
+  },
+  {
+    path: 'trucks',
+    component: MainLayout,
+    canActivate: [authGuard],
+    children: [
+      { path: '', loadComponent: () => import('./modules/trucks/trucks').then(m => m.Trucks) }
+    ]
+  },
   { path: '**', redirectTo: 'dashboard' }
 ];
