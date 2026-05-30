@@ -69,7 +69,7 @@
     </p-table>
 
     <p-paginator
-      [first]="(page()-1 * limit())"
+      [first]="(page() - 1) * limit()"
       [rows]="limit()"
       [totalRecords]="total()"
       [rowsPerPageOptions]="[10, 25, 50]"

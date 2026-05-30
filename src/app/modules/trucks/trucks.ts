@@ -4,6 +4,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TableModule } from 'primeng/table';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
+import { Subject, switchMap } from 'rxjs';
 
 import { TruckService } from './services/truck.service';
 import { Truck } from './types/truck.types';
@@ -18,6 +19,7 @@ import { Truck } from './types/truck.types';
 export class Trucks implements OnInit {
   private truckService = inject(TruckService);
   private destroyRef = inject(DestroyRef);
+  private pageRequest$ = new Subject<{ page: number; limit: number }>();
 
   trucks = signal<Truck[]>([]);
   loading = signal(true);
@@ -27,36 +29,39 @@ export class Trucks implements OnInit {
   limit = signal(10);
 
   ngOnInit(): void {
-    this.loadTrucks();
+    this.pageRequest$
+      .pipe(
+        switchMap(({ page, limit }) => {
+          this.loading.set(true);
+          this.error.set(null);
+          return this.truckService.getTrucks(page, limit);
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: ({ data, meta }) => {
+          this.trucks.set(data);
+          this.total.set(meta.total);
+          this.loading.set(false);
+        },
+        error: () => {
+          this.error.set('Failed to load trucks. Please try again.');
+          this.loading.set(false);
+        },
+      });
+
+    this.pageRequest$.next({ page: this.page(), limit: this.limit() });
   }
- 
-  onPageChange(event: PaginatorState) {
-    console.log('Paginator event:', event);
-    
+
+  onPageChange(event: PaginatorState): void {
     this.page.set((event.page ?? 0) + 1);
     this.limit.set(event.rows ?? 10);
 
-    this.loadTrucks();
+    this.pageRequest$.next({ page: this.page(), limit: this.limit() });
   }
 
   plateInitials(truck: Truck): string {
     return truck.plateNumber.replace(/[^a-zA-Z0-9]/g, '').slice(0, 2).toUpperCase();
-  }
-  
-  private loadTrucks(): void {
-    this.loading.set(true);
-    this.error.set(null);
-    this.truckService.getTrucks(this.page(), this.limit()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: ({ data, meta }) => {
-        this.trucks.set(data);
-        this.total.set(meta.total);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.error.set('Failed to load trucks. Please try again.');
-        this.loading.set(false);
-      },
-    });
   }
 }
  
