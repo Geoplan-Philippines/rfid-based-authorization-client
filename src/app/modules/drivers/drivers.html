@@ -47,6 +47,7 @@
           <td>
             <button
               disabled
+              aria-label="Open details"
               class="px-3 py-1 text-xs rounded border border-border text-body/40 cursor-not-allowed"
             >
               Open
@@ -66,5 +67,13 @@
         </tr>
       </ng-template>
     </p-table>
+
+    <p-paginator
+      [first]="(page()-1 * limit())"
+      [rows]="limit()"
+      [totalRecords]="total()"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      (onPageChange)="onPageChange($event)"
+    />
   }
 </main>

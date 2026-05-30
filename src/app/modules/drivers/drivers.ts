@@ -2,13 +2,15 @@ import { ChangeDetectionStrategy, Component, inject, OnInit, signal, DestroyRef 
 import { AvatarModule } from 'primeng/avatar';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TableModule } from 'primeng/table';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { PaginatorModule, PaginatorState } from 'primeng/paginator';
+
 import { DriverService } from './services/driver.service';
 import { Driver } from './types/driver.types';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-drivers',
-  imports: [TableModule, AvatarModule, ProgressSpinnerModule],
+  imports: [TableModule, AvatarModule, ProgressSpinnerModule, PaginatorModule],
   templateUrl: './drivers.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex flex-1 overflow-hidden' },
@@ -20,13 +22,34 @@ export class Drivers implements OnInit {
   drivers = signal<Driver[]>([]);
   loading = signal(true);
   error = signal<string | null>(null);
+  total = signal(0);
+  page = signal(1);
+  limit = signal(10);
 
   ngOnInit(): void {
-    this.driverService.getDrivers().pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe({
-      next: (data) => {
+    this.loadDrivers();
+  }
+ 
+  onPageChange(event: PaginatorState) {
+    console.log('Paginator event:', event);
+
+    this.page.set((event.page ?? 0) + 1);
+    this.limit.set(event.rows ?? 10);
+
+    this.loadDrivers();
+  }
+
+  initials(driver: Driver): string {
+    return `${driver.firstName?.[0] ?? ''}${driver.lastName?.[0] ?? ''}`.toUpperCase();
+  }
+
+   private loadDrivers(): void {
+    this.loading.set(true);
+    this.error.set(null);
+    this.driverService.getDrivers(this.page(), this.limit()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: ({ data, meta }) => {
         this.drivers.set(data);
+        this.total.set(meta.total);
         this.loading.set(false);
       },
       error: () => {
@@ -34,9 +57,5 @@ export class Drivers implements OnInit {
         this.loading.set(false);
       },
     });
-  }
-
-  initials(driver: Driver): string {
-    return `${driver.firstName?.[0] ?? ''}${driver.lastName?.[0] ?? ''}`.toUpperCase();
   }
 }
