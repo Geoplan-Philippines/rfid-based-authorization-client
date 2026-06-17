@@ -12,7 +12,7 @@ describe('Trucks', () => {
     await TestBed.configureTestingModule({
       imports: [Trucks],
       providers: [provideHttpClient(), provideHttpClientTesting()],
-    }).compile();
+    }).compileComponents();
 
     fixture = TestBed.createComponent(Trucks);
     component = fixture.componentInstance;

@@ -1,0 +1,107 @@
+<main class="flex flex-col w-full p-6 overflow-auto">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold" style="color: var(--text-heading)">RFID Tags</h1>
+    <p class="text-sm text-body/60 mt-1">Registered RFID tags and their truck assignments.</p>
+  </div>
+
+  @if (loading()) {
+    <div class="flex justify-center py-14">
+      <p-progressSpinner [style]="{ width: '42px', height: '42px' }" aria-label="Loading RFID tags" />
+    </div>
+  } @else if (error()) {
+    <div class="flex items-center gap-2 p-4 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm" role="alert">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <span>{{ error() }}</span>
+    </div>
+  } @else {
+    <p-table [value]="rfidTags()" styleClass="w-full">
+      <ng-template #header>
+        <tr>
+          <th scope="col" class="bg-primary! text-primary-foreground!">RFID Tag</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Assigned Truck</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Status</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Last Event</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Events</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Registered</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!"><span class="sr-only">Action</span></th>
+        </tr>
+      </ng-template>
+
+      <ng-template #body let-tag>
+        <tr>
+          <td>
+            <div class="flex items-center gap-3">
+              <p-avatar
+                [label]="epcInitials(tag)"
+                shape="circle"
+                [style]="{ background: 'var(--p-primary-100)', color: 'var(--p-primary-800)', fontWeight: '600' }"
+              />
+              <span class="font-medium font-mono text-sm">{{ tag.epcId }}</span>
+            </div>
+          </td>
+          <td>
+            @if (tag.assignedTruck) {
+              <div class="flex flex-col">
+                <span class="font-medium">{{ tag.assignedTruck.plateNumber }}</span>
+                <span class="text-xs text-body/60">{{ tag.assignedTruck.model }}</span>
+              </div>
+            } @else {
+              -
+            }
+          </td>
+          <td>
+            <p-tag [value]="tag.status" [severity]="statusSeverity(tag.status)" />
+          </td>
+          <!--
+            TODO(backend): "Last Event" is not yet available on GET /api/v1/rfid-tags.
+            The API does not return the most recent GateEvent.occurredAt for a tag.
+            Hardcoded to "-" until the backend exposes this field. Confirmed OK to
+            ship as-is for this PR (see review discussion).
+          -->
+          <td>-</td>
+          <!--
+            TODO(backend): "Events" count is not yet available on GET /api/v1/rfid-tags.
+            The API does not return a gateEvents count (e.g. via Prisma `_count`).
+            Hardcoded to "0" until the backend exposes this field. Confirmed OK to
+            ship as-is for this PR (see review discussion).
+          -->
+          <td>0</td>
+          <td class="text-sm text-body/60">{{ tag.createdAt | date: 'mediumDate' }}</td>
+          <td>
+            <!--
+              TODO(backend/frontend): No GET /rfid-tags/:id detail route or page exists yet.
+              Button is intentionally disabled until the detail view is implemented.
+              Confirmed OK to ship as-is for this PR (see review discussion).
+            -->
+            <button
+              disabled
+              aria-label="Open details"
+              class="px-3 py-1 text-xs rounded border border-border text-body/40 cursor-not-allowed"
+            >
+              Open
+            </button>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="7">
+            <div class="flex flex-col items-center justify-center py-14" style="color: var(--p-primary-200)">
+              <i class="pi pi-tag text-4xl mb-3" aria-hidden="true"></i>
+              <p class="text-sm">No RFID tags found.</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <p-paginator
+      [first]="(page() - 1) * limit()"
+      [rows]="limit()"
+      [totalRecords]="total()"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      (onPageChange)="onPageChange($event)"
+    />
+  }
+</main>
