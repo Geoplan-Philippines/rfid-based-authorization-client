@@ -24,6 +24,13 @@ import { RfidTag, RfidTagStatus } from './types/rfid-tags.types';
   host: { class: 'flex flex-1 overflow-hidden' },
 })
 export class RfidTags implements OnInit {
+  private static readonly STATUS_SEVERITY: Record<RfidTagStatus, 'success' | 'warn' | 'danger'> = {
+    ACTIVE: 'success',
+    INACTIVE: 'warn',
+    BLOCKED: 'danger',
+    LOST: 'warn',
+  };
+
   private rfidTagService = inject(RfidTagService);
   private destroyRef = inject(DestroyRef);
   private pageRequest$ = new Subject<{ page: number; limit: number }>();
@@ -68,16 +75,10 @@ export class RfidTags implements OnInit {
   }
 
   statusSeverity(status: RfidTagStatus): 'success' | 'warn' | 'danger' {
-    const map: Record<RfidTagStatus, 'success' | 'warn' | 'danger'> = {
-      ACTIVE: 'success',
-      INACTIVE: 'warn',
-      BLOCKED: 'danger',
-      LOST: 'warn',
-    };
-    return map[status];
+    return RfidTags.STATUS_SEVERITY[status];
   }
 
-  epcInitials(tag: RfidTag): string {
-    return tag.epcId.replace(/[^a-zA-Z0-9]/g, '').slice(0, 2).toUpperCase();
+  epcInitials(epcId: string): string {
+    return epcId.replace(/[^a-zA-Z0-9]/g, '').slice(0, 2).toUpperCase();
   }
 }

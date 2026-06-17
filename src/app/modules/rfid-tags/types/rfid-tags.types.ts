@@ -20,8 +20,8 @@ export type RfidTag = {
   id: string;
   epcId: string;
   status: RfidTagStatus;
-  assignedTruckId: string;
-  assignedTruck: AssignedTruck;
+  assignedTruckId: string | null;
+  assignedTruck: AssignedTruck | null;
   createdAt: string;
   updatedAt: string;
 };
