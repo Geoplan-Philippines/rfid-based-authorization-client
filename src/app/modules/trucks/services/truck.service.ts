@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
 import { Truck } from '../types/truck.types';
@@ -11,14 +11,7 @@ interface TrucksMeta {
   limit: number;
   lastPage: number;
 }
-interface TrucksResponse {
-  statusCode: number;
-  message: string;
-  data: {
-    data: Truck[];
-    meta: TrucksMeta;
-  };
-}
+
 interface TrucksPage {
   data: Truck[];
   meta: TrucksMeta;
@@ -30,9 +23,6 @@ export class TruckService {
   private readonly TRUCKS_URL = `${environment.apiBaseUrl}/trucks`;
 
   getTrucks(page: number = 1, limit: number = 10): Observable<TrucksPage> {
-    return this.http
-      .get<TrucksResponse>(this.TRUCKS_URL, { params: { page, limit } })
-      .pipe(map(response => response.data));
+    return this.http.get<TrucksPage>(this.TRUCKS_URL, { params: { page, limit } });
   }
 }
- 

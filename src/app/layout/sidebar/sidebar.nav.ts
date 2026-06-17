@@ -31,6 +31,7 @@ export const NAV_SECTIONS: readonly NavSection[] = [
     items: [
       { label: 'Drivers', route: '/drivers', icon: 'pi-id-card' },
       { label: 'Trucks', route: '/trucks', icon: 'pi-truck' },
+      { label: 'RFID Tags', route: '/rfid-tags', icon: 'pi-tags' },
     ],
   },
   {
