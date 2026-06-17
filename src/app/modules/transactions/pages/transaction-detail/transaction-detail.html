@@ -1,0 +1,261 @@
+<main class="flex flex-col w-full p-6 overflow-auto">
+  <a routerLink="/transactions" class="inline-flex items-center gap-1 text-sm text-body/60 hover:text-primary mb-4 w-fit">
+    <i class="pi pi-chevron-left text-xs" aria-hidden="true"></i> Back to transactions
+  </a>
+
+  @if (loading()) {
+    <div class="flex justify-center py-14">
+      <p-progressSpinner [style]="{ width: '42px', height: '42px' }" aria-label="Loading transaction" />
+    </div>
+  } @else if (notFound()) {
+    <div class="flex flex-col items-center justify-center py-16 text-center" role="alert">
+      <i class="pi pi-search text-4xl mb-3" style="color: var(--p-primary-200)" aria-hidden="true"></i>
+      <p class="text-heading font-medium">Transaction not found</p>
+      <p class="text-sm text-body/50 mt-1">It may have been removed or the link is incorrect.</p>
+    </div>
+  } @else if (error()) {
+    <div class="flex items-center gap-2 p-4 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm" role="alert">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <span>{{ error() }}</span>
+    </div>
+  } @else if (transaction(); as tx) {
+    <!-- Hero -->
+    <header class="mb-6">
+      <div class="flex flex-wrap items-center gap-3">
+        <h1 class="text-2xl font-bold font-mono" style="color: var(--text-heading)">{{ tx.eventCode }}</h1>
+        <p-tag [value]="resultTag(tx.result).label" [severity]="resultTag(tx.result).severity" />
+        @if (tx.isOpen) {
+          <p-tag value="In progress" severity="info" />
+        }
+      </div>
+      <p class="text-sm text-body/50 mt-1">{{ tx.occurredAt | date: 'medium' }}</p>
+    </header>
+
+    <!-- Timeline: fixed gate pipeline, left to right; unreached stages greyed out. -->
+    <section class="rounded-xl border border-border bg-white p-5 mb-6">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
+        <h2 class="text-xs font-semibold uppercase tracking-wide text-body/60">Timeline</h2>
+        @if (totalDuration(); as duration) {
+          <span class="text-xs text-body/50">total <span class="font-semibold text-heading">{{ duration }}</span></span>
+        }
+      </div>
+
+      @if (steps().length) {
+        <div class="overflow-x-auto pb-1">
+          <ol class="flex items-start min-w-max">
+            @for (step of steps(); track step.type; let last = $last) {
+              <li class="flex items-start">
+                <div class="flex flex-col items-center text-center px-1" style="width: 116px">
+                  <span
+                    class="flex items-center justify-center w-9 h-9 rounded-full shrink-0"
+                    [style.background]="stepCircleColor(step.state)"
+                    [style.color]="stepIconColor(step.state)"
+                  >
+                    <i [class]="stepIconClass(step)" aria-hidden="true"></i>
+                  </span>
+                  <span class="sr-only">{{ step.state === 'done' ? 'Completed' : step.state === 'failed' ? 'Failed' : 'Not reached' }}</span>
+                  <p [class]="step.state === 'pending' ? 'mt-2 text-xs text-body/40' : 'mt-2 text-xs font-medium text-heading'">{{ step.label }}</p>
+                  @if (step.occurredAt) {
+                    <p class="text-[10px] text-body/40 font-mono mt-0.5">{{ step.occurredAt | date: 'HH:mm:ss.SSS' }}</p>
+                  }
+                  @if (step.message) {
+                    <p class="text-[10px] text-body/50 mt-0.5 leading-tight">{{ step.message }}</p>
+                  } @else if (step.state === 'failed') {
+                    <p class="text-[10px] mt-0.5" style="color: var(--destructive)">failed</p>
+                  }
+                </div>
+                @if (!last) {
+                  <span class="h-0.5 w-6 sm:w-10 shrink-0 mt-[18px]" [style.background]="step.connectorColor" aria-hidden="true"></span>
+                }
+              </li>
+            }
+          </ol>
+        </div>
+
+        @if (overrideNote(); as note) {
+          <p class="flex items-center gap-2 text-xs mt-4 pt-3 border-t border-border" style="color: var(--destructive)">
+            <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+            <span>Manual override — {{ note }}</span>
+          </p>
+        }
+      } @else {
+        <p class="text-sm text-body/50">No timeline events.</p>
+      }
+    </section>
+
+    <!-- Verification -->
+    @if (tx.verification; as v) {
+      <section class="rounded-xl border border-border bg-white p-5 mb-6">
+        <h2 class="text-xs font-semibold uppercase tracking-wide text-body/60 mb-4">Verification</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <p class="text-xs text-body/50 mb-1">RFID matched</p>
+            <p-tag [value]="matchTag(v.rfidMatched).label" [severity]="matchTag(v.rfidMatched).severity" />
+          </div>
+          <div>
+            <p class="text-xs text-body/50 mb-1">Plate matched</p>
+            <p-tag [value]="matchTag(v.plateMatched).label" [severity]="matchTag(v.plateMatched).severity" />
+            @if (tx.plateRead && tx.truck) {
+              <p class="text-sm mt-1.5">
+                <span class="font-mono" [style.color]="tx.plateMismatch ? 'var(--destructive)' : 'inherit'">{{ tx.plateRead }}</span>
+                <span class="text-body/40"> {{ tx.plateMismatch ? '≠' : '=' }} </span>
+                <span class="font-mono">{{ tx.truck.plateNumber }}</span>
+              </p>
+            }
+          </div>
+          <div>
+            <p class="text-xs text-body/50 mb-1">Face matched</p>
+            <p-tag [value]="matchTag(v.faceMatched).label" [severity]="matchTag(v.faceMatched).severity" />
+          </div>
+        </div>
+
+        @if (v.plateConfidence !== null || v.faceConfidence !== null) {
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
+            @if (v.plateConfidence !== null) {
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="text-body/50">Plate confidence</span>
+                  <span class="font-medium">{{ confidencePct(v.plateConfidence) }}%</span>
+                </div>
+                <p-progressBar [value]="confidencePct(v.plateConfidence)" [showValue]="false" [style]="{ height: '8px' }" />
+              </div>
+            }
+            @if (v.faceConfidence !== null) {
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="text-body/50">Face confidence</span>
+                  <span class="font-medium">{{ confidencePct(v.faceConfidence) }}%</span>
+                </div>
+                <p-progressBar [value]="confidencePct(v.faceConfidence)" [showValue]="false" [style]="{ height: '8px' }" />
+              </div>
+            }
+          </div>
+        }
+
+        <p class="text-xs text-body/40 mt-4">Verified at {{ v.verifiedAt | date: 'medium' }}</p>
+      </section>
+    }
+
+    <!-- Entity cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <section class="rounded-xl border border-border bg-white p-5">
+        <h3 class="text-sm font-semibold text-heading mb-3 flex items-center gap-2">
+          <i class="pi pi-tag text-body/40" aria-hidden="true"></i> RFID Tag
+        </h3>
+        @if (tx.rfidTag; as tag) {
+          <dl class="space-y-2 text-sm">
+            <div>
+              <dt class="text-body/50 text-xs">EPC</dt>
+              <dd class="font-mono">{{ tag.epcId }}</dd>
+            </div>
+            <div class="flex items-center gap-2">
+              <dt class="text-body/50 text-xs">Status</dt>
+              <dd><p-tag [value]="tagStatusTag(tag.status).label" [severity]="tagStatusTag(tag.status).severity" /></dd>
+            </div>
+            @if (tag.assignedTruckPlate) {
+              <div>
+                <dt class="text-body/50 text-xs">Assigned to</dt>
+                <dd class="font-mono">{{ tag.assignedTruckPlate }}</dd>
+              </div>
+            }
+          </dl>
+        } @else {
+          <p class="text-sm text-body/40 italic">No tag recorded.</p>
+        }
+      </section>
+
+      <section class="rounded-xl border border-border bg-white p-5">
+        <h3 class="text-sm font-semibold text-heading mb-3 flex items-center gap-2">
+          <i class="pi pi-truck text-body/40" aria-hidden="true"></i> Truck
+        </h3>
+        @if (tx.truck; as truck) {
+          <dl class="space-y-2 text-sm">
+            <div>
+              <dt class="text-body/50 text-xs">Plate number</dt>
+              <dd class="font-mono">{{ truck.plateNumber }}</dd>
+            </div>
+            <div>
+              <dt class="text-body/50 text-xs">Model</dt>
+              <dd>{{ truck.model }}</dd>
+            </div>
+            <div>
+              <dt class="text-body/50 text-xs">Assigned driver</dt>
+              <dd>
+                @if (truck.assignedDriver; as d) {
+                  {{ d.firstName }} {{ d.lastName }}
+                } @else {
+                  <span class="text-body/40">—</span>
+                }
+              </dd>
+            </div>
+          </dl>
+        } @else {
+          <p class="text-sm text-body/40 italic">Not in registry.</p>
+        }
+      </section>
+
+      <section class="rounded-xl border border-border bg-white p-5">
+        <h3 class="text-sm font-semibold text-heading mb-3 flex items-center gap-2">
+          <i class="pi pi-id-card text-body/40" aria-hidden="true"></i> Driver
+        </h3>
+        @if (tx.driver; as driver) {
+          <p class="font-medium text-heading">{{ driver.firstName }} {{ driver.lastName }}</p>
+          <div class="mt-2">
+            @if (tx.faceMatchesAssigned) {
+              <p-tag value="Matches assigned driver" severity="success" />
+            } @else {
+              <p-tag value="Differs from assigned driver" severity="warn" />
+            }
+          </div>
+        } @else {
+          <p class="text-sm text-body/40 italic">No driver identified.</p>
+        }
+      </section>
+    </div>
+
+    <!-- Snapshots -->
+    <section class="rounded-xl border border-border bg-white p-5 mb-6">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <h2 class="text-xs font-semibold uppercase tracking-wide text-body/60">Snapshots</h2>
+        <div class="flex gap-1" role="group" aria-label="Filter snapshots by type">
+          @for (filter of snapshotFilters; track filter) {
+            <p-button
+              [label]="filter === 'ALL' ? 'All' : snapshotLabel(filter)"
+              size="small"
+              severity="secondary"
+              [text]="snapshotFilter() !== filter"
+              (onClick)="setSnapshotFilter(filter)"
+              [attr.aria-pressed]="snapshotFilter() === filter"
+            />
+          }
+        </div>
+      </div>
+
+      @if (filteredSnapshots().length) {
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          @for (snapshot of filteredSnapshots(); track snapshot.id) {
+            <figure>
+              <div class="relative aspect-video rounded-lg border border-border bg-foreground/5 overflow-hidden flex items-center justify-center">
+                <i class="pi pi-image text-2xl text-body/20" aria-hidden="true"></i>
+                <img
+                  [src]="snapshot.imageUrl"
+                  [alt]="snapshotLabel(snapshot.type) + ' snapshot'"
+                  width="320"
+                  height="180"
+                  class="absolute inset-0 w-full h-full object-cover"
+                  (error)="onImageError($event)"
+                />
+                <span class="absolute top-1.5 left-1.5">
+                  <p-tag [value]="snapshotLabel(snapshot.type)" severity="contrast" />
+                </span>
+              </div>
+              <figcaption class="text-xs text-body/50 mt-1 font-mono truncate">{{ fileName(snapshot.imageUrl) }}</figcaption>
+            </figure>
+          }
+        </div>
+      } @else {
+        <p class="text-sm text-body/50">No snapshots for this filter.</p>
+      }
+    </section>
+  }
+</main>

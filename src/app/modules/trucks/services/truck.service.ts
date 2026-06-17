@@ -3,36 +3,17 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
+import { ApiResponse, PaginatedResult } from '../../../core/types/api-response.types';
 import { Truck } from '../types/truck.types';
-
-interface TrucksMeta {
-  total: number;
-  page: number;
-  limit: number;
-  lastPage: number;
-}
-interface TrucksResponse {
-  statusCode: number;
-  message: string;
-  data: {
-    data: Truck[];
-    meta: TrucksMeta;
-  };
-}
-interface TrucksPage {
-  data: Truck[];
-  meta: TrucksMeta;
-}
 
 @Injectable({ providedIn: 'root' })
 export class TruckService {
   private http = inject(HttpClient);
   private readonly TRUCKS_URL = `${environment.apiBaseUrl}/trucks`;
 
-  getTrucks(page: number = 1, limit: number = 10): Observable<TrucksPage> {
+  getTrucks(page: number = 1, limit: number = 10): Observable<PaginatedResult<Truck>> {
     return this.http
-      .get<TrucksResponse>(this.TRUCKS_URL, { params: { page, limit } })
-      .pipe(map(response => response.data));
+      .get<ApiResponse<Truck[]>>(this.TRUCKS_URL, { params: { page, limit } })
+      .pipe(map(({ data, meta }) => ({ data, meta: meta! })));
   }
 }
- 

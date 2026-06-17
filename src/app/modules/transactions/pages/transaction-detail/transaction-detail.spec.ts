@@ -1,20 +1,21 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 
-import { Drivers } from './drivers';
+import { TransactionDetail } from './transaction-detail';
 
-describe('Drivers', () => {
-  let component: Drivers;
-  let fixture: ComponentFixture<Drivers>;
+describe('TransactionDetail', () => {
+  let component: TransactionDetail;
+  let fixture: ComponentFixture<TransactionDetail>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Drivers],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      imports: [TransactionDetail],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(Drivers);
+    fixture = TestBed.createComponent(TransactionDetail);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
