@@ -2,19 +2,19 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 
-import { Drivers } from './drivers';
+import { RfidTags } from './rfid-tags';
 
-describe('Drivers', () => {
-  let component: Drivers;
-  let fixture: ComponentFixture<Drivers>;
+describe('RfidTags', () => {
+  let component: RfidTags;
+  let fixture: ComponentFixture<RfidTags>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Drivers],
+      imports: [RfidTags],
       providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(Drivers);
+    fixture = TestBed.createComponent(RfidTags);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

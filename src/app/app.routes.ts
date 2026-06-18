@@ -60,5 +60,13 @@ export const routes: Routes = [
       { path: '', loadComponent: () => import('./modules/trucks/trucks').then(m => m.Trucks) }
     ]
   },
+  {
+    path: 'rfid-tags',
+    component: MainLayout,
+    canActivate: [authGuard],
+    children: [
+      { path: '', loadComponent: () => import('./modules/rfid-tags/rfid-tags').then(m => m.RfidTags) }
+    ]
+  },
   { path: '**', redirectTo: 'dashboard' }
 ];
