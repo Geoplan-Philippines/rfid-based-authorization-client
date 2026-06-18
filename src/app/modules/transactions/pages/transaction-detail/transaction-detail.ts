@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { switchMap } from 'rxjs';
+import { EMPTY, catchError, switchMap } from 'rxjs';
 
 import { TagModule } from 'primeng/tag';
 import { ProgressBarModule } from 'primeng/progressbar';
@@ -75,7 +75,12 @@ export class TransactionDetail implements OnInit {
     const tx = this.transaction();
     if (!tx) return [];
 
-    const byType = new Map(tx.timeline.map(event => [event.type, event] as const));
+    // Each type is expected at most once; if the backend emits duplicates (retries),
+    // keep the first occurrence deterministically rather than relying on Map last-wins.
+    const byType = new Map<TimelineEventType, (typeof tx.timeline)[number]>();
+    for (const event of tx.timeline) {
+      if (!byType.has(event.type)) byType.set(event.type, event);
+    }
     const reached = (type: TimelineEventType): boolean => byType.has(type);
 
     const stateFor = (type: TimelineEventType): StepState => {
@@ -117,6 +122,7 @@ export class TransactionDetail implements OnInit {
     if (!tx || tx.timeline.length < 2) return null;
     const times = tx.timeline.map(event => new Date(event.occurredAt).getTime());
     const ms = Math.max(...times) - Math.min(...times);
+    if (!Number.isFinite(ms)) return null;
     return `${(ms / 1000).toFixed(3)}s`;
   });
 
@@ -129,27 +135,35 @@ export class TransactionDetail implements OnInit {
   ngOnInit(): void {
     this.route.paramMap
       .pipe(
+        // catchError lives on the inner observable so a load failure never terminates the
+        // outer paramMap stream — navigating to another :id keeps working after an error.
         switchMap(params => {
           this.loading.set(true);
           this.error.set(null);
           this.notFound.set(false);
-          return this.transactionService.getTransactionById(params.get('id') ?? '');
+          const id = params.get('id');
+          if (!id) {
+            this.loading.set(false);
+            this.notFound.set(true);
+            return EMPTY;
+          }
+          return this.transactionService.getTransactionById(id).pipe(
+            catchError((err: HttpErrorResponse) => {
+              this.loading.set(false);
+              if (err.status === 404) {
+                this.notFound.set(true);
+              } else {
+                this.error.set('Failed to load transaction. Please try again.');
+              }
+              return EMPTY;
+            })
+          );
         }),
         takeUntilDestroyed(this.destroyRef)
       )
-      .subscribe({
-        next: tx => {
-          this.transaction.set(tx);
-          this.loading.set(false);
-        },
-        error: (err: HttpErrorResponse) => {
-          this.loading.set(false);
-          if (err.status === 404) {
-            this.notFound.set(true);
-          } else {
-            this.error.set('Failed to load transaction. Please try again.');
-          }
-        },
+      .subscribe(tx => {
+        this.transaction.set(tx);
+        this.loading.set(false);
       });
   }
 

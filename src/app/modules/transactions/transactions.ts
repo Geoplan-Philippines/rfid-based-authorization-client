@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, injec
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Subject, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
+import { EMPTY, Subject, catchError, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
@@ -81,36 +81,41 @@ export class Transactions implements OnInit {
 
     return [
       { value: 'ALL', label: 'All', severity: 'secondary', count: allCount },
-      ...RESULT_FILTER_ORDER.map<ResultChip>(result => ({
-        value: result,
-        label: resultTag(result).label,
-        severity: resultTag(result).severity,
-        count: counts?.[result] ?? 0,
-      })),
+      ...RESULT_FILTER_ORDER.map<ResultChip>(result => {
+        const tag = resultTag(result);
+        return {
+          value: result,
+          label: tag.label,
+          severity: tag.severity,
+          count: counts?.[result] ?? 0,
+        };
+      }),
     ];
   });
 
   ngOnInit(): void {
     this.pageRequest$
       .pipe(
+        // catchError lives on the inner observable so a request failure never terminates
+        // the outer pageRequest$ stream — subsequent loads keep working.
         switchMap(params => {
           this.loading.set(true);
           this.error.set(null);
-          return this.transactionService.getTransactions(params);
+          return this.transactionService.getTransactions(params).pipe(
+            catchError(() => {
+              this.error.set('Failed to load transactions. Please try again.');
+              this.loading.set(false);
+              return EMPTY;
+            })
+          );
         }),
         takeUntilDestroyed(this.destroyRef)
       )
-      .subscribe({
-        next: ({ data, meta }) => {
-          this.transactions.set(data);
-          this.total.set(meta.total);
-          this.counts.set(meta.counts);
-          this.loading.set(false);
-        },
-        error: () => {
-          this.error.set('Failed to load transactions. Please try again.');
-          this.loading.set(false);
-        },
+      .subscribe(({ data, meta }) => {
+        this.transactions.set(data);
+        this.total.set(meta.total);
+        this.counts.set(meta.counts);
+        this.loading.set(false);
       });
 
     this.searchInput$
