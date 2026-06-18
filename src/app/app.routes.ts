@@ -20,6 +20,15 @@ export const routes: Routes = [
     ]
   },
   {
+    path: 'transactions',
+    component: MainLayout,
+    canActivate: [authGuard],
+    children: [
+      { path: '', loadComponent: () => import('./modules/transactions/transactions').then(m => m.Transactions) },
+      { path: ':id', loadComponent: () => import('./modules/transactions/pages/transaction-detail/transaction-detail').then(m => m.TransactionDetail) }
+    ]
+  },
+  {
     path: 'reports',
     component: MainLayout,
     canActivate: [authGuard],

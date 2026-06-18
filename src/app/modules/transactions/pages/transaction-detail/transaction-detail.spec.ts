@@ -3,19 +3,19 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 
-import { Transactions } from './transactions';
+import { TransactionDetail } from './transaction-detail';
 
-describe('Transactions', () => {
-  let component: Transactions;
-  let fixture: ComponentFixture<Transactions>;
+describe('TransactionDetail', () => {
+  let component: TransactionDetail;
+  let fixture: ComponentFixture<TransactionDetail>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Transactions],
+      imports: [TransactionDetail],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(Transactions);
+    fixture = TestBed.createComponent(TransactionDetail);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

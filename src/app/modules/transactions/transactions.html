@@ -1,3 +1,151 @@
-<main class="p-4 md:p-8">
-  <a href="">ace</a>
+<main class="flex flex-col w-full p-6 overflow-auto">
+  <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-bold" style="color: var(--text-heading)">Transactions</h1>
+      <p class="text-sm text-body/60 mt-1">Gate events captured at the RFID lane.</p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <p-iconfield>
+        <p-inputicon class="pi pi-search" />
+        <input
+          pInputText
+          type="text"
+          [value]="search()"
+          (input)="onSearchInput($event)"
+          placeholder="Search event, EPC, plate…"
+          aria-label="Search transactions"
+          class="w-64"
+        />
+      </p-iconfield>
+      <!-- Export remains disabled: no export endpoint yet. -->
+      <p-button
+        label="Export CSV"
+        icon="pi pi-download"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="true"
+        title="Export — coming soon"
+      />
+    </div>
+  </div>
+
+  <!-- Result filters with live counts (server-side). -->
+  <div class="flex flex-wrap items-center gap-2 mb-4" role="group" aria-label="Filter by result">
+    @for (chip of resultChips(); track chip.value) {
+      <p-button
+        [label]="chip.label"
+        [badge]="chip.count.toString()"
+        size="small"
+        [severity]="chip.severity"
+        [outlined]="selectedResult() !== chip.value"
+        (onClick)="selectResult(chip.value)"
+        [attr.aria-pressed]="selectedResult() === chip.value"
+      />
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="flex justify-center py-14">
+      <p-progressSpinner [style]="{ width: '42px', height: '42px' }" aria-label="Loading transactions" />
+    </div>
+  } @else if (error()) {
+    <div class="flex items-center gap-2 p-4 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm" role="alert">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <span>{{ error() }}</span>
+    </div>
+  } @else {
+    <p-table [value]="transactions()" styleClass="w-full">
+      <ng-template #header>
+        <tr>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Occurred At</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Event Code</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Result</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">RFID Tag (EPC)</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Plate Read</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Truck</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Driver</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!"><span class="sr-only">Action</span></th>
+        </tr>
+      </ng-template>
+
+      <ng-template #body let-tx>
+        <tr class="cursor-pointer hover:bg-foreground/5" (click)="openTransaction(tx.id)">
+          <td class="whitespace-nowrap">{{ tx.occurredAt | date: 'MMM d, HH:mm:ss' }}</td>
+          <td class="font-mono text-sm">{{ tx.eventCode }}</td>
+          <td>
+            <p-tag [value]="resultTag(tx.result).label" [severity]="resultTag(tx.result).severity" />
+          </td>
+          <td>
+            @if (tx.rfidTag) {
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-sm">{{ tx.rfidTag.epcId }}</span>
+                <p-tag [value]="tagStatusTag(tx.rfidTag.status).label" [severity]="tagStatusTag(tx.rfidTag.status).severity" />
+              </div>
+            } @else {
+              <span class="text-body/40">—</span>
+            }
+          </td>
+          <td>
+            @if (tx.plateRead) {
+              @if (tx.plateMismatch) {
+                <span class="font-medium" style="color: var(--destructive)">{{ tx.plateRead }}</span>
+                @if (tx.truck) {
+                  <span class="text-body/40 text-sm"> ≠ {{ tx.truck.plateNumber }}</span>
+                }
+              } @else {
+                <span>{{ tx.plateRead }}</span>
+              }
+            } @else {
+              <span class="text-body/40">—</span>
+            }
+          </td>
+          <td>
+            @if (tx.truck) {
+              <span>{{ tx.truck.model }}</span>
+              <span class="text-body/40 text-sm"> · {{ tx.truck.plateNumber }}</span>
+            } @else {
+              <span class="text-body/40 italic">not in registry</span>
+            }
+          </td>
+          <td>
+            @if (tx.driver) {
+              {{ tx.driver.firstName }} {{ tx.driver.lastName }}
+            } @else {
+              <span class="text-body/40">—</span>
+            }
+          </td>
+          <td class="text-right">
+            <button
+              type="button"
+              class="p-2 rounded text-body/50 hover:text-primary hover:bg-primary/10"
+              [attr.aria-label]="'View transaction ' + tx.eventCode"
+              (click)="$event.stopPropagation(); openTransaction(tx.id)"
+            >
+              <i class="pi pi-chevron-right" aria-hidden="true"></i>
+            </button>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="8">
+            <div class="flex flex-col items-center justify-center py-14" style="color: var(--p-primary-200)">
+              <i class="pi pi-receipt text-4xl mb-3" aria-hidden="true"></i>
+              <p class="text-sm">No transactions found.</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <p-paginator
+      [first]="(page() - 1) * limit()"
+      [rows]="limit()"
+      [totalRecords]="total()"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      (onPageChange)="onPageChange($event)"
+    />
+  }
 </main>
