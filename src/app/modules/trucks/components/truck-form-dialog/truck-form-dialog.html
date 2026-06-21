@@ -1,0 +1,68 @@
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  [style]="{ width: '32rem' }"
+  [breakpoints]="{ '640px': '92vw' }"
+  [header]="title"
+>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 pt-2">
+    <div class="flex flex-col gap-2">
+      <label for="truck-plate" class="font-medium text-sm">Plate number</label>
+      <input
+        pInputText
+        id="truck-plate"
+        formControlName="plateNumber"
+        placeholder="e.g. DEF-7710"
+        autocomplete="off"
+        class="w-full uppercase"
+        [class.ng-invalid]="form.controls.plateNumber.invalid && form.controls.plateNumber.touched"
+        [class.ng-dirty]="form.controls.plateNumber.invalid && form.controls.plateNumber.touched"
+      />
+      @if (form.controls.plateNumber.invalid && form.controls.plateNumber.touched) {
+        <small class="text-red-500">Plate number is required.</small>
+      }
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label for="truck-model" class="font-medium text-sm">Model</label>
+      <input
+        pInputText
+        id="truck-model"
+        formControlName="model"
+        placeholder="e.g. Volvo FH 460"
+        autocomplete="off"
+        class="w-full"
+        [class.ng-invalid]="form.controls.model.invalid && form.controls.model.touched"
+        [class.ng-dirty]="form.controls.model.invalid && form.controls.model.touched"
+      />
+      @if (form.controls.model.invalid && form.controls.model.touched) {
+        <small class="text-red-500">Model is required.</small>
+      }
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label for="truck-photo" class="font-medium text-sm">Photo <span class="text-body/50 font-normal">(optional)</span></label>
+      <div class="flex items-center gap-3">
+        @if (existingPhotoUrl()) {
+          <img [src]="existingPhotoUrl()" alt="Current truck photo" class="w-14 h-14 rounded-lg object-cover border border-border" />
+        }
+        <input
+          id="truck-photo"
+          type="file"
+          accept="image/*"
+          (change)="onFileSelected($event)"
+          class="text-sm"
+          aria-label="Truck photo"
+        />
+      </div>
+    </div>
+  </form>
+
+  <ng-template #footer>
+    <p-button label="Cancel" severity="secondary" [text]="true" (onClick)="visible.set(false)" />
+    <p-button label="Save" icon="pi pi-check" [loading]="saving()" (onClick)="submit()" />
+  </ng-template>
+</p-dialog>

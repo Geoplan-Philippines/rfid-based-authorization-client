@@ -1,0 +1,193 @@
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  [style]="{ width: '46rem' }"
+  [breakpoints]="{ '960px': '94vw' }"
+>
+  <ng-template #header>
+    @if (detail(); as tag) {
+      <div class="flex items-center gap-3">
+        <span class="text-xl font-bold text-heading font-mono">{{ tag.epcId }}</span>
+        <p-tag [value]="rfidTagStatusTag(tag.status).label" [severity]="rfidTagStatusTag(tag.status).severity" />
+      </div>
+    } @else {
+      <span class="text-xl font-bold text-heading">RFID Tag</span>
+    }
+  </ng-template>
+
+  @if (loading()) {
+    <div class="flex justify-center py-16">
+      <p-progressSpinner [style]="{ width: '42px', height: '42px' }" aria-label="Loading tag" />
+    </div>
+  } @else if (error()) {
+    <div class="flex items-center gap-2 p-4 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm" role="alert">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <span>{{ error() }}</span>
+    </div>
+  } @else if (detail(); as tag) {
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+      <!-- Left: facts + actions -->
+      <div class="flex flex-col gap-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="col-span-2">
+            <p class="text-xs uppercase tracking-wide text-body/50">Assigned truck</p>
+            @if (tag.assignedTruck; as truck) {
+              <p class="font-medium">{{ truck.plateNumber }} · {{ truck.model }}</p>
+            } @else {
+              <p class="text-body/40">—</p>
+            }
+          </div>
+          <div>
+            <p class="text-xs uppercase tracking-wide text-body/50">Bound since</p>
+            <p class="font-medium">{{ tag.boundSince | date: 'mediumDate' }}</p>
+          </div>
+          <div>
+            <p class="text-xs uppercase tracking-wide text-body/50">Last verified</p>
+            <p class="font-medium">{{ tag.lastVerifiedAt ? (tag.lastVerifiedAt | date: 'medium') : '—' }}</p>
+          </div>
+          <div>
+            <p class="text-xs uppercase tracking-wide text-body/50">Last seen</p>
+            <p class="font-medium">{{ tag.lastSeenAt ? (tag.lastSeenAt | date: 'medium') : '—' }}</p>
+          </div>
+          <div>
+            <p class="text-xs uppercase tracking-wide text-body/50">Last result</p>
+            @if (tag.lastResult) {
+              <p-tag [value]="gateResultTag(tag.lastResult).label" [severity]="gateResultTag(tag.lastResult).severity" />
+            } @else {
+              <p class="text-body/40">—</p>
+            }
+          </div>
+          <div>
+            <p class="text-xs uppercase tracking-wide text-body/50">Events · 30d</p>
+            <p class="font-medium">{{ tag.events30d }}</p>
+          </div>
+          <div>
+            <p class="text-xs uppercase tracking-wide text-body/50">Denials · 7d</p>
+            <p class="font-medium">{{ tag.denials7d }}</p>
+          </div>
+        </div>
+
+        <div class="border-t border-border pt-4">
+          <p class="text-sm font-semibold text-heading mb-2">Change status</p>
+          <input
+            pInputText
+            type="text"
+            [value]="reason()"
+            (input)="onReasonInput($event)"
+            placeholder="Reason (optional, e.g. reported stolen)"
+            aria-label="Status change reason"
+            class="w-full mb-3 text-sm"
+          />
+          <div class="flex flex-wrap gap-2">
+            @for (action of availableActions(); track action.status) {
+              <p-button
+                [label]="action.label"
+                [icon]="action.icon"
+                size="small"
+                [outlined]="true"
+                [severity]="action.destructive ? 'danger' : 'secondary'"
+                [disabled]="busy()"
+                (onClick)="changeStatus(action)"
+              />
+            }
+          </div>
+          <div class="mt-3">
+            <p-button
+              label="Re-bind to another truck"
+              icon="pi pi-link"
+              size="small"
+              [text]="true"
+              [disabled]="busy()"
+              (onClick)="openRebind()"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: status history -->
+      <div class="flex flex-col">
+        <h3 class="text-sm font-semibold text-heading mb-3">Status history</h3>
+        <ol class="flex flex-col gap-3">
+          @for (entry of tag.statusHistory; track $index) {
+            <li class="flex gap-3">
+              <div class="flex flex-col items-center">
+                <span
+                  class="w-2.5 h-2.5 rounded-full mt-1.5"
+                  [style.background]="'var(--p-primary-500)'"
+                  aria-hidden="true"
+                ></span>
+                @if (!$last) {
+                  <span class="w-px flex-1 bg-border"></span>
+                }
+              </div>
+              <div class="pb-1">
+                <p class="text-sm">
+                  @if (entry.fromStatus) {
+                    <span class="text-body/60">{{ rfidTagStatusTag(entry.fromStatus).label }} →</span>
+                  }
+                  <span class="font-medium">{{ rfidTagStatusTag(entry.toStatus).label }}</span>
+                  @if (entry.reason) {
+                    <span class="text-body/60"> ({{ entry.reason }})</span>
+                  }
+                </p>
+                <p class="text-xs text-body/50">{{ entry.createdAt | date: 'medium' }}</p>
+              </div>
+            </li>
+          } @empty {
+            <p class="text-sm text-body/50 italic">No status changes recorded.</p>
+          }
+        </ol>
+      </div>
+    </div>
+  }
+
+  <ng-template #footer>
+    <p-button label="Close" severity="secondary" [text]="true" (onClick)="visible.set(false)" />
+  </ng-template>
+</p-dialog>
+
+<!-- Re-bind sub-dialog -->
+<p-dialog
+  [(visible)]="rebindVisible"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  [style]="{ width: '28rem' }"
+  [breakpoints]="{ '640px': '92vw' }"
+  header="Re-bind tag"
+>
+  <div class="flex flex-col gap-2 pt-2">
+    <label for="rebind-truck" class="font-medium text-sm">New truck</label>
+    <p-select
+      inputId="rebind-truck"
+      [options]="rebindOptions()"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="rebindTruckId()"
+      (ngModelChange)="rebindTruckId.set($event)"
+      [filter]="true"
+      filterBy="label"
+      [loading]="loadingTrucks()"
+      placeholder="Select a truck without a tag"
+      emptyMessage="No untagged trucks available"
+      styleClass="w-full"
+      appendTo="body"
+    />
+    <small class="text-body/50">Only trucks without a tag are listed.</small>
+  </div>
+
+  <ng-template #footer>
+    <p-button label="Cancel" severity="secondary" [text]="true" (onClick)="rebindVisible.set(false)" />
+    <p-button
+      label="Re-bind"
+      icon="pi pi-link"
+      [loading]="busy()"
+      [disabled]="!rebindTruckId()"
+      (onClick)="confirmRebind()"
+    />
+  </ng-template>
+</p-dialog>

@@ -5,7 +5,7 @@ import { loginGuard } from './core/auth/login.guard';
 import { MainLayout } from './layout/main-layout/main-layout';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+  { path: '', redirectTo: 'transactions', pathMatch: 'full' },
   {
     path: 'auth/login',
     loadComponent: () => import('./modules/auth/auth').then(m => m.Auth),
@@ -68,5 +68,5 @@ export const routes: Routes = [
       { path: '', loadComponent: () => import('./modules/rfid-tags/rfid-tags').then(m => m.RfidTags) }
     ]
   },
-  { path: '**', redirectTo: 'dashboard' }
+  { path: '**', redirectTo: 'transactions' }
 ];

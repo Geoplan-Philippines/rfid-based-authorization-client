@@ -1,0 +1,168 @@
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  [style]="{ width: '60rem' }"
+  [breakpoints]="{ '960px': '94vw' }"
+>
+  <ng-template #header>
+    @if (detail(); as driver) {
+      <div class="flex flex-col">
+        <span class="text-xl font-bold text-heading">{{ driver.firstName }} {{ driver.lastName }}</span>
+        <span class="text-xs text-body/50 font-mono">drivers.id · {{ driver.id }}</span>
+      </div>
+    } @else {
+      <span class="text-xl font-bold text-heading">Driver</span>
+    }
+  </ng-template>
+
+  @if (loading()) {
+    <div class="flex justify-center py-16">
+      <p-progressSpinner [style]="{ width: '42px', height: '42px' }" aria-label="Loading driver" />
+    </div>
+  } @else if (error()) {
+    <div class="flex items-center gap-2 p-4 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm" role="alert">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <span>{{ error() }}</span>
+    </div>
+  } @else if (detail(); as driver) {
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+      <!-- Left: record -->
+      <div class="flex flex-col gap-4">
+        <div class="flex items-center gap-4">
+          <p-avatar
+            [label]="driver.photoUrl ? undefined : driver.firstName.charAt(0)"
+            [image]="resolvePhotoUrl(driver.photoUrl) ?? undefined"
+            shape="circle"
+            size="xlarge"
+            [style]="{ background: 'var(--p-primary-100)', color: 'var(--p-primary-800)', fontWeight: '600' }"
+          />
+          <div>
+            <p class="text-xs uppercase tracking-wide text-body/50">License #</p>
+            <p class="font-medium font-mono">{{ driver.licenseNumber }}</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-xs uppercase tracking-wide text-body/50">Events · 30d</p>
+            <p class="font-medium">{{ driver.events30d }}</p>
+          </div>
+          <div>
+            <p class="text-xs uppercase tracking-wide text-body/50">Denials · 30d</p>
+            <p class="font-medium">{{ driver.denials30d }}</p>
+          </div>
+          <div>
+            <p class="text-xs uppercase tracking-wide text-body/50">Last event</p>
+            <p class="font-medium">{{ driver.lastEventAt ? (driver.lastEventAt | date: 'medium') : '—' }}</p>
+          </div>
+          <div>
+            <p class="text-xs uppercase tracking-wide text-body/50">Added</p>
+            <p class="font-medium">{{ driver.createdAt | date: 'mediumDate' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: trucks + recent events -->
+      <div class="flex flex-col gap-5">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-sm font-semibold text-heading">
+              Cleared to drive <span class="text-body/50 font-normal">({{ driver.trucks.length }})</span>
+            </h3>
+            <p-button label="Assign truck" icon="pi pi-plus" size="small" (onClick)="openAssign()" />
+          </div>
+
+          <div class="flex flex-col gap-2">
+            @for (truck of driver.trucks; track truck.id) {
+              <div class="flex items-center gap-3 p-2 rounded-lg border border-border">
+                <div class="flex flex-col min-w-0 flex-1">
+                  <span class="font-medium truncate">{{ truck.plateNumber }} · {{ truck.model }}</span>
+                  <span class="text-xs text-body/60">
+                    @if (truck.tagEpc) {
+                      tag {{ truck.tagEpc }}
+                    } @else {
+                      no tag
+                    }
+                    · since {{ truck.since | date: 'mediumDate' }}
+                  </span>
+                </div>
+                @if (truck.tagStatus) {
+                  <p-tag [value]="rfidTagStatusTag(truck.tagStatus).label" [severity]="rfidTagStatusTag(truck.tagStatus).severity" />
+                }
+                <p-tag [value]="assignmentRoleTag(truck.role).label" [severity]="assignmentRoleTag(truck.role).severity" />
+                <p-button
+                  icon="pi pi-times"
+                  size="small"
+                  [text]="true"
+                  severity="danger"
+                  [disabled]="busy()"
+                  (onClick)="onUnassign({ id: truck.id, label: truck.plateNumber, role: truck.role })"
+                  [attr.aria-label]="'Unassign ' + truck.plateNumber"
+                />
+              </div>
+            } @empty {
+              <p class="text-sm text-body/50 italic py-2">No trucks assigned.</p>
+            }
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-sm font-semibold text-heading mb-2">Recent gate events</h3>
+          <div class="flex flex-col gap-1.5">
+            @for (event of driver.recentGateEvents; track event.id) {
+              <div class="flex items-center gap-2 text-sm">
+                <span class="text-body/60 whitespace-nowrap">{{ event.occurredAt | date: 'MMM d, HH:mm' }}</span>
+                @if (event.truckPlate) {
+                  <span class="truncate font-mono">{{ event.truckPlate }}</span>
+                }
+                <p-tag class="ml-auto" [value]="gateResultTag(event.result).label" [severity]="gateResultTag(event.result).severity" />
+              </div>
+            } @empty {
+              <p class="text-sm text-body/50 italic">No recent events.</p>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <ng-template #footer>
+    @if (detail(); as driver) {
+      <div class="flex items-center justify-between w-full">
+        <p-button
+          label="Archive driver"
+          icon="pi pi-inbox"
+          severity="danger"
+          [outlined]="true"
+          [disabled]="busy() || driver.isArchived"
+          (onClick)="confirmArchive()"
+        />
+        <div class="flex items-center gap-2">
+          <p-button label="Close" severity="secondary" [text]="true" (onClick)="visible.set(false)" />
+          <p-button label="Edit details" icon="pi pi-pencil" [outlined]="true" (onClick)="openEdit()" />
+        </div>
+      </div>
+    }
+  </ng-template>
+</p-dialog>
+
+@if (detail(); as driver) {
+  <app-driver-form-dialog [(visible)]="editVisible" mode="edit" [driver]="driver" (saved)="onEdited()" />
+
+  <app-assign-picker
+    [(visible)]="assignVisible"
+    header="Assign truck"
+    [subheader]="fullName() + ' ⇄ trucks'"
+    candidateLabel="All trucks"
+    assignedLabel="Cleared to drive"
+    emptyCandidatesText="No trucks found."
+    [assigned]="assignedTrucks()"
+    [loadCandidates]="truckCandidates"
+    [busy]="busy()"
+    (assign)="onAssign($event)"
+    (unassign)="onUnassign($event)"
+  />
+}
