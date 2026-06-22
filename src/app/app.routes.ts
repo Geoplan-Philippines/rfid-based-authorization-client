@@ -29,6 +29,14 @@ export const routes: Routes = [
     ]
   },
   {
+    path: 'audit',
+    component: MainLayout,
+    canActivate: [authGuard],
+    children: [
+      { path: '', loadComponent: () => import('./modules/audit-logs/audit-logs').then(m => m.AuditLogs) }
+    ]
+  },
+  {
     path: 'reports',
     component: MainLayout,
     canActivate: [authGuard],

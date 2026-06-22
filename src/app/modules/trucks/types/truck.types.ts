@@ -24,6 +24,13 @@ export interface TruckBoundTagSummary {
   status: RfidTagStatus;
 }
 
+/** Lightweight truck without a bound tag, for tag-registration pickers. */
+export interface UntaggedTruck {
+  id: string;
+  plateNumber: string;
+  model: string;
+}
+
 export interface TruckListItem {
   id: string;
   plateNumber: string;

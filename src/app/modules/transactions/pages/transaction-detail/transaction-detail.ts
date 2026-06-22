@@ -13,6 +13,7 @@ import { ButtonModule } from 'primeng/button';
 import { TransactionService } from '../../services/transaction.service';
 import { SnapshotType, TimelineEventType, TransactionDetail as TransactionDetailModel } from '../../types/transaction.types';
 import { DisplayTag, resultTag, snapshotLabel, tagStatusTag, timelineLabel } from '../../utils/transaction-display';
+import { resolvePhotoUrl } from '../../../../core/utils/photo-url';
 
 type SnapshotFilter = 'ALL' | SnapshotType;
 type StepState = 'done' | 'failed' | 'pending';
@@ -55,6 +56,7 @@ export class TransactionDetail implements OnInit {
   protected readonly resultTag = resultTag;
   protected readonly tagStatusTag = tagStatusTag;
   protected readonly snapshotLabel = snapshotLabel;
+  protected readonly resolvePhotoUrl = resolvePhotoUrl;
   protected readonly snapshotFilters: readonly SnapshotFilter[] = ['ALL', 'FACE', 'PLATE', 'WIDE'];
 
   transaction = signal<TransactionDetailModel | null>(null);

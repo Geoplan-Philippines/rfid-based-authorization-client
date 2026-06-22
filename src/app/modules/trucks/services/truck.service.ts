@@ -4,7 +4,7 @@ import { Observable, map } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
 import { ApiResponse } from '../../../core/types/api-response.types';
-import { Truck, TruckDetail, TruckListResult } from '../types/truck.types';
+import { Truck, TruckDetail, TruckListResult, UntaggedTruck } from '../types/truck.types';
 
 export interface GetTrucksParams {
   page: number;
@@ -29,6 +29,13 @@ export class TruckService {
     if (params.includeArchived) httpParams = httpParams.set('includeArchived', true);
 
     return this.http.get<TruckListResult>(this.TRUCKS_URL, { params: httpParams });
+  }
+
+  /** Active trucks with no bound RFID tag — for tag-registration pickers. */
+  getUntaggedTrucks(): Observable<UntaggedTruck[]> {
+    return this.http
+      .get<ApiResponse<UntaggedTruck[]>>(`${this.TRUCKS_URL}/untagged`)
+      .pipe(map(response => response.data));
   }
 
   getTruck(id: string): Observable<TruckDetail> {

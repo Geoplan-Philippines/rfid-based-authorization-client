@@ -238,7 +238,7 @@
               <div class="relative aspect-video rounded-sm border border-border bg-foreground/5 overflow-hidden flex items-center justify-center">
                 <i class="pi pi-image text-2xl text-body/20" aria-hidden="true"></i>
                 <img
-                  [src]="snapshot.imageUrl"
+                  [src]="resolvePhotoUrl(snapshot.imageUrl)"
                   [alt]="snapshotLabel(snapshot.type) + ' snapshot'"
                   width="320"
                   height="180"

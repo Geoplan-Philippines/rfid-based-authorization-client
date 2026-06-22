@@ -66,18 +66,17 @@ export class RfidTagFormDialog {
 
   private loadAvailableTrucks(): void {
     this.loadingTrucks.set(true);
-    this.truckService.getTrucks({ page: 1, limit: 100 }).subscribe({
-      next: result => {
+    this.truckService.getUntaggedTrucks().subscribe({
+      next: trucks => {
         this.truckOptions.set(
-          result.data
-            .filter(truck => !truck.boundTag)
-            .map(truck => ({ label: `${truck.plateNumber} · ${truck.model}`, value: truck.id })),
+          trucks.map(truck => ({ label: `${truck.plateNumber} · ${truck.model}`, value: truck.id })),
         );
         this.loadingTrucks.set(false);
       },
-      error: () => {
+      error: error => {
         this.truckOptions.set([]);
         this.loadingTrucks.set(false);
+        this.notifications.fromHttpError(error, 'Failed to load available trucks.');
       },
     });
   }
