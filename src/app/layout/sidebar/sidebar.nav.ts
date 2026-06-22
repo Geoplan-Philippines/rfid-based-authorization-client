@@ -25,7 +25,7 @@ export const NAV_SECTIONS: readonly NavSection[] = [
     title: 'Compliance',
     items: [
       { label: 'Audit Logs', route: '/audit', icon: 'pi-history', comingSoon: true },
-      { label: 'Reports', route: '/reports', icon: 'pi-file-pdf', comingSoon: true },
+      { label: 'Reports', route: '/reports', icon: 'pi-file-pdf' },
     ],
   },
   {
