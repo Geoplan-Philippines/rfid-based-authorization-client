@@ -26,7 +26,7 @@
   <!-- Stat cards -->
   <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
     @for (card of statCards(); track card.label) {
-      <div class="rounded-xl border border-border p-3">
+      <div class="rounded-sm border border-border p-3">
         <p class="text-xs uppercase tracking-wide text-body/50">{{ card.label }}</p>
         <p class="text-2xl font-bold text-heading">{{ card.count }}</p>
       </div>
@@ -53,7 +53,7 @@
       <p-progressSpinner [style]="{ width: '42px', height: '42px' }" aria-label="Loading RFID tags" />
     </div>
   } @else if (error()) {
-    <div class="flex items-center gap-2 p-4 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm" role="alert">
+    <div class="flex items-center gap-2 p-4 rounded-sm border border-destructive/30 bg-muted-destructive text-destructive text-sm" role="alert">
       <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
       <span>{{ error() }}</span>
     </div>
@@ -99,7 +99,7 @@
           <td class="text-right">
             <button
               type="button"
-              class="p-2 rounded text-body/50 hover:text-primary hover:bg-primary/10"
+              class="p-2 rounded-sm text-body/50 hover:text-primary hover:bg-primary/10"
               [attr.aria-label]="'Open tag ' + tag.epcId"
               (click)="$event.stopPropagation(); openTag(tag.id)"
             >
@@ -130,11 +130,5 @@
     />
   }
 </main>
-
-<app-rfid-tag-detail-dialog
-  [(visible)]="detailVisible"
-  [tagId]="selectedTagId()"
-  (changed)="reload()"
-/>
 
 <app-rfid-tag-form-dialog [(visible)]="registerVisible" (saved)="reload()" />

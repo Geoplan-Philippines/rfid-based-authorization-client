@@ -9,6 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EMPTY, Subject, catchError, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 
@@ -25,7 +26,6 @@ import { InputTextModule } from 'primeng/inputtext';
 import { resolvePhotoUrl } from '../../core/utils/photo-url';
 import { GetDriversParams, DriverService } from './services/driver.service';
 import { DriverListItem } from './types/driver.types';
-import { DriverDetailDialog } from './components/driver-detail-dialog/driver-detail-dialog';
 import { DriverFormDialog } from './components/driver-form-dialog/driver-form-dialog';
 
 @Component({
@@ -41,7 +41,6 @@ import { DriverFormDialog } from './components/driver-form-dialog/driver-form-di
     IconFieldModule,
     InputIconModule,
     InputTextModule,
-    DriverDetailDialog,
     DriverFormDialog,
   ],
   templateUrl: './drivers.html',
@@ -53,6 +52,7 @@ import { DriverFormDialog } from './components/driver-form-dialog/driver-form-di
 })
 export class Drivers implements OnInit {
   private driverService = inject(DriverService);
+  private router = inject(Router);
   private destroyRef = inject(DestroyRef);
   private pageRequest$ = new Subject<GetDriversParams>();
   private searchInput$ = new Subject<string>();
@@ -70,8 +70,6 @@ export class Drivers implements OnInit {
   search = signal('');
   includeArchived = signal(false);
 
-  selectedDriverId = signal<string | null>(null);
-  detailVisible = signal(false);
   createVisible = signal(false);
 
   ngOnInit(): void {
@@ -133,8 +131,7 @@ export class Drivers implements OnInit {
   }
 
   openDriver(id: string): void {
-    this.selectedDriverId.set(id);
-    this.detailVisible.set(true);
+    this.router.navigate(['/drivers', id]);
   }
 
   openCreate(): void {
@@ -150,7 +147,7 @@ export class Drivers implements OnInit {
   }
 
   onKeydown(event: KeyboardEvent): void {
-    if (this.detailVisible() || this.createVisible()) return;
+    if (this.createVisible()) return;
     if (this.isTypingTarget(event.target)) return;
 
     if (event.key === '/') {

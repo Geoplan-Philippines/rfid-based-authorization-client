@@ -14,7 +14,7 @@
       <p class="text-sm text-body/50 mt-1">It may have been removed or the link is incorrect.</p>
     </div>
   } @else if (error()) {
-    <div class="flex items-center gap-2 p-4 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm" role="alert">
+    <div class="flex items-center gap-2 p-4 rounded-sm border border-destructive/30 bg-muted-destructive text-destructive text-sm" role="alert">
       <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
       <span>{{ error() }}</span>
     </div>
@@ -32,7 +32,7 @@
     </header>
 
     <!-- Timeline: fixed gate pipeline, left to right; unreached stages greyed out. -->
-    <section class="rounded-xl border border-border bg-white p-5 mb-6">
+    <section class="rounded-sm border border-border bg-white p-5 mb-6">
       <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
         <h2 class="text-xs font-semibold uppercase tracking-wide text-body/60">Timeline</h2>
         @if (totalDuration(); as duration) {
@@ -85,7 +85,7 @@
 
     <!-- Verification -->
     @if (tx.verification; as v) {
-      <section class="rounded-xl border border-border bg-white p-5 mb-6">
+      <section class="rounded-sm border border-border bg-white p-5 mb-6">
         <h2 class="text-xs font-semibold uppercase tracking-wide text-body/60 mb-4">Verification</h2>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
@@ -138,7 +138,7 @@
 
     <!-- Entity cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <section class="rounded-xl border border-border bg-white p-5">
+      <section class="rounded-sm border border-border bg-white p-5">
         <h3 class="text-sm font-semibold text-heading mb-3 flex items-center gap-2">
           <i class="pi pi-tag text-body/40" aria-hidden="true"></i> RFID Tag
         </h3>
@@ -164,7 +164,7 @@
         }
       </section>
 
-      <section class="rounded-xl border border-border bg-white p-5">
+      <section class="rounded-sm border border-border bg-white p-5">
         <h3 class="text-sm font-semibold text-heading mb-3 flex items-center gap-2">
           <i class="pi pi-truck text-body/40" aria-hidden="true"></i> Truck
         </h3>
@@ -194,7 +194,7 @@
         }
       </section>
 
-      <section class="rounded-xl border border-border bg-white p-5">
+      <section class="rounded-sm border border-border bg-white p-5">
         <h3 class="text-sm font-semibold text-heading mb-3 flex items-center gap-2">
           <i class="pi pi-id-card text-body/40" aria-hidden="true"></i> Driver
         </h3>
@@ -214,7 +214,7 @@
     </div>
 
     <!-- Snapshots -->
-    <section class="rounded-xl border border-border bg-white p-5 mb-6">
+    <section class="rounded-sm border border-border bg-white p-5 mb-6">
       <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
         <h2 class="text-xs font-semibold uppercase tracking-wide text-body/60">Snapshots</h2>
         <div class="flex gap-1" role="group" aria-label="Filter snapshots by type">
@@ -235,7 +235,7 @@
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           @for (snapshot of filteredSnapshots(); track snapshot.id) {
             <figure>
-              <div class="relative aspect-video rounded-lg border border-border bg-foreground/5 overflow-hidden flex items-center justify-center">
+              <div class="relative aspect-video rounded-sm border border-border bg-foreground/5 overflow-hidden flex items-center justify-center">
                 <i class="pi pi-image text-2xl text-body/20" aria-hidden="true"></i>
                 <img
                   [src]="snapshot.imageUrl"

@@ -2,6 +2,20 @@ import { definePreset } from '@primeng/themes';
 import Nora from '@primeng/themes/nora';
 
 export const AppPreset = definePreset(Nora, {
+  // Near-sharp corners across all PrimeNG components — keep in sync with --radius
+  // in styles.css and DESIGN.md "The Near-Sharp Rule".
+  primitive: {
+    // xs drives buttons, inputs, tags, avatars, and dialogs (all → {border.radius.xs});
+    // sm drives cards. Keep both near-sharp at 2px.
+    borderRadius: {
+      none: '0',
+      xs: '2px',
+      sm: '2px',
+      md: '2px',
+      lg: '4px',
+      xl: '6px',
+    },
+  },
   semantic: {
     primary: {
       50: '#F0F3FF',
@@ -25,6 +39,16 @@ export const AppPreset = definePreset(Nora, {
           contrastColor: '#FFFFFF',
         },
       },
+    },
+  },
+  components: {
+    // Denser registry tables: Nora ships 0.75rem 1rem (12px tall) cells, which
+    // wastes vertical space when scanning long lists. 8px/12px reads tighter
+    // without cramping 14px text.
+    datatable: {
+      headerCell: { padding: '0.5rem 0.75rem' },
+      bodyCell: { padding: '0.5rem 0.75rem' },
+      footerCell: { padding: '0.5rem 0.75rem' },
     },
   },
 });

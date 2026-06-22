@@ -15,7 +15,7 @@
   @if (roleSelectable()) {
     <div class="flex items-center gap-2 mb-4">
       <span class="text-sm text-body/70">Assign as</span>
-      <div class="inline-flex rounded-lg border border-border overflow-hidden" role="group" aria-label="Assignment role">
+      <div class="inline-flex rounded-sm border border-border overflow-hidden" role="group" aria-label="Assignment role">
         <button
           type="button"
           class="px-3 py-1 text-sm"
@@ -64,11 +64,11 @@
           </div>
         } @else {
           @for (candidate of availableCandidates(); track candidate.id) {
-            <div class="flex items-center gap-3 p-2 rounded-lg border border-border">
+            <div class="flex items-center gap-3 p-2 rounded-sm border border-border">
               <p-avatar
                 [label]="candidate.imageUrl ? undefined : initials(candidate.label)"
                 [image]="candidate.imageUrl ?? undefined"
-                shape="circle"
+                shape="square"
                 [style]="{ background: 'var(--p-primary-100)', color: 'var(--p-primary-800)' }"
               />
               <div class="flex flex-col min-w-0 flex-1">
@@ -104,11 +104,11 @@
       </h3>
       <div class="flex flex-col gap-2 overflow-auto max-h-72 pr-1">
         @for (entry of assigned(); track entry.id) {
-          <div class="flex items-center gap-3 p-2 rounded-lg border border-border">
+          <div class="flex items-center gap-3 p-2 rounded-sm border border-border">
             <p-avatar
               [label]="entry.imageUrl ? undefined : initials(entry.label)"
               [image]="entry.imageUrl ?? undefined"
-              shape="circle"
+              shape="square"
               [style]="{ background: 'var(--p-primary-100)', color: 'var(--p-primary-800)' }"
             />
             <div class="flex flex-col min-w-0 flex-1">

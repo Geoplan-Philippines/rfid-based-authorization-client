@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 import { MessageService, ConfirmationService } from 'primeng/api';
 
 import { Trucks } from './trucks';
@@ -15,6 +16,7 @@ describe('Trucks', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        provideRouter([]),
         MessageService,
         ConfirmationService,
       ],

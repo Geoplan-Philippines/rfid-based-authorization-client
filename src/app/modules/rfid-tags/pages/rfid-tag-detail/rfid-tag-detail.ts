@@ -1,16 +1,17 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
+  OnInit,
   computed,
-  effect,
   inject,
-  input,
-  model,
-  output,
   signal,
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
@@ -24,7 +25,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
 import { RfidTagStatus, gateResultTag, rfidTagStatusTag } from '../../../../shared/ui/status-tags';
 import { TruckService } from '../../../trucks/services/truck.service';
 import { RfidTagService } from '../../services/rfid-tags.service';
-import { RfidTagDetail } from '../../types/rfid-tags.types';
+import { RfidTagDetail as RfidTagDetailModel } from '../../types/rfid-tags.types';
 
 interface StatusAction {
   status: RfidTagStatus;
@@ -47,9 +48,10 @@ const STATUS_ACTIONS: StatusAction[] = [
 ];
 
 @Component({
-  selector: 'app-rfid-tag-detail-dialog',
+  selector: 'app-rfid-tag-detail',
   imports: [
     DatePipe,
+    RouterLink,
     FormsModule,
     DialogModule,
     ButtonModule,
@@ -58,25 +60,27 @@ const STATUS_ACTIONS: StatusAction[] = [
     SelectModule,
     ProgressSpinnerModule,
   ],
-  templateUrl: './rfid-tag-detail-dialog.html',
+  templateUrl: './rfid-tag-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'flex flex-1 overflow-hidden' },
 })
-export class RfidTagDetailDialog {
+export class RfidTagDetail implements OnInit {
+  private route = inject(ActivatedRoute);
   private rfidTagService = inject(RfidTagService);
   private truckService = inject(TruckService);
   private notifications = inject(NotificationService);
   private confirmationService = inject(ConfirmationService);
+  private destroyRef = inject(DestroyRef);
 
   protected readonly rfidTagStatusTag = rfidTagStatusTag;
   protected readonly gateResultTag = gateResultTag;
 
-  tagId = input<string | null>(null);
-  visible = model(false);
-  changed = output<void>();
+  private id = signal<string | null>(null);
 
-  detail = signal<RfidTagDetail | null>(null);
-  loading = signal(false);
+  detail = signal<RfidTagDetailModel | null>(null);
+  loading = signal(true);
   error = signal<string | null>(null);
+  notFound = signal(false);
   busy = signal(false);
   reason = signal('');
 
@@ -90,32 +94,38 @@ export class RfidTagDetailDialog {
     return STATUS_ACTIONS.filter(action => action.status !== current);
   });
 
-  constructor() {
-    effect(() => {
-      const id = this.tagId();
-      if (this.visible() && id) this.load(id);
+  ngOnInit(): void {
+    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+      const id = params.get('id');
+      this.id.set(id);
+      if (id) {
+        this.load(id);
+      } else {
+        this.loading.set(false);
+        this.notFound.set(true);
+      }
     });
   }
 
   private load(id: string): void {
     this.loading.set(true);
     this.error.set(null);
+    this.notFound.set(false);
     this.reason.set('');
     this.rfidTagService.getTag(id).subscribe({
       next: detail => {
         this.detail.set(detail);
         this.loading.set(false);
       },
-      error: () => {
-        this.error.set('Failed to load RFID tag. Please try again.');
+      error: (err: HttpErrorResponse) => {
         this.loading.set(false);
+        if (err.status === 404) {
+          this.notFound.set(true);
+        } else {
+          this.error.set('Failed to load RFID tag. Please try again.');
+        }
       },
     });
-  }
-
-  private reload(): void {
-    const id = this.tagId();
-    if (id) this.load(id);
   }
 
   onReasonInput(event: Event): void {
@@ -139,7 +149,7 @@ export class RfidTagDetailDialog {
   }
 
   private applyStatus(status: RfidTagStatus): void {
-    const id = this.tagId();
+    const id = this.id();
     if (!id) return;
     this.busy.set(true);
     this.rfidTagService.updateStatus(id, status, this.reason().trim() || undefined).subscribe({
@@ -148,7 +158,6 @@ export class RfidTagDetailDialog {
         this.detail.set(detail);
         this.reason.set('');
         this.notifications.success('Tag status updated.');
-        this.changed.emit();
       },
       error: error => {
         this.busy.set(false);
@@ -179,7 +188,7 @@ export class RfidTagDetailDialog {
   }
 
   confirmRebind(): void {
-    const id = this.tagId();
+    const id = this.id();
     const truckId = this.rebindTruckId();
     if (!id || !truckId) return;
     this.busy.set(true);
@@ -189,7 +198,6 @@ export class RfidTagDetailDialog {
         this.detail.set(detail);
         this.rebindVisible.set(false);
         this.notifications.success('Tag re-bound to new truck.');
-        this.changed.emit();
       },
       error: error => {
         this.busy.set(false);

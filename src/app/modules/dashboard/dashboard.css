@@ -1,0 +1,26 @@
+/* KPI instrument readout — small tracked label over a large Poppins figure.
+   Matches the DESIGN "Label" token; the tabular figure keeps numbers steady as
+   the selected day changes. */
+.kpi-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.kpi-value {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--text-heading);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Keyboard affordance for the clickable needs-review rows — inset cyan ring so
+   it never spills past the panel's hairline border. */
+.review-row:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}

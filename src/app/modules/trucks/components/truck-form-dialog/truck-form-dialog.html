@@ -22,7 +22,7 @@
         [class.ng-dirty]="form.controls.plateNumber.invalid && form.controls.plateNumber.touched"
       />
       @if (form.controls.plateNumber.invalid && form.controls.plateNumber.touched) {
-        <small class="text-red-500">Plate number is required.</small>
+        <small class="text-destructive">Plate number is required.</small>
       }
     </div>
 
@@ -39,7 +39,7 @@
         [class.ng-dirty]="form.controls.model.invalid && form.controls.model.touched"
       />
       @if (form.controls.model.invalid && form.controls.model.touched) {
-        <small class="text-red-500">Model is required.</small>
+        <small class="text-destructive">Model is required.</small>
       }
     </div>
 
@@ -47,7 +47,7 @@
       <label for="truck-photo" class="font-medium text-sm">Photo <span class="text-body/50 font-normal">(optional)</span></label>
       <div class="flex items-center gap-3">
         @if (existingPhotoUrl()) {
-          <img [src]="existingPhotoUrl()" alt="Current truck photo" class="w-14 h-14 rounded-lg object-cover border border-border" />
+          <img [src]="existingPhotoUrl()" alt="Current truck photo" class="w-14 h-14 rounded-sm object-cover border border-border" />
         }
         <input
           id="truck-photo"

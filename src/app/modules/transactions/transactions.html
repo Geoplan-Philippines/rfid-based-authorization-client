@@ -50,7 +50,7 @@
       <p-progressSpinner [style]="{ width: '42px', height: '42px' }" aria-label="Loading transactions" />
     </div>
   } @else if (error()) {
-    <div class="flex items-center gap-2 p-4 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm" role="alert">
+    <div class="flex items-center gap-2 p-4 rounded-sm border border-destructive/30 bg-muted-destructive text-destructive text-sm" role="alert">
       <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
       <span>{{ error() }}</span>
     </div>
@@ -118,7 +118,7 @@
           <td class="text-right">
             <button
               type="button"
-              class="p-2 rounded text-body/50 hover:text-primary hover:bg-primary/10"
+              class="p-2 rounded-sm text-body/50 hover:text-primary hover:bg-primary/10"
               [attr.aria-label]="'View transaction ' + tx.eventCode"
               (click)="$event.stopPropagation(); openTransaction(tx.id)"
             >

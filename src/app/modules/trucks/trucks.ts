@@ -8,6 +8,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EMPTY, Subject, catchError, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 
@@ -25,7 +26,6 @@ import { resolvePhotoUrl } from '../../core/utils/photo-url';
 import { rfidTagStatusTag } from '../../shared/ui/status-tags';
 import { GetTrucksParams, TruckService } from './services/truck.service';
 import { TruckListItem } from './types/truck.types';
-import { TruckDetailDialog } from './components/truck-detail-dialog/truck-detail-dialog';
 import { TruckFormDialog } from './components/truck-form-dialog/truck-form-dialog';
 
 @Component({
@@ -40,7 +40,6 @@ import { TruckFormDialog } from './components/truck-form-dialog/truck-form-dialo
     IconFieldModule,
     InputIconModule,
     InputTextModule,
-    TruckDetailDialog,
     TruckFormDialog,
   ],
   templateUrl: './trucks.html',
@@ -52,6 +51,7 @@ import { TruckFormDialog } from './components/truck-form-dialog/truck-form-dialo
 })
 export class Trucks implements OnInit {
   private truckService = inject(TruckService);
+  private router = inject(Router);
   private destroyRef = inject(DestroyRef);
   private pageRequest$ = new Subject<GetTrucksParams>();
   private searchInput$ = new Subject<string>();
@@ -71,8 +71,6 @@ export class Trucks implements OnInit {
   search = signal('');
   includeArchived = signal(false);
 
-  selectedTruckId = signal<string | null>(null);
-  detailVisible = signal(false);
   createVisible = signal(false);
 
   ngOnInit(): void {
@@ -135,8 +133,7 @@ export class Trucks implements OnInit {
   }
 
   openTruck(id: string): void {
-    this.selectedTruckId.set(id);
-    this.detailVisible.set(true);
+    this.router.navigate(['/trucks', id]);
   }
 
   openCreate(): void {
@@ -148,7 +145,7 @@ export class Trucks implements OnInit {
   }
 
   onKeydown(event: KeyboardEvent): void {
-    if (this.detailVisible() || this.createVisible()) return;
+    if (this.createVisible()) return;
     if (this.isTypingTarget(event.target)) return;
 
     if (event.key === '/') {

@@ -40,7 +40,7 @@
       <p-progressSpinner [style]="{ width: '42px', height: '42px' }" aria-label="Loading trucks" />
     </div>
   } @else if (error()) {
-    <div class="flex items-center gap-2 p-4 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm" role="alert">
+    <div class="flex items-center gap-2 p-4 rounded-sm border border-destructive/30 bg-muted-destructive text-destructive text-sm" role="alert">
       <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
       <span>{{ error() }}</span>
     </div>
@@ -65,7 +65,7 @@
               <p-avatar
                 [label]="truck.photoUrl ? undefined : truck.plateNumber.charAt(0)"
                 [image]="resolvePhotoUrl(truck.photoUrl) ?? undefined"
-                shape="circle"
+                shape="square"
                 [style]="{ background: 'var(--p-primary-100)', color: 'var(--p-primary-800)', fontWeight: '600' }"
               />
               <div class="flex items-center gap-2">
@@ -105,7 +105,7 @@
           <td class="text-right">
             <button
               type="button"
-              class="p-2 rounded text-body/50 hover:text-primary hover:bg-primary/10"
+              class="p-2 rounded-sm text-body/50 hover:text-primary hover:bg-primary/10"
               [attr.aria-label]="'Open ' + truck.plateNumber"
               (click)="$event.stopPropagation(); openTruck(truck.id)"
             >
@@ -136,11 +136,5 @@
     />
   }
 </main>
-
-<app-truck-detail-dialog
-  [(visible)]="detailVisible"
-  [truckId]="selectedTruckId()"
-  (changed)="reload()"
-/>
 
 <app-truck-form-dialog [(visible)]="createVisible" mode="create" (saved)="reload()" />

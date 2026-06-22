@@ -22,10 +22,10 @@
         [class.ng-dirty]="form.controls.epcId.invalid && form.controls.epcId.touched"
       />
       @if (form.controls.epcId.hasError('required') && form.controls.epcId.touched) {
-        <small class="text-red-500">EPC ID is required.</small>
+        <small class="text-destructive">EPC ID is required.</small>
       }
       @if (form.controls.epcId.hasError('maxlength')) {
-        <small class="text-red-500">EPC ID must be 64 characters or fewer.</small>
+        <small class="text-destructive">EPC ID must be 64 characters or fewer.</small>
       }
     </div>
 
@@ -46,7 +46,7 @@
         appendTo="body"
       />
       @if (form.controls.assignedTruckId.invalid && form.controls.assignedTruckId.touched) {
-        <small class="text-red-500">Please select a truck.</small>
+        <small class="text-destructive">Please select a truck.</small>
       }
       <small class="text-body/50">Each truck can hold exactly one tag — only untagged trucks are listed.</small>
     </div>

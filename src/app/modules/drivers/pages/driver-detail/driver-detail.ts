@@ -1,18 +1,18 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
+  OnInit,
   computed,
-  effect,
   inject,
-  input,
-  model,
-  output,
   signal,
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable, map } from 'rxjs';
 
-import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { AvatarModule } from 'primeng/avatar';
@@ -35,14 +35,14 @@ import {
 } from '../../../../shared/components/assign-picker/assign-picker';
 import { TruckService } from '../../../trucks/services/truck.service';
 import { DriverService } from '../../services/driver.service';
-import { DriverDetail } from '../../types/driver.types';
-import { DriverFormDialog } from '../driver-form-dialog/driver-form-dialog';
+import { DriverDetail as DriverDetailModel } from '../../types/driver.types';
+import { DriverFormDialog } from '../../components/driver-form-dialog/driver-form-dialog';
 
 @Component({
-  selector: 'app-driver-detail-dialog',
+  selector: 'app-driver-detail',
   imports: [
     DatePipe,
-    DialogModule,
+    RouterLink,
     ButtonModule,
     TagModule,
     AvatarModule,
@@ -50,28 +50,30 @@ import { DriverFormDialog } from '../driver-form-dialog/driver-form-dialog';
     AssignPicker,
     DriverFormDialog,
   ],
-  templateUrl: './driver-detail-dialog.html',
+  templateUrl: './driver-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'flex flex-1 overflow-hidden' },
 })
-export class DriverDetailDialog {
+export class DriverDetail implements OnInit {
+  private route = inject(ActivatedRoute);
   private driverService = inject(DriverService);
   private truckService = inject(TruckService);
   private assignmentService = inject(AssignmentService);
   private notifications = inject(NotificationService);
   private confirmationService = inject(ConfirmationService);
+  private destroyRef = inject(DestroyRef);
 
   protected readonly resolvePhotoUrl = resolvePhotoUrl;
   protected readonly rfidTagStatusTag = rfidTagStatusTag;
   protected readonly gateResultTag = gateResultTag;
   protected readonly assignmentRoleTag = assignmentRoleTag;
 
-  driverId = input<string | null>(null);
-  visible = model(false);
-  changed = output<void>();
+  private id = signal<string | null>(null);
 
-  detail = signal<DriverDetail | null>(null);
-  loading = signal(false);
+  detail = signal<DriverDetailModel | null>(null);
+  loading = signal(true);
   error = signal<string | null>(null);
+  notFound = signal(false);
   busy = signal(false);
 
   editVisible = signal(false);
@@ -92,10 +94,16 @@ export class DriverDetailDialog {
     })),
   );
 
-  constructor() {
-    effect(() => {
-      const id = this.driverId();
-      if (this.visible() && id) this.load(id);
+  ngOnInit(): void {
+    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+      const id = params.get('id');
+      this.id.set(id);
+      if (id) {
+        this.load(id);
+      } else {
+        this.loading.set(false);
+        this.notFound.set(true);
+      }
     });
   }
 
@@ -116,20 +124,25 @@ export class DriverDetailDialog {
   private load(id: string): void {
     this.loading.set(true);
     this.error.set(null);
+    this.notFound.set(false);
     this.driverService.getDriver(id).subscribe({
       next: detail => {
         this.detail.set(detail);
         this.loading.set(false);
       },
-      error: () => {
-        this.error.set('Failed to load driver. Please try again.');
+      error: (err: HttpErrorResponse) => {
         this.loading.set(false);
+        if (err.status === 404) {
+          this.notFound.set(true);
+        } else {
+          this.error.set('Failed to load driver. Please try again.');
+        }
       },
     });
   }
 
   private reload(): void {
-    const id = this.driverId();
+    const id = this.id();
     if (id) this.load(id);
   }
 
@@ -139,7 +152,6 @@ export class DriverDetailDialog {
 
   onEdited(): void {
     this.reload();
-    this.changed.emit();
   }
 
   openAssign(): void {
@@ -147,7 +159,7 @@ export class DriverDetailDialog {
   }
 
   onAssign(event: { id: string; role: AssignmentRole }): void {
-    const driverId = this.driverId();
+    const driverId = this.id();
     if (!driverId) return;
     this.busy.set(true);
     this.assignmentService.assign(event.id, driverId, event.role).subscribe({
@@ -155,7 +167,6 @@ export class DriverDetailDialog {
         this.busy.set(false);
         this.notifications.success('Truck assigned.');
         this.reload();
-        this.changed.emit();
       },
       error: error => {
         this.busy.set(false);
@@ -165,7 +176,7 @@ export class DriverDetailDialog {
   }
 
   onUnassign(entry: AssignedEntry): void {
-    const driverId = this.driverId();
+    const driverId = this.id();
     if (!driverId) return;
     this.confirmationService.confirm({
       header: 'Unassign truck',
@@ -181,7 +192,6 @@ export class DriverDetailDialog {
             this.busy.set(false);
             this.notifications.success('Truck unassigned.');
             this.reload();
-            this.changed.emit();
           },
           error: error => {
             this.busy.set(false);
@@ -208,14 +218,30 @@ export class DriverDetailDialog {
           next: () => {
             this.busy.set(false);
             this.notifications.success('Driver archived.');
-            this.changed.emit();
-            this.visible.set(false);
+            this.reload();
           },
           error: error => {
             this.busy.set(false);
             this.notifications.fromHttpError(error, 'Failed to archive driver.');
           },
         });
+      },
+    });
+  }
+
+  confirmRestore(): void {
+    const detail = this.detail();
+    if (!detail) return;
+    this.busy.set(true);
+    this.driverService.restore(detail.id).subscribe({
+      next: () => {
+        this.busy.set(false);
+        this.notifications.success('Driver restored.');
+        this.reload();
+      },
+      error: error => {
+        this.busy.set(false);
+        this.notifications.fromHttpError(error, 'Failed to restore driver.');
       },
     });
   }

@@ -1,18 +1,18 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
+  OnInit,
   computed,
-  effect,
   inject,
-  input,
-  model,
-  output,
   signal,
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable, map } from 'rxjs';
 
-import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { AvatarModule } from 'primeng/avatar';
@@ -35,14 +35,14 @@ import {
 } from '../../../../shared/components/assign-picker/assign-picker';
 import { DriverService } from '../../../drivers/services/driver.service';
 import { TruckService } from '../../services/truck.service';
-import { TruckDetail } from '../../types/truck.types';
-import { TruckFormDialog } from '../truck-form-dialog/truck-form-dialog';
+import { TruckDetail as TruckDetailModel } from '../../types/truck.types';
+import { TruckFormDialog } from '../../components/truck-form-dialog/truck-form-dialog';
 
 @Component({
-  selector: 'app-truck-detail-dialog',
+  selector: 'app-truck-detail',
   imports: [
     DatePipe,
-    DialogModule,
+    RouterLink,
     ButtonModule,
     TagModule,
     AvatarModule,
@@ -50,28 +50,30 @@ import { TruckFormDialog } from '../truck-form-dialog/truck-form-dialog';
     AssignPicker,
     TruckFormDialog,
   ],
-  templateUrl: './truck-detail-dialog.html',
+  templateUrl: './truck-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'flex flex-1 overflow-hidden' },
 })
-export class TruckDetailDialog {
+export class TruckDetail implements OnInit {
+  private route = inject(ActivatedRoute);
   private truckService = inject(TruckService);
   private driverService = inject(DriverService);
   private assignmentService = inject(AssignmentService);
   private notifications = inject(NotificationService);
   private confirmationService = inject(ConfirmationService);
+  private destroyRef = inject(DestroyRef);
 
   protected readonly resolvePhotoUrl = resolvePhotoUrl;
   protected readonly rfidTagStatusTag = rfidTagStatusTag;
   protected readonly gateResultTag = gateResultTag;
   protected readonly assignmentRoleTag = assignmentRoleTag;
 
-  truckId = input<string | null>(null);
-  visible = model(false);
-  changed = output<void>();
+  private id = signal<string | null>(null);
 
-  detail = signal<TruckDetail | null>(null);
-  loading = signal(false);
+  detail = signal<TruckDetailModel | null>(null);
+  loading = signal(true);
   error = signal<string | null>(null);
+  notFound = signal(false);
   busy = signal(false);
 
   editVisible = signal(false);
@@ -87,10 +89,16 @@ export class TruckDetailDialog {
     })),
   );
 
-  constructor() {
-    effect(() => {
-      const id = this.truckId();
-      if (this.visible() && id) this.load(id);
+  ngOnInit(): void {
+    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+      const id = params.get('id');
+      this.id.set(id);
+      if (id) {
+        this.load(id);
+      } else {
+        this.loading.set(false);
+        this.notFound.set(true);
+      }
     });
   }
 
@@ -110,20 +118,25 @@ export class TruckDetailDialog {
   private load(id: string): void {
     this.loading.set(true);
     this.error.set(null);
+    this.notFound.set(false);
     this.truckService.getTruck(id).subscribe({
       next: detail => {
         this.detail.set(detail);
         this.loading.set(false);
       },
-      error: () => {
-        this.error.set('Failed to load truck. Please try again.');
+      error: (err: HttpErrorResponse) => {
         this.loading.set(false);
+        if (err.status === 404) {
+          this.notFound.set(true);
+        } else {
+          this.error.set('Failed to load truck. Please try again.');
+        }
       },
     });
   }
 
   private reload(): void {
-    const id = this.truckId();
+    const id = this.id();
     if (id) this.load(id);
   }
 
@@ -133,7 +146,6 @@ export class TruckDetailDialog {
 
   onEdited(): void {
     this.reload();
-    this.changed.emit();
   }
 
   openAssign(): void {
@@ -141,7 +153,7 @@ export class TruckDetailDialog {
   }
 
   onAssign(event: { id: string; role: AssignmentRole }): void {
-    const truckId = this.truckId();
+    const truckId = this.id();
     if (!truckId) return;
     this.busy.set(true);
     this.assignmentService.assign(truckId, event.id, event.role).subscribe({
@@ -149,7 +161,6 @@ export class TruckDetailDialog {
         this.busy.set(false);
         this.notifications.success('Driver assigned.');
         this.reload();
-        this.changed.emit();
       },
       error: error => {
         this.busy.set(false);
@@ -159,7 +170,7 @@ export class TruckDetailDialog {
   }
 
   onUnassign(entry: AssignedEntry): void {
-    const truckId = this.truckId();
+    const truckId = this.id();
     if (!truckId) return;
     this.confirmationService.confirm({
       header: 'Unassign driver',
@@ -175,7 +186,6 @@ export class TruckDetailDialog {
             this.busy.set(false);
             this.notifications.success('Driver unassigned.');
             this.reload();
-            this.changed.emit();
           },
           error: error => {
             this.busy.set(false);
@@ -202,14 +212,30 @@ export class TruckDetailDialog {
           next: () => {
             this.busy.set(false);
             this.notifications.success('Truck archived.');
-            this.changed.emit();
-            this.visible.set(false);
+            this.reload();
           },
           error: error => {
             this.busy.set(false);
             this.notifications.fromHttpError(error, 'Failed to archive truck.');
           },
         });
+      },
+    });
+  }
+
+  confirmRestore(): void {
+    const detail = this.detail();
+    if (!detail) return;
+    this.busy.set(true);
+    this.truckService.restore(detail.id).subscribe({
+      next: () => {
+        this.busy.set(false);
+        this.notifications.success('Truck restored.');
+        this.reload();
+      },
+      error: error => {
+        this.busy.set(false);
+        this.notifications.fromHttpError(error, 'Failed to restore truck.');
       },
     });
   }

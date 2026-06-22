@@ -22,7 +22,7 @@
           [class.ng-dirty]="form.controls.firstName.invalid && form.controls.firstName.touched"
         />
         @if (form.controls.firstName.invalid && form.controls.firstName.touched) {
-          <small class="text-red-500">First name is required.</small>
+          <small class="text-destructive">First name is required.</small>
         }
       </div>
 
@@ -38,7 +38,7 @@
           [class.ng-dirty]="form.controls.lastName.invalid && form.controls.lastName.touched"
         />
         @if (form.controls.lastName.invalid && form.controls.lastName.touched) {
-          <small class="text-red-500">Last name is required.</small>
+          <small class="text-destructive">Last name is required.</small>
         }
       </div>
     </div>
@@ -56,7 +56,7 @@
         [class.ng-dirty]="form.controls.licenseNumber.invalid && form.controls.licenseNumber.touched"
       />
       @if (form.controls.licenseNumber.invalid && form.controls.licenseNumber.touched) {
-        <small class="text-red-500">License number is required.</small>
+        <small class="text-destructive">License number is required.</small>
       }
     </div>
 
@@ -64,7 +64,7 @@
       <label for="driver-photo" class="font-medium text-sm">Photo <span class="text-body/50 font-normal">(optional)</span></label>
       <div class="flex items-center gap-3">
         @if (existingPhotoUrl()) {
-          <img [src]="existingPhotoUrl()" alt="Current driver photo" class="w-14 h-14 rounded-full object-cover border border-border" />
+          <img [src]="existingPhotoUrl()" alt="Current driver photo" class="w-14 h-14 rounded-sm object-cover border border-border" />
         }
         <input
           id="driver-photo"

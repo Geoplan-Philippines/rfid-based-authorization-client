@@ -10,6 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EMPTY, Subject, catchError, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 
@@ -25,7 +26,6 @@ import { InputTextModule } from 'primeng/inputtext';
 import { RfidTagStatus, TagSeverity, gateResultTag, rfidTagStatusTag } from '../../shared/ui/status-tags';
 import { GetRfidTagsParams, RfidTagService } from './services/rfid-tags.service';
 import { RfidTagListItem, RfidTagStatusCounts } from './types/rfid-tags.types';
-import { RfidTagDetailDialog } from './components/rfid-tag-detail-dialog/rfid-tag-detail-dialog';
 import { RfidTagFormDialog } from './components/rfid-tag-form-dialog/rfid-tag-form-dialog';
 
 type StatusFilter = RfidTagStatus | 'ALL';
@@ -56,7 +56,6 @@ interface StatCard {
     IconFieldModule,
     InputIconModule,
     InputTextModule,
-    RfidTagDetailDialog,
     RfidTagFormDialog,
   ],
   templateUrl: './rfid-tags.html',
@@ -68,6 +67,7 @@ interface StatCard {
 })
 export class RfidTags implements OnInit {
   private rfidTagService = inject(RfidTagService);
+  private router = inject(Router);
   private destroyRef = inject(DestroyRef);
   private pageRequest$ = new Subject<GetRfidTagsParams>();
   private searchInput$ = new Subject<string>();
@@ -87,8 +87,6 @@ export class RfidTags implements OnInit {
   selectedStatus = signal<StatusFilter>('ALL');
   counts = signal<RfidTagStatusCounts | null>(null);
 
-  selectedTagId = signal<string | null>(null);
-  detailVisible = signal(false);
   registerVisible = signal(false);
 
   statCards = computed<StatCard[]>(() => {
@@ -175,8 +173,7 @@ export class RfidTags implements OnInit {
   }
 
   openTag(id: string): void {
-    this.selectedTagId.set(id);
-    this.detailVisible.set(true);
+    this.router.navigate(['/rfid-tags', id]);
   }
 
   openRegister(): void {
@@ -188,7 +185,7 @@ export class RfidTags implements OnInit {
   }
 
   onKeydown(event: KeyboardEvent): void {
-    if (this.detailVisible() || this.registerVisible()) return;
+    if (this.registerVisible()) return;
     if (this.isTypingTarget(event.target)) return;
 
     if (event.key === '/') {
