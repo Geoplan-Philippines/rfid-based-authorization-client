@@ -226,16 +226,25 @@ export class TruckDetail implements OnInit {
   confirmRestore(): void {
     const detail = this.detail();
     if (!detail) return;
-    this.busy.set(true);
-    this.truckService.restore(detail.id).subscribe({
-      next: () => {
-        this.busy.set(false);
-        this.notifications.success('Truck restored.');
-        this.reload();
-      },
-      error: error => {
-        this.busy.set(false);
-        this.notifications.fromHttpError(error, 'Failed to restore truck.');
+    this.confirmationService.confirm({
+      header: 'Restore truck',
+      message: `Restore ${detail.plateNumber}? It will reappear in the list.`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Restore',
+      rejectLabel: 'Cancel',
+      accept: () => {
+        this.busy.set(true);
+        this.truckService.restore(detail.id).subscribe({
+          next: () => {
+            this.busy.set(false);
+            this.notifications.success('Truck restored.');
+            this.reload();
+          },
+          error: error => {
+            this.busy.set(false);
+            this.notifications.fromHttpError(error, 'Failed to restore truck.');
+          },
+        });
       },
     });
   }
