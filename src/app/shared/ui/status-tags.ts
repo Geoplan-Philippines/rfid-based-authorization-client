@@ -42,13 +42,13 @@ const ASSIGNMENT_ROLE_TAGS: Record<AssignmentRole, DisplayTag> = {
 };
 
 export function rfidTagStatusTag(status: RfidTagStatus): DisplayTag {
-  return RFID_TAG_STATUS_TAGS[status];
+  return RFID_TAG_STATUS_TAGS[status] ?? { label: status, severity: 'secondary' };
 }
 
 export function gateResultTag(result: GateEventResult): DisplayTag {
-  return GATE_RESULT_TAGS[result];
+  return GATE_RESULT_TAGS[result] ?? { label: result, severity: 'secondary' };
 }
 
 export function assignmentRoleTag(role: AssignmentRole): DisplayTag {
-  return ASSIGNMENT_ROLE_TAGS[role];
+  return ASSIGNMENT_ROLE_TAGS[role] ?? { label: role, severity: 'secondary' };
 }

@@ -232,16 +232,25 @@ export class DriverDetail implements OnInit {
   confirmRestore(): void {
     const detail = this.detail();
     if (!detail) return;
-    this.busy.set(true);
-    this.driverService.restore(detail.id).subscribe({
-      next: () => {
-        this.busy.set(false);
-        this.notifications.success('Driver restored.');
-        this.reload();
-      },
-      error: error => {
-        this.busy.set(false);
-        this.notifications.fromHttpError(error, 'Failed to restore driver.');
+    this.confirmationService.confirm({
+      header: 'Restore driver',
+      message: `Restore ${detail.firstName} ${detail.lastName}? They will reappear in the list.`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Restore',
+      rejectLabel: 'Cancel',
+      accept: () => {
+        this.busy.set(true);
+        this.driverService.restore(detail.id).subscribe({
+          next: () => {
+            this.busy.set(false);
+            this.notifications.success('Driver restored.');
+            this.reload();
+          },
+          error: error => {
+            this.busy.set(false);
+            this.notifications.fromHttpError(error, 'Failed to restore driver.');
+          },
+        });
       },
     });
   }

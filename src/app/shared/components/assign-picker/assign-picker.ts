@@ -11,7 +11,7 @@ import {
   computed,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Observable, Subject, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
+import { EMPTY, Observable, Subject, catchError, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
@@ -93,21 +93,22 @@ export class AssignPicker {
       .pipe(
         debounceTime(300),
         distinctUntilChanged(),
+        // catchError on the inner observable so one failed search never kills the stream.
         switchMap(term => {
           this.loading.set(true);
-          return this.loadCandidates()(term);
+          return this.loadCandidates()(term).pipe(
+            catchError(() => {
+              this.candidates.set([]);
+              this.loading.set(false);
+              return EMPTY;
+            }),
+          );
         }),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe({
-        next: candidates => {
-          this.candidates.set(candidates);
-          this.loading.set(false);
-        },
-        error: () => {
-          this.candidates.set([]);
-          this.loading.set(false);
-        },
+      .subscribe(candidates => {
+        this.candidates.set(candidates);
+        this.loading.set(false);
       });
 
     // Load (or reset) the candidate list each time the dialog opens.

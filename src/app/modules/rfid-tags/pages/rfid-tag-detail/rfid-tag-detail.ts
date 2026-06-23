@@ -171,11 +171,11 @@ export class RfidTagDetail implements OnInit {
     this.rebindVisible.set(true);
     this.loadingTrucks.set(true);
     const currentTruckId = this.detail()?.assignedTruck?.id;
-    this.truckService.getTrucks({ page: 1, limit: 100 }).subscribe({
-      next: result => {
+    this.truckService.getUntaggedTrucks().subscribe({
+      next: trucks => {
         this.rebindOptions.set(
-          result.data
-            .filter(truck => !truck.boundTag && truck.id !== currentTruckId)
+          trucks
+            .filter(truck => truck.id !== currentTruckId)
             .map(truck => ({ label: `${truck.plateNumber} · ${truck.model}`, value: truck.id })),
         );
         this.loadingTrucks.set(false);

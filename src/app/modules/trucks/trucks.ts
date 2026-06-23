@@ -22,6 +22,7 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 
+import { isTypingTarget } from '../../core/utils/keyboard';
 import { resolvePhotoUrl } from '../../core/utils/photo-url';
 import { rfidTagStatusTag } from '../../shared/ui/status-tags';
 import { GetTrucksParams, TruckService } from './services/truck.service';
@@ -146,7 +147,7 @@ export class Trucks implements OnInit {
 
   onKeydown(event: KeyboardEvent): void {
     if (this.createVisible()) return;
-    if (this.isTypingTarget(event.target)) return;
+    if (isTypingTarget(event.target)) return;
 
     if (event.key === '/') {
       event.preventDefault();
@@ -155,12 +156,5 @@ export class Trucks implements OnInit {
       event.preventDefault();
       this.openCreate();
     }
-  }
-
-  private isTypingTarget(target: EventTarget | null): boolean {
-    const element = target as HTMLElement | null;
-    if (!element) return false;
-    const tag = element.tagName;
-    return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || element.isContentEditable;
   }
 }

@@ -1,5 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+
+import { NotificationService } from '../../core/services/notification.service';
 
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
@@ -45,6 +47,8 @@ interface PeriodOption {
   host: { class: 'flex flex-1 overflow-hidden' },
 })
 export class Reports {
+  private notifications = inject(NotificationService);
+
   /** Default reporting window — flows into whichever report the user opens. */
   readonly periodOptions: PeriodOption[] = [
     { label: 'Today', value: 'today' },
@@ -115,11 +119,11 @@ export class Reports {
 
   // TODO: route to the report view (/reports/:id) once generation is wired.
   openReport(report: ReportCard): void {
-    void report;
+    this.notifications.info('Report generation is coming soon.', report.title);
   }
 
   // TODO: open the custom-report builder once the backend supports it.
   requestReport(report: ReportCard): void {
-    void report;
+    this.notifications.info("Thanks — we've noted your interest.", report.title);
   }
 }

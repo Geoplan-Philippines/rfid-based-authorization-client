@@ -23,6 +23,7 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 
+import { isTypingTarget } from '../../core/utils/keyboard';
 import { RfidTagStatus, TagSeverity, gateResultTag, rfidTagStatusTag } from '../../shared/ui/status-tags';
 import { GetRfidTagsParams, RfidTagService } from './services/rfid-tags.service';
 import { RfidTagListItem, RfidTagStatusCounts } from './types/rfid-tags.types';
@@ -186,7 +187,7 @@ export class RfidTags implements OnInit {
 
   onKeydown(event: KeyboardEvent): void {
     if (this.registerVisible()) return;
-    if (this.isTypingTarget(event.target)) return;
+    if (isTypingTarget(event.target)) return;
 
     if (event.key === '/') {
       event.preventDefault();
@@ -195,12 +196,5 @@ export class RfidTags implements OnInit {
       event.preventDefault();
       this.openRegister();
     }
-  }
-
-  private isTypingTarget(target: EventTarget | null): boolean {
-    const element = target as HTMLElement | null;
-    if (!element) return false;
-    const tag = element.tagName;
-    return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || element.isContentEditable;
   }
 }
