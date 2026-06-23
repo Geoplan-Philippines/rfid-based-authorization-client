@@ -18,8 +18,9 @@
 
       <div class="flex items-center gap-2 ml-2">
         <p-avatar
-          shape="circle"
-          image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png"
+          [label]="initials()"
+          shape="square"
+          [style]="{ background: 'var(--p-primary-100)', color: 'var(--p-primary-800)', fontWeight: '600' }"
           [attr.aria-label]="'User profile for ' + displayName()"
         />
         <span class="text-sm font-medium hidden sm:block">

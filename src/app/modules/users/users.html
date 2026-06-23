@@ -5,7 +5,7 @@
   </div>
 
   @if (error()) {
-    <div class="mb-4 flex items-center gap-2 p-4 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm" role="alert">
+    <div class="mb-4 flex items-center gap-2 p-4 rounded-sm border border-destructive/30 bg-muted-destructive text-destructive text-sm" role="alert">
       <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
       <span>{{ error() }}</span>
     </div>
@@ -31,7 +31,7 @@
             <div class="flex items-center gap-3">
               <p-avatar
                 [label]="initials(user)"
-                shape="circle"
+                shape="square"
                 [style]="{ background: 'var(--p-primary-100)', color: 'var(--p-primary-800)', fontWeight: '600' }"
               />
               <span class="font-medium">{{ user.firstName }} {{ user.lastName }}</span>

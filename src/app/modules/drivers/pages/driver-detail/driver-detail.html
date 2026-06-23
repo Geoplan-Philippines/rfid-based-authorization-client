@@ -1,0 +1,217 @@
+<main class="flex flex-col w-full p-6 overflow-auto">
+  <a
+    routerLink="/drivers"
+    class="inline-flex items-center gap-1 text-sm text-body/60 hover:text-primary mb-4 w-fit"
+  >
+    <i class="pi pi-chevron-left text-xs" aria-hidden="true"></i> Back to drivers
+  </a>
+
+  @if (loading()) {
+    <div class="flex justify-center py-16">
+      <p-progressSpinner [style]="{ width: '42px', height: '42px' }" aria-label="Loading driver" />
+    </div>
+  } @else if (notFound()) {
+    <div class="flex flex-col items-center justify-center py-16 text-center" role="alert">
+      <i class="pi pi-id-card text-4xl mb-3" style="color: var(--p-primary-200)" aria-hidden="true"></i>
+      <p class="text-heading font-medium">Driver not found</p>
+      <p class="text-sm text-body/50 mt-1">They may have been removed or the link is incorrect.</p>
+    </div>
+  } @else if (error()) {
+    <div class="flex items-center gap-2 p-4 rounded-sm border border-destructive/30 bg-muted-destructive text-destructive text-sm" role="alert">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <span>{{ error() }}</span>
+    </div>
+  } @else if (detail(); as driver) {
+    <!-- Identity band -->
+    <header class="flex flex-wrap items-start justify-between gap-4 mb-6">
+      <div class="flex items-center gap-4 min-w-0">
+        <p-avatar
+          [label]="driver.photoUrl ? undefined : driver.firstName.charAt(0)"
+          [image]="resolvePhotoUrl(driver.photoUrl) ?? undefined"
+          shape="square"
+          size="xlarge"
+          [style]="{ background: 'var(--p-primary-100)', color: 'var(--p-primary-800)', fontWeight: '600' }"
+        />
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-3">
+            <h1 class="text-2xl font-bold text-heading">{{ driver.firstName }} {{ driver.lastName }}</h1>
+            @if (driver.isArchived) {
+              <p-tag value="Archived" severity="secondary" />
+            }
+          </div>
+          <p class="text-sm text-body/60 mt-1">
+            License <span class="font-mono text-heading">{{ driver.licenseNumber }}</span>
+            <span class="text-body/30">·</span>
+            <span class="font-mono text-xs">{{ driver.id }}</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 shrink-0">
+        <p-button label="Edit details" icon="pi pi-pencil" (onClick)="openEdit()" />
+      </div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Left: facts -->
+      <section class="lg:col-span-1">
+        <div class="rounded-sm border border-border bg-white p-5">
+          <dl class="grid grid-cols-2 gap-x-4 gap-y-4">
+            <div>
+              <dt class="text-xs text-muted">Gate events (30d)</dt>
+              <dd class="text-sm font-medium text-heading mt-0.5 tabular-nums">{{ driver.events30d }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-muted">Denials (30d)</dt>
+              <dd
+                class="text-sm mt-0.5 tabular-nums"
+                [class]="driver.denials30d > 0 ? 'font-semibold text-destructive' : 'font-medium text-heading'"
+              >
+                {{ driver.denials30d }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs text-muted">Last event</dt>
+              <dd class="text-sm font-medium text-heading mt-0.5">
+                {{ driver.lastEventAt ? (driver.lastEventAt | date: 'medium') : '—' }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs text-muted">Added</dt>
+              <dd class="text-sm font-medium text-heading mt-0.5">{{ driver.createdAt | date: 'mediumDate' }}</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <!-- Right: trucks + recent events -->
+      <div class="lg:col-span-2 flex flex-col gap-6">
+        <section class="rounded-sm border border-border bg-white p-5">
+          <div class="flex items-center justify-between gap-3 mb-3">
+            <h2 class="text-sm font-semibold text-heading">
+              Cleared to drive <span class="text-muted font-normal">({{ driver.trucks.length }})</span>
+            </h2>
+            <p-button
+              label="Assign truck"
+              icon="pi pi-plus"
+              size="small"
+              [outlined]="true"
+              (onClick)="openAssign()"
+            />
+          </div>
+
+          @if (driver.trucks.length) {
+            <ul class="rounded-sm border border-border divide-y divide-border">
+              @for (truck of driver.trucks; track truck.id) {
+                <li class="flex items-center gap-3 p-2.5">
+                  <div class="flex flex-col min-w-0 flex-1">
+                    <span class="font-medium truncate text-heading">{{ truck.plateNumber }} · {{ truck.model }}</span>
+                    <span class="text-xs text-muted">
+                      @if (truck.tagEpc) {
+                        <span class="font-mono">{{ truck.tagEpc }}</span>
+                      } @else {
+                        no tag
+                      }
+                      · since {{ truck.since | date: 'mediumDate' }}
+                    </span>
+                  </div>
+                  @if (truck.tagStatus) {
+                    <p-tag
+                      [value]="rfidTagStatusTag(truck.tagStatus).label"
+                      [severity]="rfidTagStatusTag(truck.tagStatus).severity"
+                    />
+                  }
+                  <p-tag
+                    [value]="assignmentRoleTag(truck.role).label"
+                    [severity]="assignmentRoleTag(truck.role).severity"
+                  />
+                  <p-button
+                    icon="pi pi-times"
+                    size="small"
+                    [text]="true"
+                    severity="danger"
+                    [disabled]="busy()"
+                    (onClick)="onUnassign({ id: truck.id, label: truck.plateNumber, role: truck.role })"
+                    [attr.aria-label]="'Unassign ' + truck.plateNumber"
+                  />
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="text-sm text-muted rounded-sm border border-dashed border-border px-3 py-6 text-center">
+              No trucks assigned.
+            </p>
+          }
+        </section>
+
+        <section class="rounded-sm border border-border bg-white p-5">
+          <h2 class="text-sm font-semibold text-heading mb-3">Recent gate events</h2>
+          @if (driver.recentGateEvents.length) {
+            <ul class="rounded-sm border border-border divide-y divide-border">
+              @for (event of driver.recentGateEvents; track event.id) {
+                <li class="flex items-center gap-2 p-2.5 text-sm">
+                  <span class="text-muted whitespace-nowrap tabular-nums">{{ event.occurredAt | date: 'MMM d, HH:mm' }}</span>
+                  @if (event.truckPlate) {
+                    <span class="truncate font-mono text-heading">{{ event.truckPlate }}</span>
+                  }
+                  <p-tag
+                    class="ml-auto"
+                    [value]="gateResultTag(event.result).label"
+                    [severity]="gateResultTag(event.result).severity"
+                  />
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="text-sm text-muted rounded-sm border border-dashed border-border px-3 py-6 text-center">
+              No recent events.
+            </p>
+          }
+        </section>
+      </div>
+    </div>
+
+    <!-- Archive / restore zone -->
+    <div class="mt-6 flex flex-wrap items-center gap-3 border-t border-border pt-5">
+      @if (driver.isArchived) {
+        <p-button
+          label="Restore driver"
+          icon="pi pi-refresh"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="busy()"
+          (onClick)="confirmRestore()"
+        />
+        <span class="text-xs text-muted">Archived — hidden from the drivers list. Restore to bring them back.</span>
+      } @else {
+        <p-button
+          label="Archive driver"
+          icon="pi pi-inbox"
+          severity="danger"
+          [outlined]="true"
+          [disabled]="busy()"
+          (onClick)="confirmArchive()"
+        />
+        <span class="text-xs text-muted">Hides the driver from the list. You can restore them later.</span>
+      }
+    </div>
+  }
+</main>
+
+@if (detail(); as driver) {
+  <app-driver-form-dialog [(visible)]="editVisible" mode="edit" [driver]="driver" (saved)="onEdited()" />
+
+  <app-assign-picker
+    [(visible)]="assignVisible"
+    header="Assign truck"
+    [subheader]="fullName() + ' ⇄ trucks'"
+    candidateLabel="All trucks"
+    assignedLabel="Cleared to drive"
+    emptyCandidatesText="No trucks found."
+    [assigned]="assignedTrucks()"
+    [loadCandidates]="truckCandidates"
+    [busy]="busy()"
+    (assign)="onAssign($event)"
+    (unassign)="onUnassign($event)"
+  />
+}

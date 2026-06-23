@@ -1,27 +1,55 @@
-export type RfidTagStatus = 'ACTIVE' | 'INACTIVE' | 'LOST' | 'BLOCKED';
+import { GateEventResult, RfidTagStatus } from '../../../shared/ui/status-tags';
+import { PaginationMeta } from '../../../core/types/api-response.types';
 
-// Matches the assignedTruck shape actually returned by GET /api/v1/rfid-tags
-// (no assignedDriverId — that field belongs to the separate trucks endpoint's
-// own Truck type, not this nested include).
-export type AssignedTruck = {
+export type { RfidTagStatus } from '../../../shared/ui/status-tags';
+
+export interface RfidAssignedTruckSummary {
   id: string;
   plateNumber: string;
   model: string;
-  isArchived: boolean;
-  createdAt: string;
-  updatedAt: string;
-};
+}
 
-// Mirrors the backend's RfidTagWithTruck (RFIDTag + assignedTruck include).
-// NOTE: the API does not currently return a last-event timestamp or gate-event count
-// for a tag. If/when the backend adds these (e.g. `lastEventAt`, `eventsCount`), extend
-// this type and wire them into rfid-tags.html in place of the hardcoded "-" / "0".
-export type RfidTag = {
+/** Plain tag entity (returned by create). */
+export interface RfidTag {
   id: string;
   epcId: string;
   status: RfidTagStatus;
-  assignedTruckId: string | null;
-  assignedTruck: AssignedTruck | null;
+  assignedTruckId: string;
   createdAt: string;
   updatedAt: string;
-};
+}
+
+export interface RfidTagListItem {
+  id: string;
+  epcId: string;
+  status: RfidTagStatus;
+  assignedTruck: RfidAssignedTruckSummary | null;
+  lastSeenAt: string | null;
+  lastResult: GateEventResult | null;
+  events30d: number;
+}
+
+export type RfidTagStatusCounts = Record<RfidTagStatus, number> & { total: number };
+
+export interface RfidTagListMeta extends PaginationMeta {
+  counts: RfidTagStatusCounts;
+}
+
+export interface RfidTagListResult {
+  data: RfidTagListItem[];
+  meta: RfidTagListMeta;
+}
+
+export interface RfidTagStatusHistoryItem {
+  fromStatus: RfidTagStatus | null;
+  toStatus: RfidTagStatus;
+  reason: string | null;
+  createdAt: string;
+}
+
+export interface RfidTagDetail extends RfidTagListItem {
+  boundSince: string;
+  lastVerifiedAt: string | null;
+  denials7d: number;
+  statusHistory: RfidTagStatusHistoryItem[];
+}

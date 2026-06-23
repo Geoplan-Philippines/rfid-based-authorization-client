@@ -26,6 +26,14 @@ export class Header {
     return full || user.email;
   });
 
+  protected initials = computed(() => {
+    const user = this.authService.currentUser();
+    if (!user) return '?';
+    const first = user.firstName?.trim()?.[0] ?? '';
+    const last = user.lastName?.trim()?.[0] ?? '';
+    return (first + last).toUpperCase() || (user.email?.[0]?.toUpperCase() ?? '?');
+  });
+
   protected toggleSidebar(): void {
     this.layoutService.toggleSidebar();
   }

@@ -1,0 +1,85 @@
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  [style]="{ width: '34rem' }"
+  [breakpoints]="{ '640px': '92vw' }"
+  [header]="title"
+>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 pt-2">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="flex flex-col gap-2">
+        <label for="driver-first" class="font-medium text-sm">First name</label>
+        <input
+          pInputText
+          id="driver-first"
+          formControlName="firstName"
+          autocomplete="off"
+          class="w-full"
+          [class.ng-invalid]="form.controls.firstName.invalid && form.controls.firstName.touched"
+          [class.ng-dirty]="form.controls.firstName.invalid && form.controls.firstName.touched"
+        />
+        @if (form.controls.firstName.invalid && form.controls.firstName.touched) {
+          <small class="text-destructive">First name is required.</small>
+        }
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label for="driver-last" class="font-medium text-sm">Last name</label>
+        <input
+          pInputText
+          id="driver-last"
+          formControlName="lastName"
+          autocomplete="off"
+          class="w-full"
+          [class.ng-invalid]="form.controls.lastName.invalid && form.controls.lastName.touched"
+          [class.ng-dirty]="form.controls.lastName.invalid && form.controls.lastName.touched"
+        />
+        @if (form.controls.lastName.invalid && form.controls.lastName.touched) {
+          <small class="text-destructive">Last name is required.</small>
+        }
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label for="driver-license" class="font-medium text-sm">License number</label>
+      <input
+        pInputText
+        id="driver-license"
+        formControlName="licenseNumber"
+        placeholder="e.g. N03-12-345678"
+        autocomplete="off"
+        class="w-full uppercase"
+        [class.ng-invalid]="form.controls.licenseNumber.invalid && form.controls.licenseNumber.touched"
+        [class.ng-dirty]="form.controls.licenseNumber.invalid && form.controls.licenseNumber.touched"
+      />
+      @if (form.controls.licenseNumber.invalid && form.controls.licenseNumber.touched) {
+        <small class="text-destructive">License number is required.</small>
+      }
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label for="driver-photo" class="font-medium text-sm">Photo <span class="text-body/50 font-normal">(optional)</span></label>
+      <div class="flex items-center gap-3">
+        @if (existingPhotoUrl()) {
+          <img [src]="existingPhotoUrl()" alt="Current driver photo" class="w-14 h-14 rounded-sm object-cover border border-border" />
+        }
+        <input
+          id="driver-photo"
+          type="file"
+          accept="image/*"
+          (change)="onFileSelected($event)"
+          class="text-sm"
+          aria-label="Driver photo"
+        />
+      </div>
+    </div>
+  </form>
+
+  <ng-template #footer>
+    <p-button label="Cancel" severity="secondary" [text]="true" (onClick)="visible.set(false)" />
+    <p-button label="Save" icon="pi pi-check" [loading]="saving()" (onClick)="submit()" />
+  </ng-template>
+</p-dialog>

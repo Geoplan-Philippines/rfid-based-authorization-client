@@ -1,0 +1,35 @@
+/* Stacked-column segments. Colour is spent on state: calm slate for the routine
+   pass, muted slate for an operator override, alert red for the exception. */
+.seg-verified {
+  background: var(--text-body);
+}
+
+.seg-override {
+  background: var(--text-muted);
+}
+
+.seg-exception {
+  background: var(--destructive);
+}
+
+/* Guarantee a sliver of every non-zero count is visible — an exception must
+   never vanish into a sub-pixel height (anomalies-first). */
+.seg--data {
+  min-height: 3px;
+}
+
+/* Hover affordance: tint the whole hour column, not just the bar, so the
+   tooltip target reads as one band. */
+.chart-col {
+  transition: background-color 150ms ease-out;
+}
+
+.chart-col:hover {
+  background-color: color-mix(in srgb, var(--text-body) 7%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-col {
+    transition: none;
+  }
+}

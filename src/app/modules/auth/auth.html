@@ -1,6 +1,6 @@
 <div class="flex items-center justify-center min-h-screen bg-background p-4">
   <div class="w-full max-w-md">
-    <p-card styleClass="shadow-lg border-round-xl">
+    <p-card styleClass="shadow-lg rounded-sm">
       <ng-template pTemplate="title">
         <div class="text-center mb-4">
           <h2 class="text-3xl font-bold text-primary mb-2">Welcome Back</h2>
@@ -30,10 +30,10 @@
               [class.ng-dirty]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
             />
             @if (loginForm.get('email')?.hasError('required') && loginForm.get('email')?.touched) {
-              <small class="text-red-500">Email is required.</small>
+              <small class="text-destructive">Email is required.</small>
             }
             @if (loginForm.get('email')?.hasError('email') && loginForm.get('email')?.touched) {
-              <small class="text-red-500">Please enter a valid email address.</small>
+              <small class="text-destructive">Please enter a valid email address.</small>
             }
           </div>
 
@@ -53,12 +53,12 @@
               [class.ng-dirty]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
             ></p-password>
             @if (loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched) {
-              <small class="text-red-500">Password is required.</small>
+              <small class="text-destructive">Password is required.</small>
             }
           </div>
 
           <!-- Security Notice -->
-          <div class="text-xs text-body mt-2 flex gap-2 p-3 bg-secondary border-round">
+          <div class="text-xs text-body mt-2 flex gap-2 p-3 bg-secondary rounded-sm">
             <i class="pi pi-shield text-primary"></i>
             <span>
               <strong>Security Notice:</strong> Your connection must be secure. Ensure you are on a trusted network before logging in.

@@ -1,0 +1,163 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-21T00:00:00Z",
+  "title": "Design System: Eagle Cement Gate Authorization",
+  "extensions": {
+    "colorMeta": {
+      "ledger-blue": {
+        "role": "primary",
+        "displayName": "Ledger Blue",
+        "canonical": "#0B4EA2",
+        "tonalRamp": ["#01183C", "#03285A", "#0B4EA2", "#1060C5", "#1676EE", "#4D8BFC", "#9EB7FD", "#E1E8FE"]
+      },
+      "signal-cyan": {
+        "role": "secondary",
+        "displayName": "Signal Cyan",
+        "canonical": "#22D3EE",
+        "tonalRamp": ["#083344", "#0E5267", "#1487A6", "#19B6D6", "#22D3EE", "#67E3F5", "#A5EEF9", "#D6F7FC"]
+      },
+      "page-bg": {
+        "role": "neutral",
+        "displayName": "Page Background",
+        "canonical": "#F8FBFF",
+        "tonalRamp": ["#0B161F", "#365261", "#5E7787", "#8CA3B2", "#B9CAD7", "#DBE5F0", "#EDF3FA", "#F8FBFF"]
+      },
+      "slate-body": {
+        "role": "neutral",
+        "displayName": "Slate Body",
+        "canonical": "#365261",
+        "tonalRamp": ["#0B161F", "#1C2E3A", "#2A4250", "#365261", "#5E7787", "#8CA3B2", "#B9CAD7", "#DBE5F0"]
+      },
+      "muted-slate": {
+        "role": "neutral",
+        "displayName": "Muted Slate",
+        "canonical": "#55707F",
+        "tonalRamp": ["#0B161F", "#2A4250", "#3F5868", "#55707F", "#7C909C", "#A3B2BB", "#C9D4DA", "#EDF1F4"]
+      },
+      "verified-green": {
+        "role": "tertiary",
+        "displayName": "Verified Green",
+        "canonical": "#3DBE81",
+        "tonalRamp": ["#0E3D29", "#155C3E", "#1C7A53", "#279C6A", "#3DBE81", "#73D2A4", "#A8E4C7", "#D1EDE0"]
+      },
+      "alert-red": {
+        "role": "tertiary",
+        "displayName": "Alert Red",
+        "canonical": "#C2261B",
+        "tonalRamp": ["#5C0E0E", "#841616", "#B81F1F", "#E62E2E", "#FF4B4B", "#FF8585", "#FFB8B8", "#FFE1DE"]
+      }
+    },
+    "typographyMeta": {
+      "headline": { "displayName": "Headline", "purpose": "Page titles (Poppins 700)." },
+      "title": { "displayName": "Title", "purpose": "Brand mark, dialog/card titles (Poppins 600)." },
+      "body": { "displayName": "Body", "purpose": "Default text — tables, forms, descriptions (Work Sans)." },
+      "label": { "displayName": "Label", "purpose": "Uppercase tracked nav section headers and small badges." },
+      "mono": { "displayName": "Mono", "purpose": "Machine codes only — EPC / tag / event IDs." }
+    },
+    "shadows": [
+      { "name": "overlay-lift", "value": "0 10px 25px -5px rgba(11,22,31,0.18), 0 8px 10px -6px rgba(11,22,31,0.12)", "purpose": "Lifts overlays off the page — modal dialogs and the login card. The only sanctioned resting shadow." }
+    ],
+    "motion": [
+      { "name": "ease-state", "value": "ease-in-out", "purpose": "Default for color/state transitions on controls and nav items." },
+      { "name": "duration-drawer", "value": "200ms", "purpose": "Off-canvas sidebar slide on mobile." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Filled deep-blue primary action; used for New / Save and other commit actions.",
+      "html": "<button class=\"ds-btn-primary\" type=\"button\"><svg class=\"ds-ico\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 5v14M5 12h14\"/></svg>New</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; background: #0B4EA2; color: #FFFFFF; font-family: 'Work Sans', sans-serif; font-weight: 600; font-size: 0.875rem; padding: 0.5rem 1rem; border: none; border-radius: 2px; cursor: pointer; transition: background 0.15s ease-in-out; } .ds-btn-primary:hover { background: #03285A; } .ds-btn-primary:active { background: #01183C; } .ds-btn-primary:focus-visible { outline: 2px solid #22D3EE; outline-offset: 2px; } .ds-ico { width: 1rem; height: 1rem; }"
+    },
+    {
+      "name": "Outlined Toggle Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Secondary outlined button for non-committal toggles like Show/Hide archived.",
+      "html": "<button class=\"ds-btn-outlined\" type=\"button\">Show archived</button>",
+      "css": ".ds-btn-outlined { background: transparent; color: #365261; font-family: 'Work Sans', sans-serif; font-weight: 600; font-size: 0.875rem; padding: 0.5rem 1rem; border: 1px solid #DBE5F0; border-radius: 2px; cursor: pointer; transition: background 0.15s ease-in-out, border-color 0.15s ease-in-out; } .ds-btn-outlined:hover { background: rgba(11,22,31,0.04); border-color: #B9CAD7; } .ds-btn-outlined:focus-visible { outline: 2px solid #22D3EE; outline-offset: 2px; }"
+    },
+    {
+      "name": "Search Input",
+      "kind": "input",
+      "refersTo": "input-text",
+      "description": "Text field with a leading search icon, used in registry toolbars.",
+      "html": "<div class=\"ds-iconfield\"><svg class=\"ds-iconfield-ico\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"m21 21-4.3-4.3\"/></svg><input class=\"ds-input\" type=\"text\" placeholder=\"Search plate, model…\" aria-label=\"Search\"/></div>",
+      "css": ".ds-iconfield { position: relative; display: inline-flex; align-items: center; } .ds-iconfield-ico { position: absolute; left: 0.625rem; width: 1rem; height: 1rem; color: #8CA3B2; pointer-events: none; } .ds-input { font-family: 'Work Sans', sans-serif; font-size: 0.875rem; color: #0B161F; background: #FFFFFF; border: 1px solid #DBE5F0; border-radius: 2px; padding: 0.5rem 0.75rem 0.5rem 2rem; width: 16rem; } .ds-input::placeholder { color: #5E7787; } .ds-input:focus-visible { outline: none; border-color: #22D3EE; box-shadow: 0 0 0 2px rgba(34,211,238,0.4); }"
+    },
+    {
+      "name": "Status Tag",
+      "kind": "chip",
+      "refersTo": "status-chip",
+      "description": "Signature status vocabulary. Severity maps to gate result / RFID status; color is always paired with a text label.",
+      "html": "<span class=\"ds-tag ds-tag--success\">Verified</span> <span class=\"ds-tag ds-tag--danger\">Unknown Tag</span> <span class=\"ds-tag ds-tag--warn\">Face Mismatch</span> <span class=\"ds-tag ds-tag--info\">Manual Override</span>",
+      "css": ".ds-tag { display: inline-flex; align-items: center; font-family: 'Work Sans', sans-serif; font-weight: 600; font-size: 0.75rem; line-height: 1; padding: 0.25rem 0.5rem; border-radius: 2px; } .ds-tag--success { background: #D1EDE0; color: #155C3E; } .ds-tag--danger { background: #FFE1DE; color: #841616; } .ds-tag--warn { background: #FDE8C8; color: #7A4E0E; } .ds-tag--info { background: #E1E8FE; color: #0B4EA2; }"
+    },
+    {
+      "name": "Data Table Header",
+      "kind": "custom",
+      "refersTo": "table-header",
+      "description": "Deep-blue header bar with white text — the one place the spine blue fills a full surface. Rows are flat with a hover wash.",
+      "html": "<table class=\"ds-table\"><thead><tr><th>Truck</th><th>Bound Tag</th><th>Tag Status</th></tr></thead><tbody><tr><td>DEF-7710</td><td class=\"ds-mono\">E2801170</td><td><span class=\"ds-tag ds-tag--success\">Active</span></td></tr></tbody></table>",
+      "css": ".ds-table { width: 100%; border-collapse: collapse; font-family: 'Work Sans', sans-serif; font-size: 0.875rem; color: #365261; } .ds-table th { background: #0B4EA2; color: #FFFFFF; text-align: left; font-weight: 600; padding: 0.625rem 0.75rem; } .ds-table td { padding: 0.625rem 0.75rem; border-bottom: 1px solid #DBE5F0; } .ds-table tbody tr:hover { background: rgba(11,22,31,0.04); cursor: pointer; } .ds-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; } .ds-tag { display: inline-flex; font-family: 'Work Sans', sans-serif; font-weight: 600; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 2px; } .ds-tag--success { background: #D1EDE0; color: #155C3E; }"
+    },
+    {
+      "name": "Sidebar Nav Item (active)",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "Active navigation row: pale-blue wash, blue text, and a 2px blue left-edge indicator (the one sanctioned side-stripe).",
+      "html": "<nav class=\"ds-nav\"><span class=\"ds-nav-section\">Registry</span><a class=\"ds-nav-item ds-nav-item--active\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><rect x=\"1\" y=\"3\" width=\"15\" height=\"13\"/><path d=\"M16 8h4l3 3v5h-7z\"/><circle cx=\"5.5\" cy=\"18.5\" r=\"2.5\"/><circle cx=\"18.5\" cy=\"18.5\" r=\"2.5\"/></svg>Trucks</a><a class=\"ds-nav-item\">RFID Tags</a></nav>",
+      "css": ".ds-nav { display: flex; flex-direction: column; background: #F8FBFF; padding: 0.5rem 0; width: 16rem; font-family: 'Work Sans', sans-serif; } .ds-nav-section { padding: 0 1.25rem; margin-bottom: 0.5rem; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(54,82,97,0.6); } .ds-nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; font-size: 0.875rem; color: #365261; border-left: 2px solid transparent; text-decoration: none; cursor: pointer; transition: background 0.15s ease-in-out, color 0.15s ease-in-out; } .ds-nav-item svg { width: 1rem; height: 1rem; } .ds-nav-item:hover { background: rgba(11,22,31,0.05); color: #0B161F; } .ds-nav-item--active { background: rgba(11,78,162,0.1); color: #0B4EA2; font-weight: 500; border-left-color: #0B4EA2; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Gate Ledger",
+    "overview": "This is the interface of an authoritative, auditable register. Every truck that touches the gate becomes a row in the record — a result, a timeline, a set of snapshots. The system's job is to make that record legible and trustworthy. The palette is anchored by a single deep ledger blue on a near-white page; blue carries structure while the body stays calm, and color beyond that is reserved almost entirely for state. The feel is refined and restrained: PrimeNG components used straight, flat surfaces defined by hairline borders rather than shadow.",
+    "keyCharacteristics": [
+      "One deep-blue spine on a near-white page; color spent on state, not decoration.",
+      "Flat surfaces, hairline borders; shadow reserved for overlays.",
+      "PrimeNG-first components, one vocabulary across every screen.",
+      "Monospace strictly for machine codes; human text never mono.",
+      "Restrained, state-only motion (reduced-motion-first)."
+    ],
+    "rules": [
+      { "name": "The Deep-Blue Spine Rule", "body": "Exactly one blue (#0B4EA2) anchors structure — headers, primary actions, active nav. The page body stays near-white. Do not introduce a second brand hue.", "section": "colors" },
+      { "name": "The Status-Carries-Meaning Rule", "body": "Color beyond the blue spine is spent on state only: green/red/amber via p-tag severities and primary-action emphasis. If a color isn't communicating a status or a primary action, it shouldn't be there.", "section": "colors" },
+      { "name": "The Mono-for-Machine Rule", "body": "Monospace is reserved exclusively for machine codes (EPC/tag/event IDs). Human-readable text is never set in mono.", "section": "typography" },
+      { "name": "The Flat-Ledger Rule", "body": "Surfaces are flat at rest. A shadow is permission to float — used only for overlays (dialogs, the auth card).", "section": "elevation" },
+      { "name": "The PrimeNG-First Rule", "body": "Reach for the PrimeNG component before building a custom control. Style with Tailwind utilities and theme tokens; keep overrides minimal.", "section": "elevation" },
+      { "name": "The Near-Sharp Rule", "body": "Corners are near-sharp: 2px (--radius / rounded-sm) on controls and surfaces, 0 for full-bleed structural surfaces. Never rounded-lg/xl (8px+). The base is set once in the PrimeNG preset so components and Tailwind surfaces agree. Genuinely circular indicators (status dots, timeline nodes, spinners) stay round.", "section": "components" },
+      { "name": "The Square-Avatar Rule", "body": "Avatars and photo thumbnails are square (near-sharp), never circles or pills.", "section": "components" }
+    ],
+    "dos": [
+      "Do anchor structure with the single Ledger Blue (#0B4EA2) and keep the page near-white (#F8FBFF).",
+      "Do spend color on state: use the canonical p-tag severity mapping for every status, and pair color with a text label.",
+      "Do set machine codes (EPC / tag / event IDs) in monospace; keep human text in Work Sans.",
+      "Do keep surfaces flat with 1px #DBE5F0 borders; reserve shadow for overlays.",
+      "Do keep corners near-sharp (2px / rounded-sm) and avatars square (shape=square).",
+      "Do use --text-muted (#55707F / text-muted) for secondary and field labels — never low-opacity body text, which fails AA.",
+      "Do present record facts as a definition list and consolidate related rows into one divide-y container.",
+      "Do reach for a PrimeNG component first; keep one vocabulary across screens.",
+      "Do keep motion restrained and state-only, with a prefers-reduced-motion: reduce fallback.",
+      "Do keep body text at or above 4.5:1 contrast — bump slate toward ink rather than fading it for elegance."
+    ],
+    "donts": [
+      "Don't use consumer-SaaS cliches: no gradient text, no glassmorphism, no glossy purple, no big-number hero-metric template.",
+      "Don't drift to legacy gov/ERP clutter — tiny fonts and grey density for its own sake.",
+      "Don't build a dark security HUD: no neon-on-black, no sci-fi terminal drama.",
+      "Don't add playful/startup-cute touches — no mascots, candy colors, or emoji.",
+      "Don't use border-left/border-right greater than 1px as a decorative colored stripe on cards, callouts, or alerts (the sidebar's 2px active indicator is the one sanctioned exception).",
+      "Don't introduce a second brand hue or a new font family; the system is two fonts and one blue spine.",
+      "Don't use rounded-lg/xl (8-12px) on surfaces, or circle/pill avatars — corners stay near-sharp, avatars stay square.",
+      "Don't use uppercase-tracked labels outside nav section headers and badges, or stack individually-bordered rows — both make record views feel scattered.",
+      "Don't use the retired bright #FF4B4B or text-red-500 for text — use --destructive (#C2261B), which is AA-safe.",
+      "Don't convey pass/fail/anomaly by color alone."
+    ]
+  }
+}

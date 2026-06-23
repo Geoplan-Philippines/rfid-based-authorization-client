@@ -64,7 +64,7 @@ export class Auth {
         // Security Auditor Note:
         // Proper handling of tokens (e.g., storing in HttpOnly cookies instead of localStorage)
         // is recommended to mitigate XSS attacks.
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/transactions']);
       },
       error: (err) => {
         this.isLoading.set(false);

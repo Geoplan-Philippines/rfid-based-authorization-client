@@ -29,6 +29,14 @@ export const routes: Routes = [
     ]
   },
   {
+    path: 'audit',
+    component: MainLayout,
+    canActivate: [authGuard],
+    children: [
+      { path: '', loadComponent: () => import('./modules/audit-logs/audit-logs').then(m => m.AuditLogs) }
+    ]
+  },
+  {
     path: 'reports',
     component: MainLayout,
     canActivate: [authGuard],
@@ -49,7 +57,8 @@ export const routes: Routes = [
     component: MainLayout,
     canActivate: [authGuard],
     children: [
-      { path: '', loadComponent: () => import('./modules/drivers/drivers').then(m => m.Drivers) }
+      { path: '', loadComponent: () => import('./modules/drivers/drivers').then(m => m.Drivers) },
+      { path: ':id', loadComponent: () => import('./modules/drivers/pages/driver-detail/driver-detail').then(m => m.DriverDetail) }
     ]
   },
   {
@@ -57,7 +66,8 @@ export const routes: Routes = [
     component: MainLayout,
     canActivate: [authGuard],
     children: [
-      { path: '', loadComponent: () => import('./modules/trucks/trucks').then(m => m.Trucks) }
+      { path: '', loadComponent: () => import('./modules/trucks/trucks').then(m => m.Trucks) },
+      { path: ':id', loadComponent: () => import('./modules/trucks/pages/truck-detail/truck-detail').then(m => m.TruckDetail) }
     ]
   },
   {
@@ -65,7 +75,8 @@ export const routes: Routes = [
     component: MainLayout,
     canActivate: [authGuard],
     children: [
-      { path: '', loadComponent: () => import('./modules/rfid-tags/rfid-tags').then(m => m.RfidTags) }
+      { path: '', loadComponent: () => import('./modules/rfid-tags/rfid-tags').then(m => m.RfidTags) },
+      { path: ':id', loadComponent: () => import('./modules/rfid-tags/pages/rfid-tag-detail/rfid-tag-detail').then(m => m.RfidTagDetail) }
     ]
   },
   { path: '**', redirectTo: 'dashboard' }

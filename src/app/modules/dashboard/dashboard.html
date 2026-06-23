@@ -1,3 +1,216 @@
-<main class="p-4 md:p-8">
-    <p-button label="Login"/>
+<main class="flex flex-col w-full p-6 overflow-auto gap-6">
+  <!-- Page header -->
+  <div class="flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold" style="color: var(--text-heading)">Dashboard</h1>
+      <p class="text-sm text-muted mt-1">
+        @if (isToday()) {<span>Today · </span>}{{ selectedDate() | date: 'fullDate' }}
+        @if (overview(); as o) {
+          <span class="text-body/40"> · updated {{ o.generatedAt | date: 'shortTime' }}</span>
+        }
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      @if (!isToday()) {
+        <p-button label="Today" severity="secondary" [text]="true" size="small" (onClick)="resetToToday()" />
+      }
+      <label class="sr-only" for="dashboard-date">Report date</label>
+      <p-datepicker
+        inputId="dashboard-date"
+        [ngModel]="selectedDate()"
+        (onSelect)="onDateSelect($event)"
+        [maxDate]="today"
+        dateFormat="M d, yy"
+        [showIcon]="true"
+        iconDisplay="input"
+        [readonlyInput]="true"
+        styleClass="w-44"
+      />
+      <!-- Export stays disabled: no export endpoint yet. -->
+      <p-button
+        label="Export"
+        icon="pi pi-download"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="true"
+        title="Export — coming soon"
+      />
+    </div>
+  </div>
+
+  @if (error()) {
+    <div
+      class="flex flex-wrap items-center gap-3 p-4 rounded-sm border border-destructive/30 bg-muted-destructive text-destructive text-sm"
+      role="alert"
+    >
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <span class="flex-1">Failed to load the dashboard. Please try again.</span>
+      <p-button label="Retry" icon="pi pi-refresh" size="small" severity="danger" [text]="true" (onClick)="retry()" />
+    </div>
+  } @else if (loading() && !overview()) {
+    <!-- First-load skeleton -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      @for (i of [0, 1, 2, 3]; track i) {
+        <div class="rounded-sm border border-border bg-white p-4 flex flex-col gap-3">
+          <p-skeleton width="6rem" height="0.7rem" />
+          <p-skeleton width="4rem" height="2rem" />
+          <p-skeleton width="9rem" height="0.7rem" />
+        </div>
+      }
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div class="lg:col-span-2 rounded-sm border border-border bg-white p-5">
+        <p-skeleton width="10rem" height="1rem" styleClass="mb-4" />
+        <p-skeleton width="100%" height="220px" />
+      </div>
+      <div class="rounded-sm border border-border bg-white p-5 flex flex-col gap-3">
+        <p-skeleton width="8rem" height="1rem" styleClass="mb-2" />
+        @for (i of [0, 1, 2, 3, 4]; track i) {
+          <p-skeleton width="100%" height="2rem" />
+        }
+      </div>
+    </div>
+  } @else if (overview(); as o) {
+    <div
+      class="flex flex-col gap-6 transition-opacity duration-150"
+      [class.opacity-60]="loading()"
+      [attr.aria-busy]="loading()"
+    >
+      <!-- KPI cards -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4" aria-label="Today's key metrics">
+        <!-- Trucks today -->
+        <div class="rounded-sm border border-border bg-white p-4 flex flex-col gap-2">
+          <span class="kpi-label">Trucks Today</span>
+          <span class="kpi-value">{{ o.cards.trucksToday.value }}</span>
+          @if (delta(); as d) {
+            <span class="inline-flex items-center gap-1 text-xs text-muted">
+              <i class="pi {{ d.icon }} text-[10px]" aria-hidden="true"></i>
+              <span class="font-medium text-body tabular-nums">{{ d.magnitude }}</span>
+              <span>vs yesterday</span>
+            </span>
+          }
+        </div>
+
+        <!-- Verified -->
+        <div class="rounded-sm border border-border bg-white p-4 flex flex-col gap-2">
+          <span class="kpi-label">Verified</span>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="kpi-value">{{ o.cards.verified.value }}</span>
+            <p-tag [value]="o.cards.verified.rate + '%'" severity="success" />
+          </div>
+          <span class="text-xs text-muted">passed RFID automatically</span>
+        </div>
+
+        <!-- Exceptions — anomaly-weighted: reddened when there is anything to review. -->
+        <div
+          class="rounded-sm border border-border bg-white p-4 flex flex-col gap-2"
+          [style.border-color]="
+            o.cards.exceptions.value > 0 ? 'color-mix(in srgb, var(--destructive) 45%, var(--border))' : null
+          "
+        >
+          <span class="kpi-label">Exceptions</span>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span
+              class="kpi-value"
+              [style.color]="o.cards.exceptions.value > 0 ? 'var(--destructive)' : 'var(--text-heading)'"
+            >
+              {{ o.cards.exceptions.value }}
+            </span>
+            @if (o.cards.exceptions.value > 0) {
+              <p-tag value="needs review" severity="danger" />
+            } @else {
+              <p-tag value="all clear" severity="success" />
+            }
+          </div>
+          <span class="text-xs text-muted">unknown tag, mismatch, denied or error</span>
+        </div>
+
+        <!-- Avg pass time -->
+        <div class="rounded-sm border border-border bg-white p-4 flex flex-col gap-2">
+          <span class="kpi-label">Avg Pass Time</span>
+          @if (passTime(); as pt) {
+            <span class="kpi-value">{{ pt }}</span>
+            <span class="text-xs text-muted">RFID → barrier · n={{ o.cards.avgPassTime.sampleSize }}</span>
+          } @else {
+            <span class="kpi-value text-muted">—</span>
+            <span class="text-xs text-muted">no completed passes</span>
+          }
+        </div>
+      </section>
+
+      <!-- Throughput + needs review -->
+      <section class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
+        <!-- Hourly throughput -->
+        <div class="lg:col-span-2 rounded-sm border border-border bg-white p-5 flex flex-col">
+          <div class="mb-4">
+            <h2 class="text-sm font-semibold text-heading">Hourly throughput</h2>
+            <p class="text-xs text-muted mt-0.5">Gate passes per hour · gate-local time</p>
+          </div>
+          <app-hourly-throughput-chart [buckets]="o.hourlyThroughput" />
+        </div>
+
+        <!-- Needs review -->
+        <div class="rounded-sm border border-border bg-white flex flex-col">
+          <div class="flex items-start justify-between gap-2 p-5 pb-3">
+            <div>
+              <h2 class="text-sm font-semibold text-heading">Needs review</h2>
+              <p class="text-xs text-muted mt-0.5">Latest exceptions · select a row to resolve</p>
+            </div>
+            @if (o.needsReview.open > 0) {
+              <p-tag [value]="o.needsReview.open + ' open'" severity="danger" />
+            } @else {
+              <p-tag value="clear" severity="success" />
+            }
+          </div>
+
+          @if (o.needsReview.items.length) {
+            <ul class="divide-y divide-border border-t border-border">
+              @for (item of o.needsReview.items; track item.id) {
+                <li>
+                  <button
+                    type="button"
+                    class="review-row w-full flex items-center gap-3 px-5 py-2.5 text-left hover:bg-foreground/5"
+                    (click)="openTransaction(item)"
+                    [attr.aria-label]="'Review exception ' + item.eventCode"
+                  >
+                    <span class="font-mono text-sm text-muted tabular-nums shrink-0">{{ item.occurredAt | date: 'HH:mm' }}</span>
+                    <span class="font-mono text-sm text-heading flex-1 truncate">{{ item.eventCode }}</span>
+                    <p-tag [value]="resultTag(item.result).label" [severity]="resultTag(item.result).severity" />
+                    <i class="pi pi-chevron-right text-xs text-muted shrink-0" aria-hidden="true"></i>
+                  </button>
+                </li>
+              }
+            </ul>
+            @if (o.needsReview.open > o.needsReview.items.length) {
+              <p class="px-5 py-2 text-xs text-muted border-t border-border">
+                Showing latest {{ o.needsReview.items.length }} of {{ o.needsReview.open }}.
+              </p>
+            }
+          } @else {
+            <div
+              class="flex flex-col items-center justify-center text-center flex-1 px-5 py-12 border-t border-border"
+              style="color: var(--p-primary-200)"
+            >
+              <i class="pi pi-check-circle text-4xl mb-3" aria-hidden="true"></i>
+              <p class="text-sm text-muted">No exceptions — all clear.</p>
+            </div>
+          }
+
+          <div class="mt-auto border-t border-border p-3">
+            <p-button
+              label="View all transactions"
+              icon="pi pi-arrow-right"
+              iconPos="right"
+              severity="secondary"
+              [text]="true"
+              class="block w-full"
+              styleClass="w-full justify-center"
+              (onClick)="viewAllTransactions()"
+            />
+          </div>
+        </div>
+      </section>
+    </div>
+  }
 </main>

@@ -8,6 +8,9 @@
   --foreground: #0B161F;
   --text-heading: #0B161F;
   --text-body: #365261;
+  /* Muted label/secondary text — AA-safe (>=4.5:1 on white & page-bg).
+     Use this instead of low-opacity body text, which fails contrast. */
+  --text-muted: #55707F;
 
   --primary: #0B4EA2;
   --primary-hover: #03285A;
@@ -21,13 +24,15 @@
   --input: #DBE5F0;
   --ring: #22D3EE;
 
-  --destructive: #FF4B4B;
+  /* AA-safe on white (5.85:1), on muted-destructive (4.76:1), and white-on-it (5.85:1). */
+  --destructive: #C2261B;
   --muted-destructive: #FFE1DE;
   --success: #3DBE81;
   --muted-success: #D1EDE0;
   --success-foreground: #FFFFFF;
 
-  --radius: 0.25rem;
+  /* Near-sharp by design — see DESIGN.md "The Near-Sharp Rule". */
+  --radius: 0.125rem;
 }
 
 @theme {
@@ -35,6 +40,7 @@
   --color-foreground: var(--foreground);
   --color-heading: var(--text-heading);
   --color-body: var(--text-body);
+  --color-muted: var(--text-muted);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
@@ -54,6 +60,14 @@
 
   --radius-base: var(--radius);
 
+  /* Near-sharp scale — caps Tailwind's defaults so surfaces stay crisp and
+     match the PrimeNG preset (2px). See DESIGN.md "The Near-Sharp Rule". */
+  --radius-xs: 0.125rem; /* 2px */
+  --radius-sm: 0.125rem; /* 2px — near-sharp base for surfaces */
+  --radius-md: 0.25rem;  /* 4px */
+  --radius-lg: 0.25rem;  /* 4px cap (no 8px+) */
+  --radius-xl: 0.375rem; /* 6px cap */
+
   --font-heading: 'Poppins', sans-serif;
   --font-body: 'Work Sans', sans-serif;
 }
@@ -65,6 +79,16 @@ html {
 body {
   font-family: var(--font-body);
   background: var(--color-background);
+}
+
+/* Custom-element hosts default to display:inline. An inline host wrapping the
+   full-height (100vh) app shell adds a phantom line-box strut that overflows the
+   viewport, producing a stray document scrollbar on top of the real <main> one.
+   Make the shell hosts block so the app is exactly one viewport tall and only
+   <main> scrolls. */
+app-root,
+app-main-layout {
+  display: block;
 }
 
 h1, h2, h3, h4, h5, h6 {

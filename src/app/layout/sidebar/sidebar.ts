@@ -9,6 +9,8 @@ const ITEM_INACTIVE =
   'border-transparent text-body hover:bg-foreground/5 hover:text-heading';
 const ITEM_ACTIVE =
   'border-primary bg-primary/10 text-primary font-medium';
+const ITEM_DISABLED =
+  'border-transparent text-body/40 cursor-not-allowed select-none';
 
 @Component({
   selector: 'app-sidebar',
@@ -23,4 +25,5 @@ export class Sidebar {
   protected readonly itemBase = ITEM_BASE;
   protected readonly itemInactive = ITEM_INACTIVE;
   protected readonly itemActive = ITEM_ACTIVE;
+  protected readonly itemDisabled = ITEM_DISABLED;
 }
