@@ -3,34 +3,48 @@
   [modal]="true"
   [draggable]="false"
   [resizable]="false"
-  [dismissableMask]="true"
   [style]="{ width: '34rem' }"
   [breakpoints]="{ '640px': '92vw' }"
   header="Register RFID tag"
+  (onShow)="onShow()"
 >
-  <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 pt-2">
+  <p class="text-sm text-muted mt-0 mb-1">
+    Bind a physical tag to a truck. Once active, a verified tag opens the boom automatically.
+  </p>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 pt-1">
+    <!-- EPC ID -->
     <div class="flex flex-col gap-2">
-      <label for="tag-epc" class="font-medium text-sm">EPC ID</label>
+      <label for="tag-epc" class="font-medium text-sm">
+        EPC ID <span class="text-destructive" aria-hidden="true">*</span>
+      </label>
       <input
         pInputText
         id="tag-epc"
         formControlName="epcId"
         placeholder="e.g. A4-91-2E-77-FF-01"
         autocomplete="off"
-        class="w-full font-mono"
+        spellcheck="false"
+        aria-required="true"
+        aria-describedby="tag-epc-help tag-epc-error"
+        class="w-full font-mono uppercase"
         [class.ng-invalid]="form.controls.epcId.invalid && form.controls.epcId.touched"
         [class.ng-dirty]="form.controls.epcId.invalid && form.controls.epcId.touched"
       />
       @if (form.controls.epcId.hasError('required') && form.controls.epcId.touched) {
-        <small class="text-destructive">EPC ID is required.</small>
-      }
-      @if (form.controls.epcId.hasError('maxlength')) {
-        <small class="text-destructive">EPC ID must be 64 characters or fewer.</small>
+        <small id="tag-epc-error" class="text-destructive">EPC ID is required.</small>
+      } @else if (form.controls.epcId.hasError('maxlength')) {
+        <small id="tag-epc-error" class="text-destructive">EPC ID must be 64 characters or fewer.</small>
+      } @else {
+        <small id="tag-epc-help" class="text-muted">The unique identifier printed on the tag.</small>
       }
     </div>
 
+    <!-- Assign to truck -->
     <div class="flex flex-col gap-2">
-      <label for="tag-truck" class="font-medium text-sm">Assign to truck</label>
+      <label for="tag-truck" class="font-medium text-sm">
+        Assign to truck <span class="text-destructive" aria-hidden="true">*</span>
+      </label>
       <p-select
         inputId="tag-truck"
         formControlName="assignedTruckId"
@@ -44,13 +58,31 @@
         emptyMessage="No untagged trucks available"
         styleClass="w-full"
         appendTo="body"
-      />
+        [class.ng-invalid]="form.controls.assignedTruckId.invalid && form.controls.assignedTruckId.touched"
+        [class.ng-dirty]="form.controls.assignedTruckId.invalid && form.controls.assignedTruckId.touched"
+      >
+        <ng-template let-truck #selectedItem>
+          <span class="flex items-center gap-2">
+            <i class="pi pi-truck text-muted" aria-hidden="true"></i>
+            <span class="font-medium">{{ truck.plateNumber }}</span>
+            <span class="text-muted">· {{ truck.model }}</span>
+          </span>
+        </ng-template>
+        <ng-template let-truck #item>
+          <span class="flex flex-col">
+            <span class="font-medium">{{ truck.plateNumber }}</span>
+            <span class="text-xs text-muted">{{ truck.model }}</span>
+          </span>
+        </ng-template>
+      </p-select>
       @if (form.controls.assignedTruckId.invalid && form.controls.assignedTruckId.touched) {
         <small class="text-destructive">Please select a truck.</small>
+      } @else {
+        <small class="text-muted">Each truck holds exactly one tag — only untagged trucks are listed.</small>
       }
-      <small class="text-body/50">Each truck can hold exactly one tag — only untagged trucks are listed.</small>
     </div>
 
+    <!-- Initial status -->
     <div class="flex flex-col gap-2">
       <label for="tag-status" class="font-medium text-sm">Initial status</label>
       <p-select
@@ -61,12 +93,28 @@
         optionValue="value"
         styleClass="w-full"
         appendTo="body"
-      />
+      >
+        <ng-template let-option #selectedItem>
+          <p-tag
+            [value]="rfidTagStatusTag(option.value).label"
+            [severity]="rfidTagStatusTag(option.value).severity"
+          />
+        </ng-template>
+        <ng-template let-option #item>
+          <p-tag
+            [value]="rfidTagStatusTag(option.value).label"
+            [severity]="rfidTagStatusTag(option.value).severity"
+          />
+        </ng-template>
+      </p-select>
+      <small class="text-muted">
+        Most tags start Active. Choose Inactive to register without enabling gate access yet.
+      </small>
     </div>
   </form>
 
   <ng-template #footer>
     <p-button label="Cancel" severity="secondary" [text]="true" (onClick)="visible.set(false)" />
-    <p-button label="Register" icon="pi pi-check" [loading]="saving()" (onClick)="submit()" />
+    <p-button label="Register tag" icon="pi pi-check" [loading]="saving()" (onClick)="submit()" />
   </ng-template>
 </p-dialog>

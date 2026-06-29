@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -45,6 +46,16 @@ export class Auth {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required]]
     });
+
+    // Clear the submit-level error banner as soon as the user edits the form;
+    // once they start correcting their input the stale message no longer applies.
+    this.loginForm.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => {
+        if (this.errorMessages().length > 0) {
+          this.errorMessages.set([]);
+        }
+      });
   }
 
   onSubmit() {

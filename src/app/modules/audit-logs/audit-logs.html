@@ -102,9 +102,14 @@
         @let entity = entityMeta(log.entityType);
         @let who = actor(log.actorId);
         <tr>
-          <td class="whitespace-nowrap text-body">{{ log.createdAt | date: 'MMM d, y, HH:mm:ss' }}</td>
+          <td class="align-top whitespace-nowrap">
+            <div class="flex flex-col leading-tight">
+              <span class="text-heading">{{ log.createdAt | date: 'MMM d, y' }}</span>
+              <span class="font-mono text-xs text-muted tabular-nums">{{ log.createdAt | date: 'HH:mm:ss' }}</span>
+            </div>
+          </td>
 
-          <td>
+          <td class="align-top">
             @if (who) {
               <div class="flex flex-col leading-tight">
                 <span class="font-medium text-heading">{{ who.firstName }} {{ who.lastName }}</span>
@@ -117,22 +122,35 @@
             }
           </td>
 
-          <td>
-            <p-tag [value]="humanizeAction(log.action)" [severity]="actionSeverity(log.action)" />
+          <td class="align-top whitespace-nowrap">
+            <span class="flex items-center gap-2">
+              <span
+                class="font-medium"
+                [class.text-destructive]="actionSeverity(log.action) === 'danger'"
+                [class.text-heading]="actionSeverity(log.action) !== 'danger'"
+                >{{ humanizeAction(log.action) }}</span
+              >
+              @if (meta.status) {
+                @let status = auditStatusTag(meta.status);
+                <p-tag [value]="status.label" [severity]="status.severity" styleClass="audit-status-tag" />
+              }
+            </span>
           </td>
 
-          <td>
-            <div class="flex items-center gap-2">
-              <i class="pi {{ entity.icon }} text-body/40" aria-hidden="true"></i>
-              <span class="text-heading">{{ entity.label }}</span>
-              <span class="font-mono text-xs text-muted" [title]="log.entityId">{{ shortId(log.entityId) }}</span>
+          <td class="align-top">
+            <div class="flex items-start gap-2.5">
+              <i class="pi {{ entity.icon }} mt-0.5 text-base text-muted shrink-0" aria-hidden="true"></i>
+              <div class="flex flex-col leading-tight min-w-0">
+                <span class="font-medium text-heading">{{ entity.label }}</span>
+                <span class="font-mono text-xs text-muted break-all">{{ log.entityId }}</span>
+              </div>
             </div>
           </td>
 
-          <td>
+          <td class="align-top">
             @switch (meta.kind) {
               @case ('fields') {
-                <div class="flex flex-wrap items-center gap-1.5">
+                <div class="flex flex-wrap items-center gap-1.5 max-w-[28rem]">
                   <span class="text-sm text-muted">Changed</span>
                   @for (field of meta.fields ?? []; track field) {
                     <code class="rounded-sm bg-foreground/5 px-1.5 py-0.5 text-xs font-mono text-body">{{ field }}</code>
@@ -140,14 +158,14 @@
                 </div>
               }
               @case ('photo') {
-                <span class="flex items-center gap-2 text-sm text-body">
-                  <i class="pi pi-image text-body/40" aria-hidden="true"></i>
+                <span class="flex flex-wrap items-center gap-1.5 text-sm text-body max-w-[28rem]">
+                  <i class="pi pi-image text-muted" aria-hidden="true"></i>
                   Photo uploaded
-                  <span class="font-mono text-xs text-muted truncate max-w-[16rem]" [title]="meta.fileName">{{ meta.fileName }}</span>
+                  <span class="font-mono text-xs text-muted break-all">{{ meta.fileName }}</span>
                 </span>
               }
               @case ('text') {
-                <span class="text-sm text-muted">{{ meta.text }}</span>
+                <span class="block text-sm text-muted break-words max-w-[28rem]">{{ meta.text }}</span>
               }
               @default {
                 <span class="text-body/40">—</span>
