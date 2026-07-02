@@ -1,7 +1,6 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  effect,
   inject,
   model,
   output,
@@ -13,9 +12,10 @@ import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
+import { TagModule } from 'primeng/tag';
 
 import { NotificationService } from '../../../../core/services/notification.service';
-import { RfidTagStatus } from '../../../../shared/ui/status-tags';
+import { RfidTagStatus, rfidTagStatusTag } from '../../../../shared/ui/status-tags';
 import { TruckService } from '../../../trucks/services/truck.service';
 import { RfidTagService } from '../../services/rfid-tags.service';
 
@@ -24,9 +24,14 @@ interface SelectOption<T> {
   value: T;
 }
 
+interface TruckOption extends SelectOption<string> {
+  plateNumber: string;
+  model: string;
+}
+
 @Component({
   selector: 'app-rfid-tag-form-dialog',
-  imports: [ReactiveFormsModule, DialogModule, ButtonModule, InputTextModule, SelectModule],
+  imports: [ReactiveFormsModule, DialogModule, ButtonModule, InputTextModule, SelectModule, TagModule],
   templateUrl: './rfid-tag-form-dialog.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -36,12 +41,14 @@ export class RfidTagFormDialog {
   private truckService = inject(TruckService);
   private notifications = inject(NotificationService);
 
+  protected readonly rfidTagStatusTag = rfidTagStatusTag;
+
   visible = model(false);
   saved = output<void>();
 
   saving = signal(false);
   loadingTrucks = signal(false);
-  truckOptions = signal<SelectOption<string>[]>([]);
+  truckOptions = signal<TruckOption[]>([]);
 
   readonly statusOptions: SelectOption<RfidTagStatus>[] = [
     { label: 'Active', value: 'ACTIVE' },
@@ -56,12 +63,14 @@ export class RfidTagFormDialog {
     status: ['ACTIVE' as RfidTagStatus, [Validators.required]],
   });
 
-  constructor() {
-    effect(() => {
-      if (!this.visible()) return;
-      this.form.reset({ epcId: '', assignedTruckId: '', status: 'ACTIVE' });
-      this.loadAvailableTrucks();
-    });
+  /**
+   * Reset and (re)load on the dialog's own show event rather than reacting to the
+   * `visible` signal. The select panels render with `appendTo="body"`, so reacting
+   * to `visible` is fragile: any stray toggle would wipe a half-filled form.
+   */
+  onShow(): void {
+    this.form.reset({ epcId: '', assignedTruckId: '', status: 'ACTIVE' });
+    this.loadAvailableTrucks();
   }
 
   private loadAvailableTrucks(): void {
@@ -69,7 +78,12 @@ export class RfidTagFormDialog {
     this.truckService.getUntaggedTrucks().subscribe({
       next: trucks => {
         this.truckOptions.set(
-          trucks.map(truck => ({ label: `${truck.plateNumber} · ${truck.model}`, value: truck.id })),
+          trucks.map(truck => ({
+            label: `${truck.plateNumber} · ${truck.model}`,
+            value: truck.id,
+            plateNumber: truck.plateNumber,
+            model: truck.model,
+          })),
         );
         this.loadingTrucks.set(false);
       },
@@ -90,7 +104,7 @@ export class RfidTagFormDialog {
     this.saving.set(true);
     this.rfidTagService
       .create({
-        epcId: this.form.controls.epcId.value.trim(),
+        epcId: this.form.controls.epcId.value.trim().toUpperCase(),
         assignedTruckId: this.form.controls.assignedTruckId.value,
         status: this.form.controls.status.value,
       })

@@ -1,1 +1,10 @@
 /* Audit Logs — layout and styling handled by Tailwind utilities. */
+
+/* Compact resulting-status badge in the Action column: a small marker beside
+   the verb, not a full-size control. Overrides the PrimeNG Tag size tokens for
+   this instance only (custom properties cascade through the component). */
+.audit-status-tag {
+  --p-tag-font-size: 0.6875rem;
+  --p-tag-padding: 0.0625rem 0.375rem;
+  --p-tag-font-weight: 600;
+}

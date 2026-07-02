@@ -51,6 +51,30 @@ export function actionSeverity(action: string): TagSeverity {
   return 'secondary';
 }
 
+export interface DisplayTag {
+  label: string;
+  severity: TagSeverity;
+}
+
+/** Resulting-state vocabulary, color-coded like the rest of the registry. */
+const STATUS_TAGS: Record<string, DisplayTag> = {
+  ACTIVE: { label: 'Active', severity: 'success' },
+  ENABLED: { label: 'Enabled', severity: 'success' },
+  RESTORED: { label: 'Restored', severity: 'success' },
+  UNBLOCKED: { label: 'Unblocked', severity: 'success' },
+  INACTIVE: { label: 'Inactive', severity: 'secondary' },
+  DISABLED: { label: 'Disabled', severity: 'secondary' },
+  ARCHIVED: { label: 'Archived', severity: 'secondary' },
+  LOST: { label: 'Lost', severity: 'warn' },
+  BLOCKED: { label: 'Blocked', severity: 'danger' },
+  RETIRED: { label: 'Retired', severity: 'contrast' },
+};
+
+/** Maps a status string from log metadata to a color-coded `p-tag`. */
+export function auditStatusTag(status: string): DisplayTag {
+  return STATUS_TAGS[status.toUpperCase()] ?? { label: humanizeWord(status), severity: 'secondary' };
+}
+
 export interface EntityMeta {
   label: string;
   /** PrimeIcons class name (without the `pi` prefix). */
@@ -88,27 +112,48 @@ export interface MetadataView {
   fields?: string[];
   fileName?: string;
   text?: string;
+  /** Resulting state, surfaced as a color-coded tag in the Action column. */
+  status?: string;
+}
+
+/** Keys that may carry a resulting status; surfaced in the Action column. */
+const STATUS_KEYS = ['status', 'toStatus', 'newStatus'];
+
+function isBlank(value: unknown): boolean {
+  return value === null || value === undefined || (typeof value === 'string' && value.trim() === '');
+}
+
+function pickStatus(metadata: Record<string, unknown>): string | undefined {
+  for (const key of STATUS_KEYS) {
+    const value = metadata[key];
+    if (typeof value === 'string' && value.trim()) return value;
+  }
+  return undefined;
 }
 
 export function describeMetadata(metadata: Record<string, unknown> | null | undefined): MetadataView {
   if (!metadata || typeof metadata !== 'object') return { kind: 'none' };
 
+  const status = pickStatus(metadata);
+
   const fields = (metadata as { fields?: unknown }).fields;
   if (Array.isArray(fields) && fields.length) {
-    return { kind: 'fields', fields: fields.map(String) };
+    return { kind: 'fields', fields: fields.map(String), status };
   }
 
   const photoUrl = (metadata as { photoUrl?: unknown }).photoUrl;
   if (typeof photoUrl === 'string' && photoUrl) {
-    return { kind: 'photo', fileName: photoUrl.split('/').pop() || photoUrl };
+    return { kind: 'photo', fileName: photoUrl.split('/').pop() || photoUrl, status };
   }
 
-  const keys = Object.keys(metadata);
-  if (!keys.length) return { kind: 'none' };
+  // Generic fallback: skip blank values (e.g. an empty `reason`) and keys
+  // already surfaced elsewhere (status → Action column).
+  const entries = Object.keys(metadata)
+    .filter(key => !STATUS_KEYS.includes(key) && !isBlank(metadata[key]))
+    .map(key => `${humanizeWord(key)}: ${formatValue(metadata[key])}`);
 
-  // Generic fallback for unknown metadata shapes.
-  const text = keys.map(key => `${key}: ${formatValue(metadata[key])}`).join(', ');
-  return { kind: 'text', text };
+  if (!entries.length) return { kind: 'none', status };
+  return { kind: 'text', text: entries.join(' · '), status };
 }
 
 function formatValue(value: unknown): string {

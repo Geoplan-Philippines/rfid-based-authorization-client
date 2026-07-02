@@ -19,6 +19,7 @@ import {
   AUDIT_ACTIONS,
   AUDIT_ENTITY_TYPES,
   actionSeverity,
+  auditStatusTag,
   describeMetadata,
   entityMeta,
   humanizeAction,
@@ -55,6 +56,7 @@ export class AuditLogs implements OnInit {
 
   // Exposed to the template.
   protected readonly actionSeverity = actionSeverity;
+  protected readonly auditStatusTag = auditStatusTag;
   protected readonly humanizeAction = humanizeAction;
   protected readonly entityMeta = entityMeta;
   protected readonly describeMetadata = describeMetadata;
