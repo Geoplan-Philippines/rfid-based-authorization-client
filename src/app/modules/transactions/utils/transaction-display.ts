@@ -16,6 +16,7 @@ const RESULT_TAGS: Record<GateEventResult, DisplayTag> = {
   MANUAL_OVERRIDE: { label: 'Manual Override', severity: 'info' },
   DENIED: { label: 'Denied', severity: 'danger' },
   ERROR: { label: 'Error', severity: 'danger' },
+  IN_PROGRESS: { label: 'In Progress', severity: 'secondary' },
 };
 
 const TAG_STATUS_TAGS: Record<RFIDTagStatus, DisplayTag> = {

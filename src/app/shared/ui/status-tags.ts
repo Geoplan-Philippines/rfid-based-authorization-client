@@ -16,7 +16,8 @@ export type GateEventResult =
   | 'PLATE_MISMATCH'
   | 'MANUAL_OVERRIDE'
   | 'DENIED'
-  | 'ERROR';
+  | 'ERROR'
+  | 'IN_PROGRESS';
 
 const RFID_TAG_STATUS_TAGS: Record<RfidTagStatus, DisplayTag> = {
   ACTIVE: { label: 'Active', severity: 'success' },
@@ -34,6 +35,7 @@ const GATE_RESULT_TAGS: Record<GateEventResult, DisplayTag> = {
   MANUAL_OVERRIDE: { label: 'Manual Override', severity: 'info' },
   DENIED: { label: 'Denied', severity: 'danger' },
   ERROR: { label: 'Error', severity: 'danger' },
+  IN_PROGRESS: { label: 'In Progress', severity: 'secondary' },
 };
 
 const ASSIGNMENT_ROLE_TAGS: Record<AssignmentRole, DisplayTag> = {

@@ -9,7 +9,8 @@ export type GateEventResult =
   | 'PLATE_MISMATCH'
   | 'MANUAL_OVERRIDE'
   | 'DENIED'
-  | 'ERROR';
+  | 'ERROR'
+  | 'IN_PROGRESS';
 
 export type RFIDTagStatus = 'ACTIVE' | 'INACTIVE' | 'LOST' | 'BLOCKED';
 

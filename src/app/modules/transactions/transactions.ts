@@ -28,6 +28,7 @@ const RESULT_FILTER_ORDER: GateEventResult[] = [
   'MANUAL_OVERRIDE',
   'DENIED',
   'ERROR',
+  'IN_PROGRESS',
 ];
 
 interface ResultChip {
