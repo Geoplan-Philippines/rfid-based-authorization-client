@@ -95,10 +95,10 @@
         <!-- Verified -->
         <div class="rounded-sm border border-border bg-white p-4 flex flex-col gap-2">
           <span class="kpi-label">Verified</span>
-          <div class="flex items-center gap-2 flex-wrap">
-            <span class="kpi-value">{{ o.cards.verified.value }}</span>
-            <p-tag [value]="o.cards.verified.rate + '%'" severity="success" />
-          </div>
+          <span class="kpi-value">{{ o.cards.verified.value }}</span>
+          <span class="kpi-status kpi-status--success">
+            <span class="status-dot" aria-hidden="true"></span>{{ o.cards.verified.rate }}% pass rate
+          </span>
           <span class="text-xs text-muted">passed RFID automatically</span>
         </div>
 
@@ -110,19 +110,21 @@
           "
         >
           <span class="kpi-label">Exceptions</span>
-          <div class="flex items-center gap-2 flex-wrap">
-            <span
-              class="kpi-value"
-              [style.color]="o.cards.exceptions.value > 0 ? 'var(--destructive)' : 'var(--text-heading)'"
-            >
-              {{ o.cards.exceptions.value }}
+          <span
+            class="kpi-value"
+            [style.color]="o.cards.exceptions.value > 0 ? 'var(--destructive)' : 'var(--text-heading)'"
+          >
+            {{ o.cards.exceptions.value }}
+          </span>
+          @if (o.cards.exceptions.value > 0) {
+            <span class="kpi-status kpi-status--danger">
+              <span class="status-dot" aria-hidden="true"></span>needs review
             </span>
-            @if (o.cards.exceptions.value > 0) {
-              <p-tag value="needs review" severity="danger" />
-            } @else {
-              <p-tag value="all clear" severity="success" />
-            }
-          </div>
+          } @else {
+            <span class="kpi-status kpi-status--success">
+              <span class="status-dot" aria-hidden="true"></span>all clear
+            </span>
+          }
           <span class="text-xs text-muted">unknown tag, mismatch, denied or error</span>
         </div>
 

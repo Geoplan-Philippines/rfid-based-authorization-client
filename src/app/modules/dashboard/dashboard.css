@@ -24,3 +24,26 @@
   outline: 2px solid var(--ring);
   outline-offset: -2px;
 }
+
+/* KPI status line — replaces pill badges inside stat cards. A colored dot + plain
+   text keeps the semantic color without the button-like chip shape (TC-004:
+   pills read as tappable controls since the app uses them as filter buttons). */
+.kpi-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.kpi-status .status-dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 9999px;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.kpi-status--success { color: #15803d; }
+.kpi-status--danger { color: var(--destructive); }
