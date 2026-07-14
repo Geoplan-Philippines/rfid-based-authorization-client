@@ -1,155 +1,54 @@
 <main class="flex flex-col w-full p-6 overflow-auto gap-6">
-  <!-- Page header -->
-  <div class="flex flex-wrap items-start justify-between gap-4">
-    <div>
-      <h1 class="text-2xl font-bold text-heading">Reports</h1>
-      <p class="text-sm text-muted mt-1">Browse the catalog — each report answers one question.</p>
-    </div>
-
-    <div class="flex items-center gap-2">
-      <p-iconfield>
-        <p-inputicon class="pi pi-search" />
-        <input
-          pInputText
-          type="text"
-          [value]="query()"
-          (input)="onSearchInput($event)"
-          placeholder="Find a report…"
-          aria-label="Find a report"
-          class="w-60"
-        />
-      </p-iconfield>
-      <!-- Custom builder has no backend yet — disabled like other pending actions. -->
-      <p-button
-        label="Custom"
-        icon="pi pi-plus"
-        [outlined]="true"
-        [disabled]="true"
-        title="Custom report builder — coming soon"
-      />
-    </div>
+  <div>
+    <h1 class="text-2xl font-bold text-heading">Reports</h1>
+    <p class="text-sm text-muted mt-1 max-w-prose">
+      Four reports, each answering one question. The figures below are live — if nothing is flagged, you are done here.
+    </p>
   </div>
 
-  <!-- Reporting period — the default window that flows into whichever report opens -->
-  <section
-    class="rounded-sm border border-border bg-white p-5 flex flex-wrap items-center justify-between gap-4"
-    aria-label="Reporting period"
-  >
-    <div>
-      <h2 class="text-sm font-semibold text-heading">Default reporting period</h2>
-      <p class="text-sm text-muted mt-1">
-        Applies to each report you open. Generated reports export as CSV or PDF.
-      </p>
-    </div>
-    <div class="flex items-center gap-2">
-      <span class="text-[11px] font-semibold tracking-[0.12em] uppercase text-muted">Period</span>
-      <p-selectButton
-        [options]="periodOptions"
-        [(ngModel)]="period"
-        optionLabel="label"
-        optionValue="value"
-        [allowEmpty]="false"
-        aria-label="Default reporting period"
-        size="small"
-      />
-    </div>
-  </section>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    @for (card of cards(); track card.id) {
+      <a [routerLink]="card.route" class="report-card" [class.report-card--alert]="!loading() && card.glance.alert">
+        <div class="flex items-start gap-4">
+          <span class="report-card__icon" aria-hidden="true">
+            <i class="pi {{ card.icon }}"></i>
+          </span>
 
-  <!-- Operational core -->
-  @if (coreReports().length) {
-    <section aria-labelledby="reports-core-heading" class="flex flex-col gap-3">
-      <h2 id="reports-core-heading" class="text-sm font-semibold text-heading">
-        Core reports <span class="font-normal text-muted">· ready to generate</span>
-      </h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        @for (report of coreReports(); track report.id) {
-          <button
-            type="button"
-            class="group flex flex-col h-full text-left p-5 rounded-sm border border-border bg-white transition-colors duration-150 hover:border-primary/40 hover:bg-secondary/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-            [attr.aria-label]="'Open the ' + report.title + ' report'"
-            (click)="openReport(report)"
-          >
-            <div class="flex items-start justify-between gap-3">
-              <span
-                class="inline-flex items-center justify-center w-11 h-11 rounded-sm bg-secondary text-primary text-[1.15rem]"
-                aria-hidden="true"
-              >
-                <i class="pi {{ report.icon }}"></i>
-              </span>
-              <p-tag value="Ready" severity="success" />
+          <div class="flex-1 min-w-0">
+            <h2 class="text-lg font-semibold text-heading">{{ card.title }}</h2>
+            <p class="text-sm text-muted leading-relaxed mt-1">{{ card.description }}</p>
+          </div>
+        </div>
+
+        <!-- The live figure this report would open on. -->
+        <div class="mt-4 pt-4 border-t border-border flex items-end justify-between gap-3">
+          @if (loading()) {
+            <div class="flex flex-col gap-1.5">
+              <p-skeleton width="7rem" height="1.25rem" />
+              <p-skeleton width="5rem" height="0.7rem" />
             </div>
-
-            <div class="flex flex-col gap-1.5 mt-4">
-              <h3 class="text-lg font-semibold text-heading">{{ report.title }}</h3>
-              <p class="text-sm text-muted leading-relaxed">{{ report.description }}</p>
+          } @else {
+            <div class="min-w-0">
+              @if (card.glance.value; as value) {
+                <span
+                  class="block text-xl font-semibold tabular-nums truncate"
+                  [class.text-destructive]="card.glance.alert"
+                  [class.text-heading]="!card.glance.alert"
+                  >{{ value }}</span
+                >
+              } @else {
+                <span class="block text-xl font-semibold text-muted">—</span>
+              }
+              <span class="block text-xs text-muted mt-0.5 truncate">{{ card.glance.caption }}</span>
             </div>
+          }
 
-            <p class="mt-auto pt-4 text-xs tracking-[0.02em] text-muted">{{ report.meta }}</p>
-            <div class="flex items-center gap-1.5 mt-3 pt-3 border-t border-border text-sm font-semibold text-primary">
-              <span>View report</span>
-              <i
-                class="pi pi-arrow-up-right text-xs transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 motion-reduce:transition-none"
-                aria-hidden="true"
-              ></i>
-            </div>
-          </button>
-        }
-      </div>
-    </section>
-  }
-
-  <!-- Suggested -->
-  @if (suggestedReports().length) {
-    <section aria-labelledby="reports-suggested-heading" class="flex flex-col gap-3">
-      <h2 id="reports-suggested-heading" class="text-sm font-semibold text-heading">
-        Suggested <span class="font-normal text-muted">· available on request</span>
-      </h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        @for (report of suggestedReports(); track report.id) {
-          <button
-            type="button"
-            class="group flex flex-col h-full text-left p-5 rounded-sm border border-dashed border-border bg-white transition-colors duration-150 hover:border-primary/40 hover:bg-secondary/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-            [attr.aria-label]="'Request the ' + report.title + ' report'"
-            (click)="requestReport(report)"
-          >
-            <div class="flex items-start justify-between gap-3">
-              <span
-                class="inline-flex items-center justify-center w-11 h-11 rounded-sm bg-secondary text-primary text-[1.15rem]"
-                aria-hidden="true"
-              >
-                <i class="pi {{ report.icon }}"></i>
-              </span>
-              <p-tag value="Suggested" severity="info" />
-            </div>
-
-            <div class="flex flex-col gap-1.5 mt-4">
-              <h3 class="text-lg font-semibold text-heading">{{ report.title }}</h3>
-              <p class="text-sm text-muted leading-relaxed">{{ report.description }}</p>
-            </div>
-
-            <p class="mt-auto pt-4 text-xs tracking-[0.02em] text-muted">{{ report.meta }}</p>
-            <div class="flex items-center gap-1.5 mt-3 pt-3 border-t border-border text-sm font-semibold text-muted">
-              <span>Request this</span>
-              <i
-                class="pi pi-arrow-up-right text-xs transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 motion-reduce:transition-none"
-                aria-hidden="true"
-              ></i>
-            </div>
-          </button>
-        }
-      </div>
-    </section>
-  }
-
-  <!-- Empty search state -->
-  @if (!hasResults()) {
-    <div
-      class="flex flex-col items-center justify-center text-center py-16 rounded-sm border border-dashed border-border bg-white"
-      style="color: var(--p-primary-200)"
-    >
-      <i class="pi pi-search text-4xl mb-3" aria-hidden="true"></i>
-      <p class="text-sm text-muted">No reports match “{{ query() }}”.</p>
-      <p class="text-xs text-muted mt-1">Try a different term, or build a custom report.</p>
-    </div>
-  }
+          <span class="report-card__cta">
+            <span>Open</span>
+            <i class="pi pi-arrow-right text-xs" aria-hidden="true"></i>
+          </span>
+        </div>
+      </a>
+    }
+  </div>
 </main>

@@ -18,6 +18,17 @@ export type GateEventResult =
   | 'DENIED'
   | 'ERROR';
 
+/** Canonical display order for the full GateEventResult set (filter chips, breakdown rows). */
+export const GATE_EVENT_RESULT_ORDER: readonly GateEventResult[] = [
+  'VERIFIED',
+  'UNKNOWN_TAG',
+  'FACE_MISMATCH',
+  'PLATE_MISMATCH',
+  'MANUAL_OVERRIDE',
+  'DENIED',
+  'ERROR',
+];
+
 const RFID_TAG_STATUS_TAGS: Record<RfidTagStatus, DisplayTag> = {
   ACTIVE: { label: 'Active', severity: 'success' },
   INACTIVE: { label: 'Inactive', severity: 'secondary' },

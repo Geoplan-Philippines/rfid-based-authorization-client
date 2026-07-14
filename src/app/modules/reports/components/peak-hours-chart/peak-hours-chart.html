@@ -1,0 +1,85 @@
+@if (hasActivity()) {
+  <figure class="flex flex-col gap-3 m-0">
+    <!-- Legend -->
+    <div class="flex items-center gap-4 text-xs text-muted">
+      <span class="inline-flex items-center gap-1.5">
+        <span class="w-2.5 h-2.5 rounded-[1px] seg-verified" aria-hidden="true"></span>Verified
+      </span>
+      <span class="inline-flex items-center gap-1.5">
+        <span class="w-2.5 h-2.5 rounded-[1px] seg-exception" aria-hidden="true"></span>Exception
+      </span>
+      @if (hasOverrides()) {
+        <span class="inline-flex items-center gap-1.5">
+          <span class="w-2.5 h-2.5 rounded-[1px] seg-override" aria-hidden="true"></span>Override
+        </span>
+      }
+      <span class="inline-flex items-center gap-1.5 ml-auto">
+        <span class="peak-marker peak-marker--legend" aria-hidden="true"></span>Peak
+      </span>
+    </div>
+
+    <!-- Bars -->
+    <div class="flex items-end gap-[3px] h-[220px]" role="img" [attr.aria-label]="summary()">
+      @for (col of columns(); track col.hour) {
+        <div
+          class="chart-col group relative flex-1 flex flex-col justify-end h-full"
+          [pTooltip]="col.tooltip"
+          tooltipPosition="top"
+          [positionTop]="-6"
+        >
+          @if (col.isPeak) {
+            <span class="peak-marker" aria-hidden="true"></span>
+          }
+          @if (col.exceptions > 0) {
+            <span class="block w-full seg seg-exception seg--data" [style.height.%]="col.exceptionPct"></span>
+          }
+          @if (col.manualOverrides > 0) {
+            <span class="block w-full seg seg-override seg--data" [style.height.%]="col.overridePct"></span>
+          }
+          @if (col.verified > 0) {
+            <span class="block w-full seg seg-verified seg--data" [style.height.%]="col.verifiedPct"></span>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Hour axis -->
+    <div class="flex gap-[3px] -mt-1" aria-hidden="true">
+      @for (col of columns(); track col.hour) {
+        <div class="flex-1 text-center font-mono text-[10px] leading-none text-muted">
+          {{ col.axisLabel }}
+        </div>
+      }
+    </div>
+
+    <!-- Text alternative for assistive technology -->
+    <table class="sr-only">
+      <caption>Gate throughput per hour</caption>
+      <thead>
+        <tr>
+          <th scope="col">Hour</th>
+          <th scope="col">Total</th>
+          <th scope="col">Verified</th>
+          <th scope="col">Exceptions</th>
+          <th scope="col">Peak</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (col of columns(); track col.hour) {
+          <tr>
+            <th scope="row">{{ col.hourLabel }}</th>
+            <td>{{ col.total }}</td>
+            <td>{{ col.verified }}</td>
+            <td>{{ col.exceptions }}</td>
+            <td>{{ col.isPeak ? 'Yes' : 'No' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </figure>
+} @else {
+  <div class="flex flex-col items-center justify-center text-center h-[220px]" style="color: var(--p-primary-200)">
+    <i class="pi pi-clock text-4xl mb-3" aria-hidden="true"></i>
+    <p class="text-sm">No gate activity recorded for this period.</p>
+  </div>
+}

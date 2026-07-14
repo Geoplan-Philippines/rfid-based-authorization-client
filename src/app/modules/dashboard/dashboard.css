@@ -45,5 +45,5 @@
   flex-shrink: 0;
 }
 
-.kpi-status--success { color: #15803d; }
+.kpi-status--success { color: var(--success-text); }
 .kpi-status--danger { color: var(--destructive); }

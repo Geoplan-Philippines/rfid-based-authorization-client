@@ -1,0 +1,94 @@
+/* KPI instrument readout — small tracked label over a large Poppins figure.
+   Matches DESIGN "Label" token; tabular figures keep numbers steady as the
+   selected period changes. */
+.kpi-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* The figure and its delta share one baseline. */
+.kpi-figure {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.kpi-value {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--text-heading);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Change against the previous period. Neutral by default: volume has no inherent
+   good/bad valence, so the arrow carries direction and colour stays unspent. */
+.kpi-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1875rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.kpi-delta .pi {
+  font-size: 0.625rem;
+}
+
+/* The exception count rising is a state, not a volume — the one delta that earns colour. */
+.kpi-delta--alert {
+  color: var(--destructive);
+}
+
+/* Colored dot + plain text instead of a pill badge — keeps semantic color
+   without reading as a tappable filter control. */
+.kpi-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.kpi-status .status-dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 9999px;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.kpi-status--success { color: var(--success-text); }
+.kpi-status--danger { color: var(--destructive); }
+
+/* The exceptions card's call to action. Sits where the status line sits on the
+   other cards, so the KPI row keeps one baseline. */
+.review-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  width: fit-content;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--destructive);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.review-link:hover {
+  text-decoration-thickness: 2px;
+}
+
+.review-link:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}

@@ -41,7 +41,11 @@ export const routes: Routes = [
     component: MainLayout,
     canActivate: [authGuard],
     children: [
-      { path: '', loadComponent: () => import('./modules/reports/reports').then(m => m.Reports) }
+      { path: '', loadComponent: () => import('./modules/reports/reports').then(m => m.Reports) },
+      { path: 'daily-summary', loadComponent: () => import('./modules/reports/pages/daily-summary/daily-summary').then(m => m.DailySummary) },
+      { path: 'monthly-breakdown', loadComponent: () => import('./modules/reports/pages/monthly-breakdown/monthly-breakdown').then(m => m.MonthlyBreakdown) },
+      { path: 'exceptions', loadComponent: () => import('./modules/reports/pages/exceptions-report/exceptions-report').then(m => m.ExceptionsReport) },
+      { path: 'peak-hours', loadComponent: () => import('./modules/reports/pages/peak-hours/peak-hours').then(m => m.PeakHours) }
     ]
   },
   {

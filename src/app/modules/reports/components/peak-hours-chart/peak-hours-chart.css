@@ -1,0 +1,54 @@
+/* Stacked-column segments. Colour is spent on state: calm slate for the routine
+   pass, muted slate for an operator override, alert red for the exception.
+   Matches the Dashboard hourly-throughput chart's visual language. */
+.seg-verified {
+  background: var(--text-body);
+}
+
+.seg-override {
+  background: var(--text-muted);
+}
+
+.seg-exception {
+  background: var(--destructive);
+}
+
+/* Guarantee a sliver of every non-zero count is visible — an exception must
+   never vanish into a sub-pixel height (anomalies-first). */
+.seg--data {
+  min-height: 3px;
+}
+
+/* Hover affordance: tint the whole hour column, not just the bar, so the
+   tooltip target reads as one band. */
+.chart-col {
+  transition: background-color 150ms ease-out;
+}
+
+.chart-col:hover {
+  background-color: color-mix(in srgb, var(--text-body) 7%, transparent);
+}
+
+/* Peak-hour marker — the one place this chart spends the rare cyan accent,
+   flagging the single highest-attention data point rather than decorating. */
+.peak-marker {
+  position: absolute;
+  top: -0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: var(--accent);
+}
+
+.peak-marker--legend {
+  position: static;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-col {
+    transition: none;
+  }
+}

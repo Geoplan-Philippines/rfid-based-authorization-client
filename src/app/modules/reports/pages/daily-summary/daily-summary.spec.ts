@@ -3,33 +3,24 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 
-import { Reports } from './reports';
+import { DailySummary } from './daily-summary';
 
-describe('Reports', () => {
-  let component: Reports;
-  let fixture: ComponentFixture<Reports>;
+describe('DailySummary', () => {
+  let component: DailySummary;
+  let fixture: ComponentFixture<DailySummary>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Reports],
+      imports: [DailySummary],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(Reports);
+    fixture = TestBed.createComponent(DailySummary);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
-  });
-
-  it('offers every report as a navigable card', () => {
-    expect(component.cards().map(card => card.route)).toEqual([
-      '/reports/daily-summary',
-      '/reports/monthly-breakdown',
-      '/reports/exceptions',
-      '/reports/peak-hours',
-    ]);
   });
 });

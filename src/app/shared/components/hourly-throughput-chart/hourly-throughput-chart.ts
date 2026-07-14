@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 
 import { TooltipModule } from 'primeng/tooltip';
 
-import { HourlyThroughputBucket } from '../../types/dashboard.types';
+import { HourlyThroughputBucket } from '../../types/throughput';
 
 interface ColumnView {
   hour: number;
@@ -24,6 +24,8 @@ interface ColumnView {
  * splits into verified (slate), manual-override (muted) and exception (red, on
  * top) so anomalies sit at eye level. Purely presentational — a text summary
  * and an sr-only data table carry the same information for assistive tech.
+ *
+ * Shared by the Dashboard (today) and the Daily Summary report (any day).
  */
 @Component({
   selector: 'app-hourly-throughput-chart',

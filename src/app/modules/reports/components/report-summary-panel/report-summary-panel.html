@@ -1,0 +1,144 @@
+<section class="flex flex-col gap-3" aria-labelledby="summary-heading">
+  <div class="flex flex-wrap items-baseline justify-between gap-2">
+    <h2 id="summary-heading" class="text-sm font-semibold text-heading">Summary</h2>
+    <!-- Stated once, so every delta chip below reads unambiguously without repeating itself. -->
+    <p class="text-xs text-muted">
+      @if (deltas()) {
+        Change shown vs {{ comparisonLabel() }}
+      } @else {
+        No earlier data to compare
+      }
+    </p>
+  </div>
+
+  <!-- KPI cards -->
+  <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+    <div class="rounded-sm border border-border bg-white p-4 flex flex-col gap-2">
+      <span class="kpi-label">Total Gate Events</span>
+      <span class="kpi-figure">
+        <span class="kpi-value">{{ summary().totalGateEvents }}</span>
+        @if (deltas(); as d) {
+          <span class="kpi-delta" [attr.aria-label]="deltaLabel(d.totalGateEvents, 'total gate events')">
+            <i class="pi {{ d.totalGateEvents.icon }}" aria-hidden="true"></i>
+            <span aria-hidden="true">{{ d.totalGateEvents.magnitude }}</span>
+          </span>
+        }
+      </span>
+      <span class="text-xs text-muted">all recorded passes</span>
+    </div>
+
+    <div class="rounded-sm border border-border bg-white p-4 flex flex-col gap-2">
+      <span class="kpi-label">Verified</span>
+      <span class="kpi-figure">
+        <span class="kpi-value">{{ summary().verified }}</span>
+        @if (deltas(); as d) {
+          <span class="kpi-delta" [attr.aria-label]="deltaLabel(d.verified, 'verified passes')">
+            <i class="pi {{ d.verified.icon }}" aria-hidden="true"></i>
+            <span aria-hidden="true">{{ d.verified.magnitude }}</span>
+          </span>
+        }
+      </span>
+      <span class="kpi-status kpi-status--success">
+        <span class="status-dot" aria-hidden="true"></span>{{ summary().verificationRate }}% pass rate
+      </span>
+    </div>
+
+    <!-- Exceptions — anomaly-weighted: reddened when there is anything to review,
+         and the card itself is the way into the review. -->
+    <div
+      class="rounded-sm border border-border bg-white p-4 flex flex-col gap-2"
+      [style.border-color]="
+        summary().exceptions > 0 ? 'color-mix(in srgb, var(--destructive) 45%, var(--border))' : null
+      "
+    >
+      <span class="kpi-label">Exceptions</span>
+      <span class="kpi-figure">
+        <span class="kpi-value" [style.color]="summary().exceptions > 0 ? 'var(--destructive)' : 'var(--text-heading)'">
+          {{ summary().exceptions }}
+        </span>
+        @if (deltas(); as d) {
+          <!-- The one delta that carries semantic colour: a rising exception count is a state, not a volume. -->
+          <span
+            class="kpi-delta"
+            [class.kpi-delta--alert]="d.exceptions.direction === 'up'"
+            [attr.aria-label]="deltaLabel(d.exceptions, 'exceptions')"
+          >
+            <i class="pi {{ d.exceptions.icon }}" aria-hidden="true"></i>
+            <span aria-hidden="true">{{ d.exceptions.magnitude }}</span>
+          </span>
+        }
+      </span>
+      @if (summary().exceptions > 0) {
+        @if (exceptionsDrilldown(); as drilldown) {
+          <a
+            routerLink="/reports/exceptions"
+            [queryParams]="{ from: drilldown.from, to: drilldown.to }"
+            class="review-link"
+          >
+            <span>Review these</span>
+            <i class="pi pi-arrow-right text-[0.625rem]" aria-hidden="true"></i>
+          </a>
+        } @else {
+          <span class="kpi-status kpi-status--danger">
+            <span class="status-dot" aria-hidden="true"></span>needs review
+          </span>
+        }
+      } @else {
+        <span class="kpi-status kpi-status--success">
+          <span class="status-dot" aria-hidden="true"></span>all clear
+        </span>
+      }
+    </div>
+
+    <div class="rounded-sm border border-border bg-white p-4 flex flex-col gap-2">
+      <span class="kpi-label">Manual Overrides</span>
+      <span class="kpi-figure">
+        <span class="kpi-value">{{ summary().manualOverrides }}</span>
+        @if (deltas(); as d) {
+          <span class="kpi-delta" [attr.aria-label]="deltaLabel(d.manualOverrides, 'manual overrides')">
+            <i class="pi {{ d.manualOverrides.icon }}" aria-hidden="true"></i>
+            <span aria-hidden="true">{{ d.manualOverrides.magnitude }}</span>
+          </span>
+        }
+      </span>
+      <span class="text-xs text-muted">approved operational action</span>
+    </div>
+
+    <div class="rounded-sm border border-border bg-white p-4 flex flex-col gap-2">
+      <span class="kpi-label">Open Events</span>
+      <span class="kpi-figure">
+        <span class="kpi-value">{{ summary().openEvents }}</span>
+      </span>
+      <span class="text-xs text-muted">no barrier-open event yet</span>
+    </div>
+
+    <div class="rounded-sm border border-border bg-white p-4 flex flex-col gap-2">
+      <span class="kpi-label">Avg Pass Time</span>
+      <span class="kpi-figure">
+        @if (passTime(); as pt) {
+          <span class="kpi-value">{{ pt }}</span>
+        } @else {
+          <span class="kpi-value text-muted">—</span>
+        }
+      </span>
+      @if (passTime()) {
+        <span class="text-xs text-muted">RFID → barrier · n={{ summary().avgPassTime.sampleSize }}</span>
+      } @else {
+        <span class="text-xs text-muted">no completed passes</span>
+      }
+    </div>
+  </div>
+
+  <!-- Result breakdown -->
+  <div class="rounded-sm border border-border bg-white p-4">
+    <h3 class="text-sm font-semibold text-heading mb-3">Result breakdown</h3>
+    <div class="flex flex-wrap gap-2">
+      @for (result of resultOrder; track result) {
+        <p-tag
+          [value]="resultTag(result).label + ' · ' + summary().resultCounts[result]"
+          [severity]="resultTag(result).severity"
+        />
+      }
+    </div>
+  </div>
+</section>

@@ -1,0 +1,108 @@
+<main class="flex flex-col w-full p-6 overflow-auto gap-6">
+  <a routerLink="/reports" class="inline-flex items-center gap-1.5 text-sm text-muted hover:text-primary w-fit">
+    <i class="pi pi-arrow-left text-xs" aria-hidden="true"></i>All reports
+  </a>
+
+  <!-- Page header -->
+  <div class="flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-heading">
+        @if (report(); as r) {
+          {{ r.title }}
+        } @else {
+          Daily Summary
+        }
+      </h1>
+      <p class="text-sm text-muted mt-1">
+        @if (report(); as r) {
+          @if (isToday()) {<span>Today · </span>}<span>updated {{ r.generatedAt | date: 'shortTime' }}</span>
+        } @else {
+          <span>Everything that happened on one day.</span>
+        }
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      @if (!isToday()) {
+        <p-button label="Today" severity="secondary" [text]="true" size="small" (onClick)="resetToToday()" />
+      }
+
+      <div class="flex items-center gap-1">
+        <p-button
+          icon="pi pi-chevron-left"
+          severity="secondary"
+          [text]="true"
+          ariaLabel="Previous day"
+          (onClick)="stepDay(-1)"
+        />
+        <label class="sr-only" for="daily-summary-date">Report date</label>
+        <p-datepicker
+          inputId="daily-summary-date"
+          [ngModel]="selectedDate()"
+          (onSelect)="onDateSelect($event)"
+          [maxDate]="today"
+          dateFormat="M d, yy"
+          [showIcon]="true"
+          iconDisplay="input"
+          [readonlyInput]="true"
+          styleClass="w-44"
+        />
+        <p-button
+          icon="pi pi-chevron-right"
+          severity="secondary"
+          [text]="true"
+          ariaLabel="Next day"
+          [disabled]="isToday()"
+          (onClick)="stepDay(1)"
+        />
+      </div>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div
+      class="flex flex-wrap items-center gap-3 p-4 rounded-sm border border-destructive/30 bg-muted-destructive text-destructive text-sm"
+      role="alert"
+    >
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <span class="flex-1">Failed to load the daily summary. Please try again.</span>
+      <p-button label="Retry" icon="pi pi-refresh" size="small" severity="danger" [text]="true" (onClick)="retry()" />
+    </div>
+  } @else if (loading() && !report()) {
+    <!-- First-load skeleton -->
+    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+      @for (i of [0, 1, 2, 3, 4, 5]; track i) {
+        <div class="rounded-sm border border-border bg-white p-4 flex flex-col gap-3">
+          <p-skeleton width="6rem" height="0.7rem" />
+          <p-skeleton width="4rem" height="2rem" />
+          <p-skeleton width="9rem" height="0.7rem" />
+        </div>
+      }
+    </div>
+    <div class="rounded-sm border border-border bg-white p-5">
+      <p-skeleton width="10rem" height="1rem" styleClass="mb-4" />
+      <p-skeleton width="100%" height="220px" />
+    </div>
+  } @else if (report(); as r) {
+    <div
+      class="flex flex-col gap-6 transition-opacity duration-150"
+      [class.opacity-60]="loading()"
+      [attr.aria-busy]="loading()"
+    >
+      <app-report-summary-panel
+        [summary]="r.summary"
+        [exceptionsDrilldown]="exceptionsDrilldown()"
+        comparisonLabel="yesterday"
+      />
+
+      <!-- The day's shape, not just its totals. -->
+      <section class="rounded-sm border border-border bg-white p-5 flex flex-col" aria-labelledby="throughput-heading">
+        <div class="mb-4">
+          <h2 id="throughput-heading" class="text-sm font-semibold text-heading">Hourly throughput</h2>
+          <p class="text-xs text-muted mt-0.5">Gate passes per hour · gate-local time</p>
+        </div>
+        <app-hourly-throughput-chart [buckets]="r.hourlyThroughput" />
+      </section>
+    </div>
+  }
+</main>

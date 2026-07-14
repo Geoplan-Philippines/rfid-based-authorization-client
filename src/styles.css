@@ -30,6 +30,9 @@
   --success: #3DBE81;
   --muted-success: #D1EDE0;
   --success-foreground: #FFFFFF;
+  /* --success at 2.4:1 on white fails AA as text; this deeper shade of the
+     same hue holds ~5.2:1. Use for success-colored text, never as a fill. */
+  --success-text: #15803D;
 
   /* Near-sharp by design — see DESIGN.md "The Near-Sharp Rule". */
   --radius: 0.125rem;
@@ -57,6 +60,7 @@
   --color-muted-destructive: var(--muted-destructive);
   --color-success: var(--success);
   --color-muted-success: var(--muted-success);
+  --color-success-text: var(--success-text);
 
   --radius-base: var(--radius);
 

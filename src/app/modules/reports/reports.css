@@ -1,0 +1,67 @@
+/* Report entry points. Cards earn their border here: each is a distinct
+   navigation target carrying its own live figure, not a decorative tile. */
+.report-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: white;
+  transition: border-color 150ms ease-out;
+}
+
+.report-card:hover {
+  border-color: var(--primary);
+}
+
+.report-card:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Anomalies first: a report with something to review says so before it is opened. */
+.report-card--alert {
+  border-color: color-mix(in srgb, var(--destructive) 45%, var(--border));
+}
+
+.report-card--alert:hover {
+  border-color: var(--destructive);
+}
+
+.report-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+  background: var(--secondary);
+  color: var(--primary);
+  font-size: 1.15rem;
+}
+
+.report-card__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-shrink: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.report-card__cta .pi {
+  transition: transform 150ms ease-out;
+}
+
+.report-card:hover .report-card__cta .pi {
+  transform: translateX(2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .report-card,
+  .report-card__cta .pi {
+    transition: none;
+  }
+}
