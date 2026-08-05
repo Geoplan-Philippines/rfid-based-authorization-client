@@ -8,6 +8,7 @@ export interface DisplayTag {
 }
 
 export type RfidTagStatus = 'ACTIVE' | 'INACTIVE' | 'LOST' | 'BLOCKED' | 'RETIRED';
+export type RfidTagStatusLabelContext = 'status-only' | 'tag';
 export type AssignmentRole = 'PRIMARY' | 'RELIEF';
 export type GateEventResult =
   | 'VERIFIED'
@@ -52,8 +53,15 @@ const ASSIGNMENT_ROLE_TAGS: Record<AssignmentRole, DisplayTag> = {
   RELIEF: { label: 'Relief', severity: 'secondary' },
 };
 
-export function rfidTagStatusTag(status: RfidTagStatus): DisplayTag {
-  return RFID_TAG_STATUS_TAGS[status] ?? { label: status, severity: 'secondary' };
+export function rfidTagStatusTag(
+  status: RfidTagStatus,
+  context: RfidTagStatusLabelContext = 'status-only',
+): DisplayTag {
+  const displayTag = RFID_TAG_STATUS_TAGS[status] ?? { label: status, severity: 'secondary' };
+
+  return context === 'tag'
+    ? { ...displayTag, label: `Tag: ${displayTag.label}` }
+    : displayTag;
 }
 
 export function gateResultTag(result: GateEventResult): DisplayTag {

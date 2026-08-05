@@ -21,6 +21,8 @@ export class Header {
   private layoutService = inject(LayoutService);
   private router = inject(Router);
 
+  protected readonly sidebarOpen = this.layoutService.sidebarOpen;
+
   // Both name parts are nullable, so these go through the shared helpers rather
   // than interpolating directly — otherwise a nameless account renders "null null".
   protected displayName = computed(() => {

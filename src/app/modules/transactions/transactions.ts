@@ -53,7 +53,7 @@ interface ResultChip {
   templateUrl: './transactions.html',
   styleUrl: './transactions.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex flex-1 overflow-hidden' },
+  host: { class: 'flex min-w-0 flex-1 overflow-hidden' },
 })
 export class Transactions implements OnInit {
   private transactionService = inject(TransactionService);

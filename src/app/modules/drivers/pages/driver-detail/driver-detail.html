@@ -117,8 +117,8 @@
                   </div>
                   @if (truck.tagStatus) {
                     <p-tag
-                      [value]="rfidTagStatusTag(truck.tagStatus).label"
-                      [severity]="rfidTagStatusTag(truck.tagStatus).severity"
+                      [value]="rfidTagStatusTag(truck.tagStatus, 'tag').label"
+                      [severity]="rfidTagStatusTag(truck.tagStatus, 'tag').severity"
                     />
                   }
                   <p-tag

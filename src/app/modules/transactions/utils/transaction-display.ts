@@ -1,29 +1,11 @@
+import {
+  DisplayTag,
+  gateResultTag,
+  rfidTagStatusTag,
+} from '../../../shared/ui/status-tags';
 import { GateEventResult, RFIDTagStatus, SnapshotType, TimelineEventType } from '../types/transaction.types';
 
-/** PrimeNG `p-tag` severities. */
-export type TagSeverity = 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contrast';
-
-export interface DisplayTag {
-  label: string;
-  severity: TagSeverity;
-}
-
-const RESULT_TAGS: Record<GateEventResult, DisplayTag> = {
-  VERIFIED: { label: 'Verified', severity: 'success' },
-  UNKNOWN_TAG: { label: 'Unknown Tag', severity: 'danger' },
-  FACE_MISMATCH: { label: 'Face Mismatch', severity: 'warn' },
-  PLATE_MISMATCH: { label: 'Plate Mismatch', severity: 'warn' },
-  MANUAL_OVERRIDE: { label: 'Manual Override', severity: 'info' },
-  DENIED: { label: 'Denied', severity: 'danger' },
-  ERROR: { label: 'Error', severity: 'danger' },
-};
-
-const TAG_STATUS_TAGS: Record<RFIDTagStatus, DisplayTag> = {
-  ACTIVE: { label: 'Active', severity: 'success' },
-  INACTIVE: { label: 'Inactive', severity: 'secondary' },
-  LOST: { label: 'Lost', severity: 'warn' },
-  BLOCKED: { label: 'Blocked', severity: 'danger' },
-};
+export type { DisplayTag, TagSeverity } from '../../../shared/ui/status-tags';
 
 const TIMELINE_LABELS: Record<TimelineEventType, string> = {
   RFID_SCANNED: 'RFID Scanned',
@@ -43,11 +25,11 @@ const SNAPSHOT_LABELS: Record<SnapshotType, string> = {
 };
 
 export function resultTag(result: GateEventResult): DisplayTag {
-  return RESULT_TAGS[result];
+  return gateResultTag(result);
 }
 
 export function tagStatusTag(status: RFIDTagStatus): DisplayTag {
-  return TAG_STATUS_TAGS[status];
+  return rfidTagStatusTag(status);
 }
 
 export function timelineLabel(type: TimelineEventType): string {

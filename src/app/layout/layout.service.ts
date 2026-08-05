@@ -6,11 +6,11 @@ import { Injectable, signal } from '@angular/core';
 export class LayoutService {
   sidebarOpen = signal<boolean>(false);
 
-  toggleSidebar() {
+  toggleSidebar(): void {
     this.sidebarOpen.update(v => !v);
   }
 
-  closeSidebar() {
+  closeSidebar(): void {
     this.sidebarOpen.set(false);
   }
 }

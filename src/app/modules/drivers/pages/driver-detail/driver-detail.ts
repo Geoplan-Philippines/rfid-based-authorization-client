@@ -118,7 +118,7 @@ export class DriverDetail implements OnInit {
           label: truck.plateNumber,
           sublabel: truck.model,
           imageUrl: resolvePhotoUrl(truck.photoUrl),
-          badge: truck.boundTag ? rfidTagStatusTag(truck.boundTag.status) : null,
+          badge: truck.boundTag ? rfidTagStatusTag(truck.boundTag.status, 'tag') : null,
         })),
       ),
     );

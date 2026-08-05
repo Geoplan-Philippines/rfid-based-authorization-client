@@ -89,6 +89,11 @@ export class TruckDetail implements OnInit {
     })),
   );
 
+  protected readonly archivedTruckHasActiveTag = computed(() => {
+    const truck = this.detail();
+    return truck?.status === 'ARCHIVED' && truck.boundTag?.status === 'ACTIVE';
+  });
+
   ngOnInit(): void {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       const id = params.get('id');
@@ -199,9 +204,14 @@ export class TruckDetail implements OnInit {
   confirmArchive(): void {
     const detail = this.detail();
     if (!detail) return;
+    const activeTagNotice =
+      detail.boundTag?.status === 'ACTIVE'
+        ? ' Its active RFID tag will still be able to open the gate until its status is changed separately.'
+        : '';
+
     this.confirmationService.confirm({
       header: 'Archive truck',
-      message: `Archive ${detail.plateNumber}? It will be hidden from the list.`,
+      message: `Archive ${detail.plateNumber}? It will be hidden from the list.${activeTagNotice}`,
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Archive',
       rejectLabel: 'Cancel',

@@ -5,9 +5,11 @@
         icon="pi pi-bars"
         [text]="true"
         severity="secondary"
-        class="md:hidden"
+        class="lg:hidden"
         (onClick)="toggleSidebar()"
-        aria-label="Toggle sidebar"
+        [ariaLabel]="sidebarOpen() ? 'Close navigation menu' : 'Open navigation menu'"
+        aria-controls="mobile-sidebar"
+        [attr.aria-expanded]="sidebarOpen()"
       />
       <div class="brand-lockup" aria-label="Eagle Cement Gate Authorization">
         <img
@@ -24,8 +26,8 @@
     </div>
 
     <div class="flex items-center gap-2">
-      <p-button icon="pi pi-bell" [text]="true" severity="secondary" aria-label="Notifications" />
-      <p-button icon="pi pi-cog" [text]="true" severity="secondary" aria-label="Settings" />
+      <p-button icon="pi pi-bell" [text]="true" severity="secondary" ariaLabel="Notifications" />
+      <p-button icon="pi pi-cog" [text]="true" severity="secondary" ariaLabel="Settings" />
 
       <div class="flex items-center gap-2 ml-2">
         <p-avatar
@@ -44,7 +46,7 @@
         [text]="true"
         severity="secondary"
         (onClick)="logout()"
-        aria-label="Sign out"
+        ariaLabel="Sign out"
       />
     </div>
   </nav>
