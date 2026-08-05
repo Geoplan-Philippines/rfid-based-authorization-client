@@ -6,15 +6,18 @@ export type { RfidTagStatus } from '../../../shared/ui/status-tags';
 export interface RfidAssignedTruckSummary {
   id: string;
   plateNumber: string;
-  model: string;
+  model: string | null;
 }
 
 /** Plain tag entity (returned by create). */
 export interface RfidTag {
   id: string;
   epcId: string;
+  /** The number printed on the physical tag. Null for tags registered without one. */
+  serialNo: string | null;
   status: RfidTagStatus;
-  assignedTruckId: string;
+  /** Null while the tag is unbound spare stock, before it is issued to a truck. */
+  assignedTruckId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -22,7 +25,9 @@ export interface RfidTag {
 export interface RfidTagListItem {
   id: string;
   epcId: string;
+  serialNo: string | null;
   status: RfidTagStatus;
+  /** Null while the tag is unbound spare stock, before it is issued to a truck. */
   assignedTruck: RfidAssignedTruckSummary | null;
   lastSeenAt: string | null;
   lastResult: GateEventResult | null;

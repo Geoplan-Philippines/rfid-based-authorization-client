@@ -132,8 +132,10 @@
             </td>
             <td>
               @if (item.truck) {
-                <span>{{ item.truck.model }}</span>
-                <span class="text-body/40 text-sm"> · {{ item.truck.plateNumber }}</span>
+                <span>{{ item.truck.plateNumber }}</span>
+                @if (item.truck.model) {
+                  <span class="text-body/40 text-sm"> · {{ item.truck.model }}</span>
+                }
               } @else {
                 <span class="text-body/40">—</span>
               }

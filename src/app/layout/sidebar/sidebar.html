@@ -12,7 +12,7 @@
   [class.translate-x-0]="layoutService.sidebarOpen()"
 >
   <nav class="flex flex-col gap-7 py-5">
-    @for (section of navSections; track section.title) {
+    @for (section of navSections(); track section.title) {
       <div>
         <h3 class="mb-2 px-5 text-[11px] font-semibold tracking-[0.12em] uppercase text-body/60">
           {{ section.title }}

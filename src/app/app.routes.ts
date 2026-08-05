@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 
 import { authGuard } from './core/auth/auth.guard';
 import { loginGuard } from './core/auth/login.guard';
+import { superAdminGuard } from './core/auth/super-admin.guard';
 import { MainLayout } from './layout/main-layout/main-layout';
 
 export const routes: Routes = [
@@ -49,11 +50,14 @@ export const routes: Routes = [
     ]
   },
   {
+    // Every /users endpoint is SUPER_ADMIN-only, so the route is gated as well as
+    // the nav item — otherwise this screen is a wall of 403s.
     path: 'users',
     component: MainLayout,
-    canActivate: [authGuard],
+    canActivate: [authGuard, superAdminGuard],
     children: [
-      { path: '', loadComponent: () => import('./modules/users/users').then(m => m.Users) }
+      { path: '', loadComponent: () => import('./modules/users/users').then(m => m.Users) },
+      { path: ':id', loadComponent: () => import('./modules/users/pages/user-detail/user-detail').then(m => m.UserDetail) }
     ]
   },
   {

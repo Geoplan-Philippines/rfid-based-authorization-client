@@ -102,8 +102,10 @@
           </td>
           <td>
             @if (tx.truck) {
-              <span>{{ tx.truck.model }}</span>
-              <span class="text-body/40 text-sm"> · {{ tx.truck.plateNumber }}</span>
+              <span>{{ tx.truck.plateNumber }}</span>
+              @if (tx.truck.model) {
+                <span class="text-body/40 text-sm"> · {{ tx.truck.model }}</span>
+              }
             } @else {
               <span class="text-body/40 italic">not in registry</span>
             }

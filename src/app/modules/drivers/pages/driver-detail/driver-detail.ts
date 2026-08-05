@@ -22,6 +22,7 @@ import { ConfirmationService } from 'primeng/api';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { AssignmentService } from '../../../../core/services/assignment.service';
 import { resolvePhotoUrl } from '../../../../core/utils/photo-url';
+import { truckLabel } from '../../../../shared/utils/truck-label';
 import {
   AssignmentRole,
   assignmentRoleTag,
@@ -67,6 +68,7 @@ export class DriverDetail implements OnInit {
   protected readonly rfidTagStatusTag = rfidTagStatusTag;
   protected readonly gateResultTag = gateResultTag;
   protected readonly assignmentRoleTag = assignmentRoleTag;
+  protected readonly truckLabel = truckLabel;
 
   private id = signal<string | null>(null);
 

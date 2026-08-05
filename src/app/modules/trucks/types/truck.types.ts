@@ -6,7 +6,7 @@ import { RecentGateEvent } from '../../../shared/types/gate-event';
 export interface Truck {
   id: string;
   plateNumber: string;
-  model: string;
+  model: string | null;
   photoUrl: string | null;
   isArchived: boolean;
   createdAt: string;
@@ -28,13 +28,13 @@ export interface TruckBoundTagSummary {
 export interface UntaggedTruck {
   id: string;
   plateNumber: string;
-  model: string;
+  model: string | null;
 }
 
 export interface TruckListItem {
   id: string;
   plateNumber: string;
-  model: string;
+  model: string | null;
   photoUrl: string | null;
   isArchived: boolean;
   drivers: TruckDriverListSummary[];
@@ -65,7 +65,7 @@ export interface TruckDetailDriver {
 export interface TruckDetail {
   id: string;
   plateNumber: string;
-  model: string;
+  model: string | null;
   photoUrl: string | null;
   isArchived: boolean;
   status: 'ACTIVE' | 'ARCHIVED';

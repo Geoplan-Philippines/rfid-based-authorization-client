@@ -41,9 +41,11 @@ export class TruckFormDialog {
   saving = signal(false);
   selectedFile = signal<File | null>(null);
 
+  // Model is optional: trucks imported from the legacy registry have none recorded, and
+  // requiring it here would block every edit to them until someone invents a value.
   form = this.fb.nonNullable.group({
     plateNumber: ['', [Validators.required]],
-    model: ['', [Validators.required]],
+    model: [''],
   });
 
   constructor() {
@@ -53,7 +55,7 @@ export class TruckFormDialog {
       this.selectedFile.set(null);
       const truck = this.truck();
       if (this.mode() === 'edit' && truck) {
-        this.form.reset({ plateNumber: truck.plateNumber, model: truck.model });
+        this.form.reset({ plateNumber: truck.plateNumber, model: truck.model ?? '' });
       } else {
         this.form.reset({ plateNumber: '', model: '' });
       }
@@ -80,9 +82,11 @@ export class TruckFormDialog {
     }
 
     this.saving.set(true);
+    const model = this.form.controls.model.value.trim();
+    // Send nothing rather than '' — the API rejects an empty model but accepts a missing one.
     const payload = {
       plateNumber: this.form.controls.plateNumber.value.trim(),
-      model: this.form.controls.model.value.trim(),
+      ...(model ? { model } : {}),
     };
 
     const request$ =

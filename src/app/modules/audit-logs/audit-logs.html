@@ -52,24 +52,28 @@
       />
     </div>
 
-    <div class="flex flex-col gap-1">
-      <label for="filter-actor" class="text-xs font-medium text-muted">Actor</label>
-      <p-select
-        inputId="filter-actor"
-        [options]="actorOptions()"
-        optionLabel="label"
-        optionValue="value"
-        [ngModel]="selectedActorId()"
-        (onChange)="onActorChange($event.value)"
-        placeholder="All actors"
-        [showClear]="true"
-        [filter]="true"
-        filterBy="label"
-        emptyMessage="No users found"
-        styleClass="w-56"
-        appendTo="body"
-      />
-    </div>
+    <!-- Filtering by actor means naming accounts, which needs /users — a
+         SUPER_ADMIN-only endpoint. Other roles keep the id-based view. -->
+    @if (canResolveActors()) {
+      <div class="flex flex-col gap-1">
+        <label for="filter-actor" class="text-xs font-medium text-muted">Actor</label>
+        <p-select
+          inputId="filter-actor"
+          [options]="actorOptions()"
+          optionLabel="label"
+          optionValue="value"
+          [ngModel]="selectedActorId()"
+          (onChange)="onActorChange($event.value)"
+          placeholder="All actors"
+          [showClear]="true"
+          [filter]="true"
+          filterBy="label"
+          emptyMessage="No users found"
+          styleClass="w-56"
+          appendTo="body"
+        />
+      </div>
+    }
 
     @if (hasFilters()) {
       <p-button label="Clear" icon="pi pi-times" severity="secondary" [text]="true" (onClick)="clearFilters()" />
@@ -112,7 +116,7 @@
           <td class="align-top">
             @if (who) {
               <div class="flex flex-col leading-tight">
-                <span class="font-medium text-heading">{{ who.firstName }} {{ who.lastName }}</span>
+                <span class="font-medium text-heading">{{ displayName(who) }}</span>
                 <span class="text-xs text-muted">{{ who.email }}</span>
               </div>
             } @else if (log.actorId) {

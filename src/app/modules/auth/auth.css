@@ -1,0 +1,51 @@
+:host {
+  display: block;
+}
+
+.auth-shell {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  color: var(--text-body);
+  background-color: var(--background);
+}
+
+.auth-card {
+  width: min(26rem, 100%);
+  padding: 2.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: 0 1rem 2.5rem rgb(11 22 31 / 10%);
+}
+
+.brand-lockup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.brand-logo {
+  width: 10rem;
+  height: auto;
+}
+
+.product-name {
+  margin: 0;
+  color: var(--text-heading);
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+@media (max-width: 420px) {
+  .auth-card {
+    padding: 2rem 1.5rem;
+  }
+}

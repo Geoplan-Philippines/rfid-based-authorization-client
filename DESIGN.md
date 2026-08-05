@@ -2,6 +2,7 @@
 name: Eagle Cement Gate Authorization
 description: A refined, restrained admin console for RFID gate access — a trustworthy ledger of every pass-through.
 colors:
+  eagle-green: "#83C447"
   ledger-blue: "#0B4EA2"
   ledger-blue-hover: "#03285A"
   ledger-blue-active: "#01183C"
@@ -140,6 +141,8 @@ A near-white blue-tinted canvas under a single deep-blue structural anchor, with
 
 ### Named Rules
 **The Deep-Blue Spine Rule.** Exactly one blue (`#0B4EA2`) anchors structure — headers, primary actions, active nav. The page body stays near-white. Do not introduce a second brand hue.
+
+**The Company-Mark Rule.** Eagle Cement green identifies ownership; it is not an interaction color. Keep it to the official logo and sparse logo-adjacent details such as the header's 2px signature line and login identity cues. Buttons, links, navigation, focus, data, and operational state keep their existing system colors. Always pair the logo with the product name **Gate Authorization** when space permits so the lockup answers both “whose app?” and “what app?”.
 
 **The Status-Carries-Meaning Rule.** Color beyond the blue spine is spent on *state* only: green/red/amber via `p-tag` severities and primary-action emphasis. If a color isn't communicating a status or a primary action, it shouldn't be there.
 

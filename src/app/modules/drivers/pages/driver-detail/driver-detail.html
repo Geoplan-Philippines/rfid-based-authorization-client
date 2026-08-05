@@ -105,7 +105,7 @@
               @for (truck of driver.trucks; track truck.id) {
                 <li class="flex items-center gap-3 p-2.5">
                   <div class="flex flex-col min-w-0 flex-1">
-                    <span class="font-medium truncate text-heading">{{ truck.plateNumber }} · {{ truck.model }}</span>
+                    <span class="font-medium truncate text-heading">{{ truckLabel(truck.plateNumber, truck.model) }}</span>
                     <span class="text-xs text-muted">
                       @if (truck.tagEpc) {
                         <span class="font-mono">{{ truck.tagEpc }}</span>

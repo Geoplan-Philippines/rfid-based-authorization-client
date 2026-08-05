@@ -81,7 +81,7 @@ export interface ExceptionReportItem {
   reason: string;
   plateRead: string | null;
   rfidTag: { epcId: string; status: RfidTagStatus } | null;
-  truck: { id: string; plateNumber: string; model: string } | null;
+  truck: { id: string; plateNumber: string; model: string | null } | null;
   driver: { id: string; firstName: string; lastName: string } | null;
   verification: {
     rfidMatched: boolean;

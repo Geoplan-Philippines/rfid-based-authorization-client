@@ -27,7 +27,9 @@
     </div>
 
     <div class="flex flex-col gap-2">
-      <label for="truck-model" class="font-medium text-sm">Model</label>
+      <label for="truck-model" class="font-medium text-sm">
+        Model <span class="text-body/50 font-normal">(optional)</span>
+      </label>
       <input
         pInputText
         id="truck-model"
@@ -35,12 +37,7 @@
         placeholder="e.g. Volvo FH 460"
         autocomplete="off"
         class="w-full"
-        [class.ng-invalid]="form.controls.model.invalid && form.controls.model.touched"
-        [class.ng-dirty]="form.controls.model.invalid && form.controls.model.touched"
       />
-      @if (form.controls.model.invalid && form.controls.model.touched) {
-        <small class="text-destructive">Model is required.</small>
-      }
     </div>
 
     <div class="flex flex-col gap-2">

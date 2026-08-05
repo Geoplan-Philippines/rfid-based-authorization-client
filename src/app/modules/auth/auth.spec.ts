@@ -20,4 +20,11 @@ describe('Auth', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should identify the product as Eagle Cement Gate Authorization', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(compiled.querySelector('img[alt="Eagle Cement"]')).toBeTruthy();
+    expect(compiled.querySelector('.product-name')?.textContent).toContain('Gate Authorization');
+  });
 });

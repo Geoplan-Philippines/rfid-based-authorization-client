@@ -15,7 +15,8 @@ export interface GetTrucksParams {
 
 export interface TruckPayload {
   plateNumber: string;
-  model: string;
+  /** Omitted when unknown — the API rejects an empty string but accepts a missing model. */
+  model?: string;
 }
 
 @Injectable({ providedIn: 'root' })

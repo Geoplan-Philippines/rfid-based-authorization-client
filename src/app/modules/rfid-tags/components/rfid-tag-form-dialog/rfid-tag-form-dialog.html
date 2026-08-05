@@ -9,7 +9,8 @@
   (onShow)="onShow()"
 >
   <p class="text-sm text-muted mt-0 mb-1">
-    Bind a physical tag to a truck. Once active, a verified tag opens the boom automatically.
+    Register a physical tag, optionally binding it to a truck. Once active, a verified tag opens the
+    boom automatically.
   </p>
 
   <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 pt-1">
@@ -40,10 +41,38 @@
       }
     </div>
 
+    <!-- Serial number -->
+    <div class="flex flex-col gap-2">
+      <label for="tag-serial" class="font-medium text-sm">
+        Serial number <span class="text-body/50 font-normal">(optional)</span>
+      </label>
+      <input
+        pInputText
+        id="tag-serial"
+        formControlName="serialNo"
+        placeholder="e.g. 1204"
+        autocomplete="off"
+        spellcheck="false"
+        aria-describedby="tag-serial-help tag-serial-error"
+        class="w-full"
+        [class.ng-invalid]="form.controls.serialNo.invalid && form.controls.serialNo.touched"
+        [class.ng-dirty]="form.controls.serialNo.invalid && form.controls.serialNo.touched"
+      />
+      @if (form.controls.serialNo.hasError('maxlength')) {
+        <small id="tag-serial-error" class="text-destructive">
+          Serial number must be 64 characters or fewer.
+        </small>
+      } @else {
+        <small id="tag-serial-help" class="text-muted">
+          The number labelled on the physical tag. Must be unique across all tags.
+        </small>
+      }
+    </div>
+
     <!-- Assign to truck -->
     <div class="flex flex-col gap-2">
       <label for="tag-truck" class="font-medium text-sm">
-        Assign to truck <span class="text-destructive" aria-hidden="true">*</span>
+        Assign to truck <span class="text-body/50 font-normal">(optional)</span>
       </label>
       <p-select
         inputId="tag-truck"
@@ -54,32 +83,34 @@
         [filter]="true"
         filterBy="label"
         [loading]="loadingTrucks()"
-        placeholder="Select a truck without a tag"
+        placeholder="Leave empty to register as spare stock"
         emptyMessage="No untagged trucks available"
         styleClass="w-full"
+        [showClear]="true"
         appendTo="body"
-        [class.ng-invalid]="form.controls.assignedTruckId.invalid && form.controls.assignedTruckId.touched"
-        [class.ng-dirty]="form.controls.assignedTruckId.invalid && form.controls.assignedTruckId.touched"
       >
         <ng-template let-truck #selectedItem>
           <span class="flex items-center gap-2">
             <i class="pi pi-truck text-muted" aria-hidden="true"></i>
             <span class="font-medium">{{ truck.plateNumber }}</span>
-            <span class="text-muted">· {{ truck.model }}</span>
+            @if (truck.model) {
+              <span class="text-muted">· {{ truck.model }}</span>
+            }
           </span>
         </ng-template>
         <ng-template let-truck #item>
           <span class="flex flex-col">
             <span class="font-medium">{{ truck.plateNumber }}</span>
-            <span class="text-xs text-muted">{{ truck.model }}</span>
+            @if (truck.model) {
+              <span class="text-xs text-muted">{{ truck.model }}</span>
+            }
           </span>
         </ng-template>
       </p-select>
-      @if (form.controls.assignedTruckId.invalid && form.controls.assignedTruckId.touched) {
-        <small class="text-destructive">Please select a truck.</small>
-      } @else {
-        <small class="text-muted">Each truck holds exactly one tag — only untagged trucks are listed.</small>
-      }
+      <small class="text-muted">
+        Each truck holds exactly one tag — only untagged trucks are listed. Leave empty to hold the
+        tag as unbound spare stock and bind it later.
+      </small>
     </div>
 
     <!-- Initial status -->
@@ -107,9 +138,16 @@
           />
         </ng-template>
       </p-select>
-      <small class="text-muted">
-        Most tags start Active. Choose Inactive to register without enabling gate access yet.
-      </small>
+      @if (!form.controls.assignedTruckId.value && form.controls.status.value === 'ACTIVE') {
+        <small class="text-destructive">
+          Spare stock with no truck should stay Inactive — an Active tag opens the boom even when no
+          truck is bound to it.
+        </small>
+      } @else {
+        <small class="text-muted">
+          Most tags start Active. Choose Inactive to register without enabling gate access yet.
+        </small>
+      }
     </div>
   </form>
 
