@@ -4,6 +4,11 @@ export interface NavItem {
   icon: string;
   /** When true, the item is shown but disabled with a "Coming soon" badge. */
   comingSoon?: boolean;
+  /**
+   * When true, the item is hidden unless the signed-in user is a `SUPER_ADMIN`.
+   * Rendering it for anyone else would send them to a screen of 403s.
+   */
+  superAdminOnly?: boolean;
 }
 
 export interface NavSection {
@@ -39,7 +44,7 @@ export const NAV_SECTIONS: readonly NavSection[] = [
   {
     title: 'Admin',
     items: [
-      { label: 'Users', route: '/users', icon: 'pi-users' },
+      { label: 'Users', route: '/users', icon: 'pi-users', superAdminOnly: true },
     ],
   },
 ];

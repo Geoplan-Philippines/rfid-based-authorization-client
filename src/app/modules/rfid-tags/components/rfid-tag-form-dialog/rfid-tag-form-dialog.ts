@@ -16,6 +16,7 @@ import { TagModule } from 'primeng/tag';
 
 import { NotificationService } from '../../../../core/services/notification.service';
 import { RfidTagStatus, rfidTagStatusTag } from '../../../../shared/ui/status-tags';
+import { truckLabel } from '../../../../shared/utils/truck-label';
 import { TruckService } from '../../../trucks/services/truck.service';
 import { RfidTagService } from '../../services/rfid-tags.service';
 
@@ -26,7 +27,7 @@ interface SelectOption<T> {
 
 interface TruckOption extends SelectOption<string> {
   plateNumber: string;
-  model: string;
+  model: string | null;
 }
 
 @Component({
@@ -57,9 +58,12 @@ export class RfidTagFormDialog {
     { label: 'Blocked', value: 'BLOCKED' },
   ];
 
+  // Only the EPC is mandatory: a tag may be registered as unbound spare stock and bound to a
+  // truck later, and not every physical tag carries a printed serial number.
   form = this.fb.nonNullable.group({
     epcId: ['', [Validators.required, Validators.maxLength(64)]],
-    assignedTruckId: ['', [Validators.required]],
+    serialNo: ['', [Validators.maxLength(64)]],
+    assignedTruckId: [''],
     status: ['ACTIVE' as RfidTagStatus, [Validators.required]],
   });
 
@@ -69,7 +73,7 @@ export class RfidTagFormDialog {
    * to `visible` is fragile: any stray toggle would wipe a half-filled form.
    */
   onShow(): void {
-    this.form.reset({ epcId: '', assignedTruckId: '', status: 'ACTIVE' });
+    this.form.reset({ epcId: '', serialNo: '', assignedTruckId: '', status: 'ACTIVE' });
     this.loadAvailableTrucks();
   }
 
@@ -79,7 +83,7 @@ export class RfidTagFormDialog {
       next: trucks => {
         this.truckOptions.set(
           trucks.map(truck => ({
-            label: `${truck.plateNumber} · ${truck.model}`,
+            label: truckLabel(truck.plateNumber, truck.model),
             value: truck.id,
             plateNumber: truck.plateNumber,
             model: truck.model,
@@ -102,10 +106,15 @@ export class RfidTagFormDialog {
     }
 
     this.saving.set(true);
+    // Omit the blank optionals rather than sending '' — the API rejects empty strings here.
+    const serialNo = this.form.controls.serialNo.value.trim();
+    const assignedTruckId = this.form.controls.assignedTruckId.value;
+
     this.rfidTagService
       .create({
         epcId: this.form.controls.epcId.value.trim().toUpperCase(),
-        assignedTruckId: this.form.controls.assignedTruckId.value,
+        ...(serialNo ? { serialNo } : {}),
+        ...(assignedTruckId ? { assignedTruckId } : {}),
         status: this.form.controls.status.value,
       })
       .subscribe({

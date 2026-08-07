@@ -1,0 +1,28 @@
+<div class="flex flex-wrap items-center gap-2">
+  <p-selectButton
+    [options]="presetOptions"
+    [ngModel]="activePreset()"
+    (onChange)="selectPreset($event.value)"
+    optionLabel="label"
+    optionValue="value"
+    [allowEmpty]="false"
+    size="small"
+    ariaLabelledBy="report-range-label"
+  />
+  <span id="report-range-label" class="sr-only">Reporting period</span>
+
+  <label class="sr-only" for="report-range-custom">Custom date range</label>
+  <p-datepicker
+    inputId="report-range-custom"
+    [ngModel]="calendarDates()"
+    (ngModelChange)="onCalendarSelect($event)"
+    selectionMode="range"
+    [maxDate]="today"
+    dateFormat="M d, yy"
+    [showIcon]="true"
+    iconDisplay="input"
+    [readonlyInput]="true"
+    placeholder="Custom range"
+    styleClass="w-56"
+  />
+</div>

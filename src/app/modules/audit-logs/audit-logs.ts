@@ -11,8 +11,9 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 
+import { AuthService } from '../../core/auth/auth.service';
 import { UserService } from '../users/services/user.service';
-import { User } from '../users/types/user.types';
+import { MAX_PAGE_SIZE, User, displayName } from '../users/types/user.types';
 import { AuditLogService, GetAuditLogsParams } from './services/audit-log.service';
 import { AuditLog } from './types/audit-log.types';
 import {
@@ -51,6 +52,7 @@ interface SelectOption {
 export class AuditLogs implements OnInit {
   private auditLogService = inject(AuditLogService);
   private userService = inject(UserService);
+  private authService = inject(AuthService);
   private destroyRef = inject(DestroyRef);
   private pageRequest$ = new Subject<GetAuditLogsParams>();
 
@@ -61,6 +63,7 @@ export class AuditLogs implements OnInit {
   protected readonly entityMeta = entityMeta;
   protected readonly describeMetadata = describeMetadata;
   protected readonly shortId = shortId;
+  protected readonly displayName = displayName;
 
   logs = signal<AuditLog[]>([]);
   loading = signal(true);
@@ -86,12 +89,12 @@ export class AuditLogs implements OnInit {
   }));
   actorOptions = computed<SelectOption[]>(() =>
     [...this.actors().values()]
-      .map(user => ({
-        label: `${user.firstName} ${user.lastName}`.trim() || user.email,
-        value: user.id,
-      }))
+      .map(user => ({ label: displayName(user), value: user.id }))
       .sort((a, b) => a.label.localeCompare(b.label))
   );
+
+  /** `/users` is SUPER_ADMIN-only, so the actor filter exists only for them. */
+  canResolveActors = this.authService.isSuperAdmin;
 
   hasFilters = computed(() => !!(this.selectedAction() || this.selectedEntityType() || this.selectedActorId()));
 
@@ -118,16 +121,21 @@ export class AuditLogs implements OnInit {
         this.loading.set(false);
       });
 
-    // Resolve actor ids to names. Non-fatal: the table falls back to short ids.
-    this.userService
-      .getUsers()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: users => this.actors.set(new Map(users.map(user => [user.id, user]))),
-        error: () => {
-          /* keep the short-id fallback */
-        },
-      });
+    // Resolve actor ids to names. Gated on SUPER_ADMIN: /users answers 403 for every
+    // other role, so firing this for them is a guaranteed-failed request. Archived
+    // users are included — a since-archived admin can still own past log entries.
+    // Non-fatal either way: the table falls back to short ids.
+    if (this.canResolveActors()) {
+      this.userService
+        .list({ page: 1, limit: MAX_PAGE_SIZE, includeArchived: true })
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: ({ data }) => this.actors.set(new Map(data.map(user => [user.id, user]))),
+          error: () => {
+            /* keep the short-id fallback */
+          },
+        });
+    }
 
     this.load();
   }

@@ -1,20 +1,33 @@
-<header class="px-4 border-b border-border bg-background">
+<header class="app-header px-4 border-b border-border bg-background">
   <nav class="h-16 flex justify-between items-center">
     <div class="flex items-center gap-3">
       <p-button
         icon="pi pi-bars"
         [text]="true"
         severity="secondary"
-        class="md:hidden"
+        class="lg:hidden"
         (onClick)="toggleSidebar()"
-        aria-label="Toggle sidebar"
+        [ariaLabel]="sidebarOpen() ? 'Close navigation menu' : 'Open navigation menu'"
+        aria-controls="mobile-sidebar"
+        [attr.aria-expanded]="sidebarOpen()"
       />
-      <span class="text-xl font-bold tracking-tight text-heading">RFID-based Authorization</span>
+      <div class="brand-lockup" aria-label="Eagle Cement Gate Authorization">
+        <img
+          ngSrc="/assets/eagle-cement-logo.png"
+          width="810"
+          height="430"
+          priority
+          alt="Eagle Cement"
+          class="brand-logo"
+        />
+        <span class="brand-divider" aria-hidden="true"></span>
+        <span class="product-name">Gate Authorization</span>
+      </div>
     </div>
 
     <div class="flex items-center gap-2">
-      <p-button icon="pi pi-bell" [text]="true" severity="secondary" aria-label="Notifications" />
-      <p-button icon="pi pi-cog" [text]="true" severity="secondary" aria-label="Settings" />
+      <p-button icon="pi pi-bell" [text]="true" severity="secondary" ariaLabel="Notifications" />
+      <p-button icon="pi pi-cog" [text]="true" severity="secondary" ariaLabel="Settings" />
 
       <div class="flex items-center gap-2 ml-2">
         <p-avatar
@@ -33,7 +46,7 @@
         [text]="true"
         severity="secondary"
         (onClick)="logout()"
-        aria-label="Sign out"
+        ariaLabel="Sign out"
       />
     </div>
   </nav>

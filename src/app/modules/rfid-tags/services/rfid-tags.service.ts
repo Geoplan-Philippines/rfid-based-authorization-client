@@ -16,7 +16,10 @@ export interface GetRfidTagsParams {
 
 export interface CreateRfidTagPayload {
   epcId: string;
-  assignedTruckId: string;
+  /** The number printed on the physical tag. Omitted when the tag carries no label. */
+  serialNo?: string;
+  /** Omitted to register the tag as unbound spare stock; bind it to a truck later. */
+  assignedTruckId?: string;
   status?: RfidTagStatus;
 }
 

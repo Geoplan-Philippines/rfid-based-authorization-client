@@ -20,4 +20,11 @@ describe('Header', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should render the Eagle Cement product lockup', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(compiled.querySelector('img[alt="Eagle Cement"]')).toBeTruthy();
+    expect(compiled.querySelector('.product-name')?.textContent).toContain('Gate Authorization');
+  });
 });

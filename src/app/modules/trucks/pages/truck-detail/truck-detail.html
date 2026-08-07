@@ -29,12 +29,10 @@
           <h1 class="text-2xl font-bold text-heading">{{ truck.plateNumber }}</h1>
           @if (truck.status === 'ARCHIVED') {
             <p-tag value="Archived" severity="secondary" />
-          } @else {
-            <p-tag value="Active" severity="success" />
           }
         </div>
         <p class="text-sm text-body/60 mt-1">
-          {{ truck.model }}
+          {{ truck.model ?? '—' }}
           <span class="text-body/30">·</span>
           <span class="font-mono text-xs">{{ truck.id }}</span>
         </p>
@@ -72,13 +70,41 @@
               <dt class="text-xs text-muted mb-1.5">Bound RFID tag</dt>
               <dd>
                 @if (truck.boundTag; as tag) {
-                  <div class="flex flex-wrap items-center gap-2">
-                    <span class="font-mono text-sm text-heading">{{ tag.epcId }}</span>
-                    <p-tag
-                      [value]="rfidTagStatusTag(tag.status).label"
-                      [severity]="rfidTagStatusTag(tag.status).severity"
-                    />
-                    <a routerLink="/rfid-tags" class="ml-auto text-xs text-muted hover:text-primary">manage in RFID Tags</a>
+                  <div class="flex flex-col gap-3">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span class="font-mono text-sm text-heading">{{ tag.epcId }}</span>
+                      <p-tag
+                        [value]="rfidTagStatusTag(tag.status, 'tag').label"
+                        [severity]="rfidTagStatusTag(tag.status, 'tag').severity"
+                      />
+                      @if (!archivedTruckHasActiveTag()) {
+                        <a routerLink="/rfid-tags" class="ml-auto text-xs text-muted hover:text-primary">
+                          Manage in RFID Tags
+                        </a>
+                      }
+                    </div>
+
+                    @if (archivedTruckHasActiveTag()) {
+                      <div
+                        class="flex items-start gap-2 rounded-sm border border-destructive/30 bg-muted-destructive p-3 text-sm text-destructive"
+                        role="alert"
+                      >
+                        <i class="pi pi-exclamation-triangle mt-0.5 shrink-0" aria-hidden="true"></i>
+                        <div class="min-w-0">
+                          <p class="font-semibold">Tag still active — can still open the gate.</p>
+                          <p class="mt-0.5 text-xs">
+                            Archiving the truck does not disable its RFID credential.
+                          </p>
+                          <a
+                            routerLink="/rfid-tags"
+                            class="mt-2 inline-flex items-center gap-1 font-semibold underline underline-offset-2 hover:no-underline"
+                          >
+                            Manage in RFID Tags
+                            <i class="pi pi-arrow-right text-xs" aria-hidden="true"></i>
+                          </a>
+                        </div>
+                      </div>
+                    }
                   </div>
                 } @else {
                   <span class="text-sm text-muted">No tag bound.</span>
@@ -193,7 +219,9 @@
           [disabled]="busy()"
           (onClick)="confirmArchive()"
         />
-        <span class="text-xs text-muted">Hides the truck from the list. You can restore it later.</span>
+        <span class="text-xs text-muted">
+          Hides the truck from the list. Its RFID tag status and gate access do not change.
+        </span>
       }
     </div>
   }

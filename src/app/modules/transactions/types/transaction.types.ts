@@ -38,7 +38,7 @@ export interface TransactionListItem {
   rfidTag: { epcId: string; status: RFIDTagStatus } | null;
   plateRead: string | null;
   plateMismatch: boolean;
-  truck: { plateNumber: string; model: string } | null;
+  truck: { plateNumber: string; model: string | null } | null;
   truckInRegistry: boolean;
   driver: DriverSummary | null;
   isOpen: boolean;
@@ -88,7 +88,7 @@ export interface TransactionDetail {
   verification: TransactionVerification | null;
   timeline: TransactionTimelineEvent[];
   rfidTag: { epcId: string; status: RFIDTagStatus; assignedTruckPlate: string | null } | null;
-  truck: { plateNumber: string; model: string; assignedDriver: DriverSummary | null } | null;
+  truck: { plateNumber: string; model: string | null; assignedDriver: DriverSummary | null } | null;
   truckInRegistry: boolean;
   driver: (DriverSummary & { id: string }) | null;
   faceMatchesAssigned: boolean;

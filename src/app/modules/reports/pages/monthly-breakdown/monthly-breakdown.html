@@ -1,0 +1,206 @@
+<main class="flex flex-col w-full p-6 overflow-auto gap-6">
+  <a routerLink="/reports" class="inline-flex items-center gap-1.5 text-sm text-muted hover:text-primary w-fit">
+    <i class="pi pi-arrow-left text-xs" aria-hidden="true"></i>All reports
+  </a>
+
+  <!-- Page header -->
+  <div class="flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-heading">
+        @if (monthDate(); as month) {
+          {{ month | date: 'MMMM yyyy' }}
+        } @else {
+          Monthly Breakdown
+        }
+      </h1>
+      <p class="text-sm text-muted mt-1">
+        @if (report(); as r) {
+          <span>Gate activity per day · updated {{ r.generatedAt | date: 'shortTime' }}</span>
+        } @else {
+          <span>Gate activity per day across the month.</span>
+        }
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      @if (!isCurrentMonth()) {
+        <p-button label="This month" severity="secondary" [text]="true" size="small" (onClick)="resetToCurrentMonth()" />
+      }
+      <label class="sr-only" for="monthly-breakdown-month">Report month</label>
+      <p-datepicker
+        inputId="monthly-breakdown-month"
+        [ngModel]="selectedMonth()"
+        (onSelect)="onMonthSelect($event)"
+        view="month"
+        dateFormat="MM yy"
+        [maxDate]="thisMonth"
+        [showIcon]="true"
+        iconDisplay="input"
+        [readonlyInput]="true"
+        styleClass="w-40"
+      />
+    </div>
+  </div>
+
+  @if (error()) {
+    <div
+      class="flex flex-wrap items-center gap-3 p-4 rounded-sm border border-destructive/30 bg-muted-destructive text-destructive text-sm"
+      role="alert"
+    >
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <span class="flex-1">Failed to load the monthly breakdown. Please try again.</span>
+      <p-button label="Retry" icon="pi pi-refresh" size="small" severity="danger" [text]="true" (onClick)="retry()" />
+    </div>
+  } @else if (loading() && !report()) {
+    <!-- First-load skeleton -->
+    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+      @for (i of [0, 1, 2, 3, 4, 5]; track i) {
+        <div class="rounded-sm border border-border bg-white p-4 flex flex-col gap-3">
+          <p-skeleton width="6rem" height="0.7rem" />
+          <p-skeleton width="4rem" height="2rem" />
+          <p-skeleton width="9rem" height="0.7rem" />
+        </div>
+      }
+    </div>
+    <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
+      <div class="rounded-sm border border-border bg-white p-5">
+        <p-skeleton width="10rem" height="1rem" styleClass="mb-4" />
+        <p-skeleton width="100%" height="420px" />
+      </div>
+      <div class="rounded-sm border border-border bg-white p-5">
+        <p-skeleton width="8rem" height="1rem" styleClass="mb-4" />
+        <p-skeleton width="100%" height="10rem" />
+      </div>
+    </div>
+  } @else if (report(); as r) {
+    <div
+      class="flex flex-col gap-6 transition-opacity duration-150"
+      [class.opacity-60]="loading()"
+      [attr.aria-busy]="loading()"
+    >
+      <app-report-summary-panel
+        [summary]="r.summary"
+        [exceptionsDrilldown]="exceptionsDrilldown()"
+        comparisonLabel="last month"
+      />
+
+      <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_20rem] items-start">
+        <!-- Calendar heatmap -->
+        <section class="rounded-sm border border-border bg-white p-5" aria-labelledby="calendar-heading">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div>
+              <h2 id="calendar-heading" class="text-sm font-semibold text-heading">Daily activity</h2>
+              <p class="text-xs text-muted mt-0.5">Events per day · select a day for its full summary</p>
+            </div>
+
+            <div class="flex items-center gap-3 text-xs text-muted">
+              <span class="flex items-center gap-1.5">
+                <span>Quiet</span>
+                @for (level of legendLevels; track level) {
+                  <span class="legend-swatch" [class]="'cal-level-' + level" aria-hidden="true"></span>
+                }
+                <span>Busy</span>
+              </span>
+              <span class="flex items-center gap-1.5">
+                <span class="cal-exceptions" aria-hidden="true">3</span>
+                <span>exceptions</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-7 gap-1.5 mb-1.5" aria-hidden="true">
+            @for (label of weekdayLabels; track label) {
+              <div class="text-center text-[11px] font-medium text-muted">{{ label }}</div>
+            }
+          </div>
+
+          <div class="grid grid-cols-7 gap-1.5">
+            @for (blank of leadingBlanks(); track $index) {
+              <div aria-hidden="true"></div>
+            }
+            @for (cell of dayCells(); track cell.date) {
+              @if (cell.isFuture) {
+                <!-- No data can exist yet; not a target. -->
+                <div class="cal-cell cal-cell--future" aria-hidden="true">
+                  <span class="cal-day">{{ cell.dayOfMonth }}</span>
+                </div>
+              } @else {
+                <button
+                  type="button"
+                  class="cal-cell"
+                  [class]="'cal-level-' + cell.level"
+                  [class.cal-cell--today]="cell.isToday"
+                  [attr.aria-label]="cell.label"
+                  (click)="openDay(cell.date)"
+                >
+                  <span class="cal-day">{{ cell.dayOfMonth }}</span>
+                  @if (cell.exceptions > 0) {
+                    <span class="cal-exceptions">{{ cell.exceptions }}</span>
+                  }
+                  @if (cell.total > 0) {
+                    <span class="cal-total">{{ cell.total }}</span>
+                  } @else {
+                    <span class="cal-total cal-total--empty">—</span>
+                  }
+                </button>
+              }
+            }
+          </div>
+        </section>
+
+        <!-- Review rail: the month's actual to-do list -->
+        <section class="rounded-sm border border-border bg-white flex flex-col" aria-labelledby="review-heading">
+          <div class="p-5 pb-3">
+            <h2 id="review-heading" class="text-sm font-semibold text-heading">
+              Days needing review
+              @if (reviewDays().length) {
+                <span class="font-normal text-muted">· {{ reviewDays().length }}</span>
+              }
+            </h2>
+            <p class="text-xs text-muted mt-0.5">Days with exceptions, worst first</p>
+          </div>
+
+          @if (reviewDays().length) {
+            <ul class="divide-y divide-border border-t border-border max-h-[26rem] overflow-y-auto">
+              @for (day of reviewDays(); track day.date) {
+                <li>
+                  <button
+                    type="button"
+                    class="review-row w-full flex items-center gap-3 px-5 py-2.5 text-left hover:bg-foreground/5"
+                    [attr.aria-label]="
+                      day.dayLabel + ' — ' + day.exceptions + ' exceptions of ' + day.total + ' events'
+                    "
+                    (click)="openDay(day.date)"
+                  >
+                    <span class="cal-exceptions shrink-0">{{ day.exceptions }}</span>
+                    <span class="flex-1 min-w-0">
+                      <span class="block text-sm font-medium text-heading truncate">{{ day.dayLabel }}</span>
+                      <span class="block text-xs text-muted tabular-nums">of {{ day.total }} events</span>
+                    </span>
+                    <i class="pi pi-chevron-right text-xs text-muted shrink-0" aria-hidden="true"></i>
+                  </button>
+                </li>
+              }
+            </ul>
+          } @else {
+            <div
+              class="flex flex-col items-center justify-center text-center flex-1 px-5 py-12 border-t border-border"
+              style="color: var(--p-primary-200)"
+            >
+              <i class="pi pi-check-circle text-4xl mb-3" aria-hidden="true"></i>
+              <p class="text-sm text-muted">No exceptions this month.</p>
+            </div>
+          }
+
+          @if (busiestDay(); as busiest) {
+            <p class="mt-auto border-t border-border px-5 py-3 text-xs text-muted">
+              Busiest day
+              <span class="font-medium text-heading">{{ busiest.dayLabel }}</span>
+              <span class="tabular-nums"> · {{ busiest.total }} events</span>
+            </p>
+          }
+        </section>
+      </div>
+    </div>
+  }
+</main>

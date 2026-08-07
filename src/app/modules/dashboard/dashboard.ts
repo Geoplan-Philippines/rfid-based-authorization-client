@@ -12,25 +12,11 @@ import { DatePickerModule } from 'primeng/datepicker';
 
 import { DashboardService } from './services/dashboard.service';
 import { DashboardOverview, NeedsReviewItem } from './types/dashboard.types';
-import { deltaDisplay, formatPassTime } from './utils/dashboard-display';
 import { gateResultTag } from '../../shared/ui/status-tags';
-import { HourlyThroughputChart } from './components/hourly-throughput-chart/hourly-throughput-chart';
-
-function startOfToday(): Date {
-  const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
-}
-
-function isSameDay(a: Date, b: Date): boolean {
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-}
-
-function toQueryDate(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
+import { formatPassTime } from '../../shared/utils/format';
+import { deltaDisplay } from '../../shared/utils/delta';
+import { isSameDay, startOfToday, toQueryDate } from '../../shared/utils/date';
+import { HourlyThroughputChart } from '../../shared/components/hourly-throughput-chart/hourly-throughput-chart';
 
 @Component({
   selector: 'app-dashboard',

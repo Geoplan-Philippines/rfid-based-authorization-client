@@ -1,4 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 
 import { Reports } from './reports';
 
@@ -8,16 +11,25 @@ describe('Reports', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Reports]
-    })
-    .compileComponents();
+      imports: [Reports],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(Reports);
     component = fixture.componentInstance;
-    await fixture.whenStable();
+    fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('offers every report as a navigable card', () => {
+    expect(component.cards().map(card => card.route)).toEqual([
+      '/reports/daily-summary',
+      '/reports/monthly-breakdown',
+      '/reports/exceptions',
+      '/reports/peak-hours',
+    ]);
   });
 });

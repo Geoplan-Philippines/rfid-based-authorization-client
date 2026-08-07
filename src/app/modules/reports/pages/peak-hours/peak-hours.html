@@ -1,0 +1,89 @@
+<main class="flex flex-col w-full p-6 overflow-auto gap-6">
+  <a routerLink="/reports" class="inline-flex items-center gap-1.5 text-sm text-muted hover:text-primary w-fit">
+    <i class="pi pi-arrow-left text-xs" aria-hidden="true"></i>All reports
+  </a>
+
+  <!-- Page header -->
+  <div>
+    <h1 class="text-2xl font-bold text-heading">Peak Hours</h1>
+    <p class="text-sm text-muted mt-1">
+      @if (report(); as r) {
+        <span
+          >{{ r.period.from | date: 'MMM d, y' }} – {{ r.period.to | date: 'MMM d, y' }} · updated
+          {{ r.generatedAt | date: 'shortTime' }}</span
+        >
+      } @else {
+        <span>Hour-of-day histogram — where the gate's real rush windows are.</span>
+      }
+    </p>
+  </div>
+
+  <app-report-range-picker [range]="range()" (rangeChange)="onRangeChange($event)" />
+
+  @if (error()) {
+    <div
+      class="flex flex-wrap items-center gap-3 p-4 rounded-sm border border-destructive/30 bg-muted-destructive text-destructive text-sm"
+      role="alert"
+    >
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <span class="flex-1">Failed to load peak hours. Please try again.</span>
+      <p-button label="Retry" icon="pi pi-refresh" size="small" severity="danger" [text]="true" (onClick)="retry()" />
+    </div>
+  } @else if (loading() && !report()) {
+    <!-- First-load skeleton -->
+    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+      @for (i of [0, 1, 2, 3, 4, 5]; track i) {
+        <div class="rounded-sm border border-border bg-white p-4 flex flex-col gap-3">
+          <p-skeleton width="6rem" height="0.7rem" />
+          <p-skeleton width="4rem" height="2rem" />
+          <p-skeleton width="9rem" height="0.7rem" />
+        </div>
+      }
+    </div>
+    <div class="rounded-sm border border-border bg-white p-5">
+      <p-skeleton width="8rem" height="1rem" styleClass="mb-4" />
+      <p-skeleton width="100%" height="220px" />
+    </div>
+  } @else if (report(); as r) {
+    <div
+      class="flex flex-col gap-6 transition-opacity duration-150"
+      [class.opacity-60]="loading()"
+      [attr.aria-busy]="loading()"
+    >
+      <app-report-summary-panel
+        [summary]="r.summary"
+        [exceptionsDrilldown]="exceptionsDrilldown()"
+        comparisonLabel="the preceding window"
+      />
+
+      <!-- Hourly histogram, with the peak windows called out above it -->
+      <section class="rounded-sm border border-border bg-white p-5 flex flex-col" aria-labelledby="throughput-heading">
+        <div class="flex flex-wrap items-start justify-between gap-4 mb-4">
+          <div>
+            <h2 id="throughput-heading" class="text-sm font-semibold text-heading">Hourly throughput</h2>
+            <p class="text-xs text-muted mt-0.5">Passes per hour, summed across the range · gate-local time</p>
+          </div>
+
+          @if (r.peakHours.length) {
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-xs text-muted">
+                {{ r.peakHours.length > 1 ? 'Peak hours (tied)' : 'Peak hour' }}
+              </span>
+              @for (peak of r.peakHours; track peak.hour) {
+                <span
+                  class="inline-flex items-center gap-2 rounded-sm border border-border bg-secondary/40 px-2.5 py-1"
+                >
+                  <span class="w-2 h-2 rounded-full shrink-0" style="background: var(--accent)" aria-hidden="true"></span>
+                  <span class="text-sm font-medium text-heading whitespace-nowrap">{{ peak.label }}</span>
+                  <span class="text-xs text-muted tabular-nums whitespace-nowrap">{{ peak.totalGateEvents }}</span>
+                </span>
+              }
+            </div>
+          }
+        </div>
+
+        <app-peak-hours-chart [buckets]="r.hours" [peakHours]="r.peakHours" />
+      </section>
+    </div>
+  }
+</main>

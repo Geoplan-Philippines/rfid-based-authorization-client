@@ -1,0 +1,258 @@
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="!saving()"
+  [style]="{ width: '34rem' }"
+  [breakpoints]="{ '640px': '92vw' }"
+  [header]="handover() ? (handover()!.created ? 'User created' : 'Password reset') : title()"
+  (onShow)="onShow()"
+  (onHide)="onHide()"
+>
+  @if (handover(); as result) {
+    <!-- Shown once. The API never returns a password again, so this is the only
+         chance to hand it over. -->
+    <div class="flex flex-col gap-4 pt-1">
+      <p class="text-sm text-body m-0">
+        @if (result.created) {
+          The account is active and can sign in immediately. There is no invitation email —
+          pass these credentials to the user directly.
+        } @else {
+          The password has been replaced. The user must sign in with the new one from now on.
+        }
+      </p>
+
+      <dl class="flex flex-col gap-3 rounded-sm border border-border p-4">
+        <div class="flex flex-col gap-1">
+          <dt class="text-sm text-muted">Email</dt>
+          <dd class="text-sm text-heading m-0 break-all">{{ result.email }}</dd>
+        </div>
+        <div class="flex flex-col gap-1">
+          <dt class="text-sm text-muted">Password</dt>
+          <dd class="m-0 flex items-center gap-2">
+            <code class="flex-1 font-mono text-sm text-heading break-all">{{ result.password }}</code>
+            <p-button
+              icon="pi pi-copy"
+              severity="secondary"
+              [text]="true"
+              size="small"
+              ariaLabel="Copy password"
+              (onClick)="copyPassword(result.password)"
+            />
+          </dd>
+        </div>
+      </dl>
+
+      <div
+        class="flex items-start gap-2 p-3 rounded-sm border border-destructive/30 bg-muted-destructive text-destructive text-sm"
+        role="alert"
+      >
+        <i class="pi pi-exclamation-triangle mt-0.5" aria-hidden="true"></i>
+        <span>Copy this password now — it cannot be retrieved once you close this dialog.</span>
+      </div>
+    </div>
+
+    <ng-template #footer>
+      <p-button label="Done" icon="pi pi-check" (onClick)="finishHandover()" />
+    </ng-template>
+  } @else {
+    @if (serverNotice(); as notice) {
+      <div
+        class="flex items-start gap-2 p-3 mb-1 rounded-sm border border-destructive/30 bg-muted-destructive text-destructive text-sm"
+        role="alert"
+      >
+        <i class="pi pi-exclamation-triangle mt-0.5" aria-hidden="true"></i>
+        <span>{{ notice }}</span>
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 pt-2">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-2">
+          <label for="user-first" class="font-medium text-sm">
+            First name <span class="text-muted font-normal">(optional)</span>
+          </label>
+          <input
+            pInputText
+            id="user-first"
+            formControlName="firstName"
+            autocomplete="off"
+            class="w-full"
+            [attr.aria-invalid]="errorFor('firstName') ? 'true' : null"
+            [attr.aria-describedby]="errorFor('firstName') ? 'user-first-error' : null"
+            [class.ng-invalid]="!!errorFor('firstName')"
+            [class.ng-dirty]="!!errorFor('firstName')"
+            (input)="clearServerError('firstName')"
+          />
+          @if (errorFor('firstName'); as message) {
+            <small id="user-first-error" class="text-destructive">{{ message }}</small>
+          }
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="user-last" class="font-medium text-sm">
+            Last name <span class="text-muted font-normal">(optional)</span>
+          </label>
+          <input
+            pInputText
+            id="user-last"
+            formControlName="lastName"
+            autocomplete="off"
+            class="w-full"
+            [attr.aria-invalid]="errorFor('lastName') ? 'true' : null"
+            [attr.aria-describedby]="errorFor('lastName') ? 'user-last-error' : null"
+            [class.ng-invalid]="!!errorFor('lastName')"
+            [class.ng-dirty]="!!errorFor('lastName')"
+            (input)="clearServerError('lastName')"
+          />
+          @if (errorFor('lastName'); as message) {
+            <small id="user-last-error" class="text-destructive">{{ message }}</small>
+          }
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label for="user-email" class="font-medium text-sm">
+          Email <span class="text-destructive" aria-hidden="true">*</span>
+        </label>
+        <input
+          pInputText
+          id="user-email"
+          type="email"
+          formControlName="email"
+          placeholder="name@eaglecement.com"
+          autocomplete="off"
+          spellcheck="false"
+          aria-required="true"
+          class="w-full lowercase"
+          [attr.aria-invalid]="errorFor('email') ? 'true' : null"
+          [attr.aria-describedby]="errorFor('email') ? 'user-email-error' : 'user-email-help'"
+          [class.ng-invalid]="!!errorFor('email')"
+          [class.ng-dirty]="!!errorFor('email')"
+          (input)="clearServerError('email')"
+        />
+        @if (errorFor('email'); as message) {
+          <small id="user-email-error" class="text-destructive">{{ message }}</small>
+        } @else {
+          <small id="user-email-help" class="text-muted">Used to sign in. Stored in lowercase.</small>
+        }
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center justify-between gap-2">
+          <label for="user-password" class="font-medium text-sm">
+            {{ passwordLabel() }}
+            @if (!isEdit()) {
+              <span class="text-destructive" aria-hidden="true">*</span>
+            } @else {
+              <span class="text-muted font-normal">(optional)</span>
+            }
+          </label>
+          <p-button
+            label="Generate"
+            icon="pi pi-refresh"
+            severity="secondary"
+            [text]="true"
+            size="small"
+            (onClick)="generate()"
+          />
+        </div>
+
+        <div class="flex items-center gap-2">
+          <input
+            pInputText
+            id="user-password"
+            [type]="passwordVisible() ? 'text' : 'password'"
+            formControlName="password"
+            autocomplete="new-password"
+            spellcheck="false"
+            [attr.aria-required]="isEdit() ? null : 'true'"
+            [attr.aria-invalid]="errorFor('password') ? 'true' : null"
+            [attr.aria-describedby]="errorFor('password') ? 'user-password-error' : 'user-password-help'"
+            class="w-full flex-1"
+            [class.font-mono]="passwordVisible()"
+            [class.ng-invalid]="!!errorFor('password')"
+            [class.ng-dirty]="!!errorFor('password')"
+            (input)="clearServerError('password')"
+          />
+          <p-button
+            [icon]="passwordVisible() ? 'pi pi-eye-slash' : 'pi pi-eye'"
+            severity="secondary"
+            [text]="true"
+            [ariaLabel]="passwordVisible() ? 'Hide password' : 'Show password'"
+            (onClick)="togglePasswordVisible()"
+          />
+          <p-button
+            icon="pi pi-copy"
+            severity="secondary"
+            [text]="true"
+            ariaLabel="Copy password"
+            [disabled]="!form.controls.password.value"
+            (onClick)="copyPassword(form.controls.password.value)"
+          />
+        </div>
+
+        @if (errorFor('password'); as message) {
+          <small id="user-password-error" class="text-destructive">{{ message }}</small>
+        } @else {
+          <small id="user-password-help" class="text-muted">
+            @if (isEdit()) {
+              Leave blank to keep the current password. Setting one here replaces it immediately —
+              no current password needed.
+            } @else {
+              At least 8 characters. You will need to pass it to the user yourself.
+            }
+          </small>
+        }
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label for="user-role" class="font-medium text-sm">Role</label>
+        <p-select
+          inputId="user-role"
+          formControlName="role"
+          [options]="roleOptions()"
+          optionLabel="label"
+          optionValue="value"
+          [placeholder]="editingSuperAdmin() ? 'Super Admin — choose only to demote' : 'Select a role'"
+          styleClass="w-full"
+          appendTo="body"
+          [attr.aria-describedby]="'user-role-help'"
+        >
+          <ng-template let-option #selectedItem>
+            <p-tag [value]="userRoleTag(option.value).label" [severity]="userRoleTag(option.value).severity" />
+          </ng-template>
+          <ng-template let-option #item>
+            <p-tag [value]="userRoleTag(option.value).label" [severity]="userRoleTag(option.value).severity" />
+          </ng-template>
+        </p-select>
+
+        <small id="user-role-help" class="text-muted">
+          @if (errorFor('role'); as message) {
+            <span class="text-destructive">{{ message }}</span>
+          } @else if (isSelf()) {
+            You cannot change your own role.
+          } @else if (editingSuperAdmin()) {
+            This account is a Super Admin. Leave this blank to keep it, or pick a role to demote —
+            Super Admin cannot be re-assigned here.
+          } @else if (isEdit()) {
+            Super Admin is not assignable here. Create a new account to add one.
+          } @else {
+            Super Admin has full user management. Admin is the default.
+          }
+        </small>
+      </div>
+    </form>
+
+    <ng-template #footer>
+      <p-button label="Cancel" severity="secondary" [text]="true" [disabled]="saving()" (onClick)="visible.set(false)" />
+      <p-button
+        [label]="isEdit() ? 'Save changes' : 'Create user'"
+        icon="pi pi-check"
+        [loading]="saving()"
+        (onClick)="submit()"
+      />
+    </ng-template>
+  }
+</p-dialog>

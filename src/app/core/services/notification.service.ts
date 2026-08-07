@@ -26,6 +26,12 @@ export class NotificationService {
 
   messageFromHttpError(error: unknown, fallback = 'Something went wrong. Please try again.'): string {
     if (error instanceof HttpErrorResponse) {
+      // Checked before the API message: the throttler's own wording
+      // ("ThrottlerException: Too Many Requests") is not operator-facing copy.
+      if (error.status === 429) {
+        return 'Too many requests. Wait a moment and try again.';
+      }
+
       const apiMessage = this.extractApiMessage(error);
       if (apiMessage) return apiMessage;
 

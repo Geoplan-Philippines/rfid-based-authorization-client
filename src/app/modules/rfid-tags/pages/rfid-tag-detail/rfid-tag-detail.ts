@@ -23,6 +23,7 @@ import { ConfirmationService } from 'primeng/api';
 
 import { NotificationService } from '../../../../core/services/notification.service';
 import { RfidTagStatus, gateResultTag, rfidTagStatusTag } from '../../../../shared/ui/status-tags';
+import { truckLabel } from '../../../../shared/utils/truck-label';
 import { TruckService } from '../../../trucks/services/truck.service';
 import { RfidTagService } from '../../services/rfid-tags.service';
 import { RfidTagDetail as RfidTagDetailModel } from '../../types/rfid-tags.types';
@@ -74,6 +75,7 @@ export class RfidTagDetail implements OnInit {
 
   protected readonly rfidTagStatusTag = rfidTagStatusTag;
   protected readonly gateResultTag = gateResultTag;
+  protected readonly truckLabel = truckLabel;
 
   private id = signal<string | null>(null);
 
@@ -176,7 +178,7 @@ export class RfidTagDetail implements OnInit {
         this.rebindOptions.set(
           trucks
             .filter(truck => truck.id !== currentTruckId)
-            .map(truck => ({ label: `${truck.plateNumber} · ${truck.model}`, value: truck.id })),
+            .map(truck => ({ label: truckLabel(truck.plateNumber, truck.model), value: truck.id })),
         );
         this.loadingTrucks.set(false);
       },

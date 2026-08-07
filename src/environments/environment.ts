@@ -1,6 +1,9 @@
 export const environment = {
   production: false,
+
   apiBaseUrl: 'http://localhost:8000/api/v1',
-  /** Server origin (no /api/v1) used to resolve relative uploaded photo paths. */
+  // apiBaseUrl: 'http://10.142.11.65:8000/api/v1',
+
   fileBaseUrl: 'http://localhost:8000',
+  // fileBaseUrl: 'http://10.142.11.65:8000/',
 };

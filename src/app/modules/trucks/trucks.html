@@ -76,7 +76,7 @@
               </div>
             </div>
           </td>
-          <td>{{ truck.model }}</td>
+          <td>{{ truck.model ?? '—' }}</td>
           <td>
             @if (truck.driversCount > 0) {
               <span>{{ truck.driversCount }} {{ truck.driversCount === 1 ? 'driver' : 'drivers' }}</span>

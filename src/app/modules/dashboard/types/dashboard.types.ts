@@ -1,6 +1,7 @@
 /** Frontend mirror of the backend dashboard contract (context/dashboard). */
 
 import { GateEventResult } from '../../../shared/ui/status-tags';
+import { HourlyThroughputBucket } from '../../../shared/types/throughput';
 
 export interface TrucksTodayCard {
   value: number;
@@ -29,14 +30,6 @@ export interface DashboardCards {
   verified: VerifiedCard;
   exceptions: ExceptionsCard;
   avgPassTime: AvgPassTimeCard;
-}
-
-export interface HourlyThroughputBucket {
-  /** 0–23, gate-local. */
-  hour: number;
-  verified: number;
-  exception: number;
-  total: number;
 }
 
 export interface NeedsReviewItem {

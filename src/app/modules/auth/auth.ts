@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
 // PrimeNG Modules
-import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
@@ -21,8 +21,8 @@ interface ErrorMessage {
 @Component({
   selector: 'app-auth',
   imports: [
+    NgOptimizedImage,
     ReactiveFormsModule,
-    CardModule,
     InputTextModule,
     PasswordModule,
     ButtonModule,

@@ -34,7 +34,7 @@
         </div>
         <p class="text-sm text-body/60 mt-1">
           @if (tag.assignedTruck; as truck) {
-            Bound to <span class="text-heading">{{ truck.plateNumber }} · {{ truck.model }}</span>
+            Bound to <span class="text-heading">{{ truckLabel(truck.plateNumber, truck.model) }}</span>
           } @else {
             <span class="text-muted">Unbound</span>
           }
@@ -60,7 +60,11 @@
           <h2 class="text-sm font-semibold text-heading mb-4">Tag details</h2>
           <dl class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-4">
             <div>
-              <dt class="text-xs text-muted">Bound since</dt>
+              <dt class="text-xs text-muted">Serial number</dt>
+              <dd class="text-sm font-medium text-heading mt-0.5">{{ tag.serialNo ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-muted">{{ tag.assignedTruck ? 'Bound since' : 'Registered' }}</dt>
               <dd class="text-sm font-medium text-heading mt-0.5">{{ tag.boundSince | date: 'mediumDate' }}</dd>
             </div>
             <div>

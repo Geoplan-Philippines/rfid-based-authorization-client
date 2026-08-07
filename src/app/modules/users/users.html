@@ -1,59 +1,224 @@
 <main class="flex flex-col w-full p-6 overflow-auto">
-  <div class="mb-6">
-    <h1 class="text-2xl font-bold" style="color: var(--text-heading)">Users</h1>
-    <p class="text-sm text-body/60 mt-1">System users and their access roles.</p>
-  </div>
-
-  @if (error()) {
-    <div class="mb-4 flex items-center gap-2 p-4 rounded-sm border border-destructive/30 bg-muted-destructive text-destructive text-sm" role="alert">
-      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
-      <span>{{ error() }}</span>
+  <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-heading">Users</h1>
+      <p class="text-sm text-body/60 mt-1">{{ subtitle() }} · who can sign in to this console.</p>
     </div>
-  }
+
+    <div class="flex flex-wrap items-center gap-2">
+      <p-iconfield>
+        <p-inputicon class="pi pi-search" />
+        <input
+          #searchBox
+          pInputText
+          type="text"
+          [value]="search()"
+          (input)="onSearchInput($event)"
+          placeholder="Search name, email…  ( / )"
+          aria-label="Search users by name or email"
+          class="w-64"
+        />
+      </p-iconfield>
+
+      <p-select
+        [options]="roleOptions"
+        [ngModel]="role()"
+        (ngModelChange)="onRoleChange($event)"
+        optionLabel="label"
+        optionValue="value"
+        ariaLabel="Filter by role"
+        styleClass="w-40"
+        appendTo="body"
+      />
+
+      <p-button
+        [label]="includeArchived() ? 'Hide archived' : 'Show archived'"
+        [icon]="includeArchived() ? 'pi pi-eye-slash' : 'pi pi-eye'"
+        severity="secondary"
+        [outlined]="true"
+        [attr.aria-pressed]="includeArchived()"
+        (onClick)="toggleArchived()"
+      />
+
+      <p-button label="Add user" icon="pi pi-plus" (onClick)="openCreate()" />
+    </div>
+  </div>
 
   @if (loading()) {
     <div class="flex justify-center py-14">
       <p-progressSpinner [style]="{ width: '42px', height: '42px' }" aria-label="Loading users" />
+    </div>
+  } @else if (error()) {
+    <div
+      class="flex items-center gap-2 p-4 rounded-sm border border-destructive/30 bg-muted-destructive text-destructive text-sm"
+      role="alert"
+    >
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <span>{{ error() }}</span>
     </div>
   } @else {
     <p-table [value]="users()" styleClass="w-full">
       <ng-template #header>
         <tr>
           <th scope="col" class="bg-primary! text-primary-foreground!">Name</th>
-          <th scope="col" class="bg-primary! text-primary-foreground!">Email</th>
+          <th scope="col" class="bg-primary! text-primary-foreground! hidden lg:table-cell">Email</th>
           <th scope="col" class="bg-primary! text-primary-foreground!">Role</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Status</th>
+          <th scope="col" class="bg-primary! text-primary-foreground! hidden sm:table-cell">Created</th>
+          <th scope="col" class="bg-primary! text-primary-foreground! text-right">Actions</th>
         </tr>
       </ng-template>
 
       <ng-template #body let-user>
-        <tr>
+        <tr
+          class="cursor-pointer hover:bg-foreground/5"
+          [class.opacity-60]="busyId() === user.id"
+          (click)="openUser(user.id)"
+        >
           <td>
             <div class="flex items-center gap-3">
               <p-avatar
-                [label]="initials(user)"
+                [label]="userInitials(user)"
                 shape="square"
                 [style]="{ background: 'var(--p-primary-100)', color: 'var(--p-primary-800)', fontWeight: '600' }"
               />
-              <span class="font-medium">{{ user.firstName }} {{ user.lastName }}</span>
+              <div class="flex flex-col">
+                <span class="font-medium flex items-center gap-2">
+                  {{ displayName(user) }}
+                  @if (isSelf(user)) {
+                    <span class="text-[11px] font-semibold tracking-[0.12em] uppercase text-muted">You</span>
+                  }
+                </span>
+                <!-- The email column is hidden on narrow screens; keep it reachable here
+                     without duplicating it when the name already falls back to the email. -->
+                @if (displayName(user) !== user.email) {
+                  <span class="lg:hidden text-xs text-muted break-all">{{ user.email }}</span>
+                }
+              </div>
             </div>
           </td>
-          <td>{{ user.email }}</td>
+
+          <td class="hidden lg:table-cell text-sm break-all">{{ user.email }}</td>
+
           <td>
-            <p-tag [value]="user.role" [severity]="roleSeverity(user.role)" />
+            <p-tag [value]="userRoleTag(user.role).label" [severity]="userRoleTag(user.role).severity" />
+          </td>
+
+          <td>
+            <p-tag
+              [value]="accountStatusTag(user.isArchived).label"
+              [severity]="accountStatusTag(user.isArchived).severity"
+            />
+          </td>
+
+          <td class="hidden sm:table-cell text-sm text-body/70">{{ user.createdAt | date: 'MMM d, y' }}</td>
+
+          <td class="text-right whitespace-nowrap" (click)="$event.stopPropagation()">
+            <!-- Archived accounts cannot be edited — the API answers 409, so Restore
+                 replaces Edit rather than failing after the click. -->
+            @if (user.isArchived) {
+              <p-button
+                icon="pi pi-replay"
+                severity="secondary"
+                [text]="true"
+                [ariaLabel]="'Restore ' + displayName(user)"
+                pTooltip="Restore account"
+                tooltipPosition="top"
+                [disabled]="busyId() === user.id"
+                (onClick)="confirmRestore(user)"
+              />
+            } @else {
+              <p-button
+                icon="pi pi-pencil"
+                severity="secondary"
+                [text]="true"
+                [ariaLabel]="'Edit ' + displayName(user)"
+                pTooltip="Edit user"
+                tooltipPosition="top"
+                (onClick)="openEdit(user)"
+              />
+
+              @if (isSelf(user)) {
+                <span class="inline-block" pTooltip="You cannot archive your own account." tooltipPosition="top">
+                  <p-button
+                    icon="pi pi-inbox"
+                    severity="secondary"
+                    [text]="true"
+                    [disabled]="true"
+                    ariaLabel="Archive your own account (not allowed)"
+                  />
+                </span>
+              } @else {
+                <p-button
+                  icon="pi pi-inbox"
+                  severity="secondary"
+                  [text]="true"
+                  [ariaLabel]="'Archive ' + displayName(user)"
+                  pTooltip="Archive account"
+                  tooltipPosition="top"
+                  [disabled]="busyId() === user.id"
+                  (onClick)="confirmArchive(user)"
+                />
+              }
+            }
+
+            <button
+              type="button"
+              class="p-2 rounded-sm text-body/50 hover:text-primary hover:bg-primary/10"
+              [attr.aria-label]="'Open ' + displayName(user)"
+              (click)="openUser(user.id)"
+            >
+              <i class="pi pi-chevron-right" aria-hidden="true"></i>
+            </button>
           </td>
         </tr>
       </ng-template>
 
       <ng-template #emptymessage>
         <tr>
-          <td colspan="3">
-            <div class="flex flex-col items-center justify-center py-14" style="color: var(--p-primary-200)">
-              <i class="pi pi-users text-4xl mb-3" aria-hidden="true"></i>
-              <p class="text-sm">No users found.</p>
-            </div>
+          <td colspan="6">
+            @if (hasFilters()) {
+              <div class="flex flex-col items-center justify-center py-14 gap-3">
+                <i class="pi pi-search text-4xl text-primary-200" aria-hidden="true"></i>
+                <p class="text-sm text-body m-0">No accounts match these filters.</p>
+                @if (!includeArchived()) {
+                  <p class="text-sm text-muted m-0">Archived accounts are hidden — try showing them.</p>
+                }
+                <p-button label="Clear filters" severity="secondary" [outlined]="true" size="small" (onClick)="clearFilters()" />
+              </div>
+            } @else {
+              <div class="flex flex-col items-center justify-center py-14 gap-3">
+                <i class="pi pi-users text-4xl text-primary-200" aria-hidden="true"></i>
+                <p class="text-sm text-body m-0">No accounts yet.</p>
+                <p class="text-sm text-muted m-0 max-w-sm text-center">
+                  Add an account for anyone who needs to reach this console — admins for the registry,
+                  operators for the gate.
+                </p>
+                <p-button label="Add user" icon="pi pi-plus" size="small" (onClick)="openCreate()" />
+              </div>
+            }
           </td>
         </tr>
       </ng-template>
     </p-table>
+
+    <!-- Hidden when a single page holds everything; `lastPage` is 0 from the API on an
+         empty result, so the paginator is never asked to render "Page 1 of 0". -->
+    @if (total() > 0) {
+      <p-paginator
+        [first]="(page() - 1) * limit()"
+        [rows]="limit()"
+        [totalRecords]="total()"
+        [rowsPerPageOptions]="pageSizeOptions"
+        (onPageChange)="onPageChange($event)"
+      />
+    }
   }
 </main>
+
+<app-user-form-dialog
+  [(visible)]="formVisible"
+  [mode]="formMode()"
+  [user]="editing()"
+  (saved)="reload()"
+/>

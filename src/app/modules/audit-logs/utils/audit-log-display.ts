@@ -19,6 +19,9 @@ const VERB_PAST: Record<string, string> = {
   REMOVE: 'Removed',
   BLOCK: 'Blocked',
   UNBLOCK: 'Unblocked',
+  ARCHIVE: 'Archived',
+  UNARCHIVE: 'Restored',
+  RESTORE: 'Restored',
   ACTIVATE: 'Activated',
   DEACTIVATE: 'Deactivated',
   LOGIN: 'Logged in',
@@ -103,7 +106,8 @@ export const AUDIT_ACTIONS = [
   'CREATE_TRUCK', 'UPDATE_TRUCK', 'DELETE_TRUCK', 'UPLOAD_TRUCK_PHOTO',
   'CREATE_DRIVER', 'UPDATE_DRIVER', 'DELETE_DRIVER', 'UPLOAD_DRIVER_PHOTO',
   'CREATE_RFID_TAG', 'UPDATE_RFID_TAG', 'DELETE_RFID_TAG',
-  'CREATE_USER', 'UPDATE_USER', 'DELETE_USER',
+  // Accounts are soft-deleted only — there is no hard delete for users.
+  'CREATE_USER', 'UPDATE_USER', 'ARCHIVE_USER', 'UNARCHIVE_USER',
 ] as const;
 
 /** A flat view of metadata so the template can switch on `kind` without union narrowing. */

@@ -1,0 +1,200 @@
+<main class="flex flex-col w-full p-6 overflow-auto">
+  <a
+    routerLink="/users"
+    class="inline-flex items-center gap-1 text-sm text-body/60 hover:text-primary mb-4 w-fit"
+  >
+    <i class="pi pi-chevron-left text-xs" aria-hidden="true"></i> Back to users
+  </a>
+
+  @if (loading()) {
+    <div class="flex justify-center py-16">
+      <p-progressSpinner [style]="{ width: '42px', height: '42px' }" aria-label="Loading account" />
+    </div>
+  } @else if (notFound()) {
+    <div class="flex flex-col items-center justify-center py-16 text-center" role="alert">
+      <i class="pi pi-users text-4xl mb-3 text-primary-200" aria-hidden="true"></i>
+      <p class="text-heading font-medium">User not found</p>
+      <p class="text-sm text-body/50 mt-1">The account may have been removed, or the link is incorrect.</p>
+    </div>
+  } @else if (error()) {
+    <div
+      class="flex items-center gap-2 p-4 rounded-sm border border-destructive/30 bg-muted-destructive text-destructive text-sm"
+      role="alert"
+    >
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <span>{{ error() }}</span>
+    </div>
+  } @else if (user(); as account) {
+    <!-- Identity band -->
+    <header class="flex flex-wrap items-start justify-between gap-4 mb-6">
+      <div class="flex items-center gap-4 min-w-0">
+        <p-avatar
+          [label]="userInitials(account)"
+          shape="square"
+          size="xlarge"
+          [style]="{ background: 'var(--p-primary-100)', color: 'var(--p-primary-800)', fontWeight: '600' }"
+        />
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-3">
+            <h1 class="text-2xl font-bold text-heading">{{ displayName(account) }}</h1>
+            <p-tag [value]="userRoleTag(account.role).label" [severity]="userRoleTag(account.role).severity" />
+            <p-tag
+              [value]="accountStatusTag(account.isArchived).label"
+              [severity]="accountStatusTag(account.isArchived).severity"
+            />
+          </div>
+          <p class="text-sm text-body/60 mt-1 break-all">
+            {{ account.email }}
+            @if (isSelf()) {
+              <span class="text-body/30">·</span> <span class="text-muted">This is you</span>
+            }
+          </p>
+        </div>
+      </div>
+
+      @if (!account.isArchived) {
+        <div class="flex items-center gap-2 shrink-0">
+          <p-button label="Edit details" icon="pi pi-pencil" (onClick)="openEdit()" />
+        </div>
+      }
+    </header>
+
+    @if (account.isArchived) {
+      <!-- Archived accounts cannot be edited (409) — restoring is the only way forward. -->
+      <div
+        class="flex flex-wrap items-center gap-3 p-4 mb-6 rounded-sm border border-border bg-secondary text-sm"
+        role="status"
+      >
+        <i class="pi pi-inbox text-primary" aria-hidden="true"></i>
+        <span class="text-body flex-1 min-w-48">
+          This account is archived. It cannot sign in or be edited until it is restored.
+        </span>
+        <p-button
+          label="Restore account"
+          icon="pi pi-replay"
+          size="small"
+          [disabled]="busy()"
+          (onClick)="confirmRestore()"
+        />
+      </div>
+    }
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Left: facts -->
+      <section class="lg:col-span-1">
+        <div class="rounded-sm border border-border bg-white p-5">
+          <h2 class="text-sm font-semibold text-heading mb-4">Account</h2>
+          <dl class="grid grid-cols-2 gap-x-4 gap-y-4">
+            <div>
+              <dt class="text-xs text-muted">Role</dt>
+              <dd class="text-sm font-medium text-heading mt-0.5">{{ userRoleTag(account.role).label }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-muted">Status</dt>
+              <dd class="text-sm font-medium text-heading mt-0.5">
+                {{ accountStatusTag(account.isArchived).label }}
+              </dd>
+            </div>
+            <div class="col-span-2">
+              <dt class="text-xs text-muted">Email</dt>
+              <dd class="text-sm font-medium text-heading mt-0.5 break-all">{{ account.email }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-muted">Created</dt>
+              <dd class="text-sm font-medium text-heading mt-0.5">{{ account.createdAt | date: 'mediumDate' }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-muted">Last updated</dt>
+              <dd class="text-sm font-medium text-heading mt-0.5">{{ account.updatedAt | date: 'mediumDate' }}</dd>
+            </div>
+            <div class="col-span-2">
+              <dt class="text-xs text-muted">Account ID</dt>
+              <dd class="text-xs font-mono text-heading mt-0.5 break-all">{{ account.id }}</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <!-- Right: activity -->
+      <section class="lg:col-span-2">
+        <div class="rounded-sm border border-border bg-white p-5">
+          <div class="flex items-center justify-between gap-3 mb-3">
+            <h2 class="text-sm font-semibold text-heading">
+              Activity
+              @if (activityTotal()) {
+                <span class="text-muted font-normal">({{ activityTotal() }})</span>
+              }
+            </h2>
+          </div>
+
+          @if (activityLoading() && !activity().length) {
+            <div class="flex justify-center py-10">
+              <p-progressSpinner [style]="{ width: '28px', height: '28px' }" aria-label="Loading activity" />
+            </div>
+          } @else if (activity().length) {
+            <ul class="rounded-sm border border-border divide-y divide-border">
+              @for (entry of activity(); track entry.id) {
+                <li class="flex items-start gap-3 p-3">
+                  <i class="pi {{ entry.icon }} text-muted mt-0.5" aria-hidden="true"></i>
+                  <div class="flex flex-col min-w-0 flex-1">
+                    <span class="text-sm font-medium text-heading">{{ entry.title }}</span>
+                    @if (entry.detail) {
+                      <span class="text-xs text-muted">{{ entry.detail }}</span>
+                    }
+                    <span class="text-xs text-muted">by {{ actorName(entry.actorId) }}</span>
+                  </div>
+                  <span class="text-xs text-muted whitespace-nowrap tabular-nums">
+                    {{ entry.createdAt | date: 'MMM d, HH:mm' }}
+                  </span>
+                </li>
+              }
+            </ul>
+
+            @if (hasMoreActivity()) {
+              <div class="flex justify-center mt-3">
+                <p-button
+                  label="Load more"
+                  severity="secondary"
+                  [text]="true"
+                  size="small"
+                  [loading]="activityLoading()"
+                  (onClick)="loadMoreActivity()"
+                />
+              </div>
+            }
+          } @else {
+            <p class="text-sm text-muted rounded-sm border border-dashed border-border px-3 py-6 text-center">
+              No recorded activity for this account.
+            </p>
+          }
+        </div>
+      </section>
+    </div>
+
+    <!-- Archive zone. Soft delete only: there is no hard delete for accounts. -->
+    @if (!account.isArchived) {
+      <div class="mt-6 flex flex-wrap items-center gap-3 border-t border-border pt-5">
+        @if (isSelf()) {
+          <p-button label="Archive account" icon="pi pi-inbox" severity="danger" [outlined]="true" [disabled]="true" />
+          <span class="text-xs text-muted">You cannot archive your own account.</span>
+        } @else {
+          <p-button
+            label="Archive account"
+            icon="pi pi-inbox"
+            severity="danger"
+            [outlined]="true"
+            [disabled]="busy()"
+            (onClick)="confirmArchive()"
+          />
+          <span class="text-xs text-muted">
+            Blocks sign-in and hides the account from the list. Nothing is deleted — you can restore it later.
+          </span>
+        }
+      </div>
+    }
+  }
+</main>
+
+@if (user(); as account) {
+  <app-user-form-dialog [(visible)]="editVisible" mode="edit" [user]="account" (saved)="onSaved()" />
+}

@@ -8,6 +8,7 @@ export interface DisplayTag {
 }
 
 export type RfidTagStatus = 'ACTIVE' | 'INACTIVE' | 'LOST' | 'BLOCKED' | 'RETIRED';
+export type RfidTagStatusLabelContext = 'status-only' | 'tag';
 export type AssignmentRole = 'PRIMARY' | 'RELIEF';
 export type GateEventResult =
   | 'VERIFIED'
@@ -17,6 +18,17 @@ export type GateEventResult =
   | 'MANUAL_OVERRIDE'
   | 'DENIED'
   | 'ERROR';
+
+/** Canonical display order for the full GateEventResult set (filter chips, breakdown rows). */
+export const GATE_EVENT_RESULT_ORDER: readonly GateEventResult[] = [
+  'VERIFIED',
+  'UNKNOWN_TAG',
+  'FACE_MISMATCH',
+  'PLATE_MISMATCH',
+  'MANUAL_OVERRIDE',
+  'DENIED',
+  'ERROR',
+];
 
 const RFID_TAG_STATUS_TAGS: Record<RfidTagStatus, DisplayTag> = {
   ACTIVE: { label: 'Active', severity: 'success' },
@@ -41,8 +53,15 @@ const ASSIGNMENT_ROLE_TAGS: Record<AssignmentRole, DisplayTag> = {
   RELIEF: { label: 'Relief', severity: 'secondary' },
 };
 
-export function rfidTagStatusTag(status: RfidTagStatus): DisplayTag {
-  return RFID_TAG_STATUS_TAGS[status] ?? { label: status, severity: 'secondary' };
+export function rfidTagStatusTag(
+  status: RfidTagStatus,
+  context: RfidTagStatusLabelContext = 'status-only',
+): DisplayTag {
+  const displayTag = RFID_TAG_STATUS_TAGS[status] ?? { label: status, severity: 'secondary' };
+
+  return context === 'tag'
+    ? { ...displayTag, label: `Tag: ${displayTag.label}` }
+    : displayTag;
 }
 
 export function gateResultTag(result: GateEventResult): DisplayTag {

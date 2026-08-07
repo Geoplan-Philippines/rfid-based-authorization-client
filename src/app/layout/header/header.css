@@ -1,0 +1,44 @@
+.app-header {
+  box-shadow: inset 0 2px 0 var(--brand-green);
+}
+
+.brand-lockup {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.brand-logo {
+  width: 5.25rem;
+  height: auto;
+  flex: none;
+}
+
+.brand-divider {
+  width: 1px;
+  height: 1.75rem;
+  margin: 0 0.875rem;
+  background: var(--border);
+}
+
+.product-name {
+  overflow: hidden;
+  color: var(--text-heading);
+  font-family: var(--font-heading);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .brand-logo {
+    width: 4.5rem;
+  }
+
+  .brand-divider,
+  .product-name {
+    display: none;
+  }
+}
