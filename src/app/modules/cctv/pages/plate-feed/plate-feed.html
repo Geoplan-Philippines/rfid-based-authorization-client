@@ -35,26 +35,26 @@
       <div class="absolute top-4 left-4 flex items-center gap-2 z-10">
         <span
           class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold backdrop-blur-md border"
-          [class.bg-emerald-500\/20]="detectionEnabled()"
-          [class.text-emerald-300]="detectionEnabled()"
-          [class.border-emerald-500\/40]="detectionEnabled()"
-          [class.bg-slate-700\/40]="!detectionEnabled()"
-          [class.text-slate-300]="!detectionEnabled()"
-          [class.border-white\/10]="!detectionEnabled()">
-          @if (detectionEnabled() && scanning()) {
+          [class.bg-emerald-500\/20]="workerRunning()"
+          [class.text-emerald-300]="workerRunning()"
+          [class.border-emerald-500\/40]="workerRunning()"
+          [class.bg-red-500\/20]="!workerRunning()"
+          [class.text-red-300]="!workerRunning()"
+          [class.border-red-500\/40]="!workerRunning()">
+          @if (scanning()) {
             <i class="pi pi-spin pi-spinner text-[10px]"></i>
           } @else {
             <i class="pi pi-bullseye text-[10px]"></i>
           }
-          ANPR {{ detectionEnabled() ? 'LIVE' : 'OFF' }}
+          ANPR {{ workerRunning() ? 'LIVE' : 'OFFLINE' }}
         </span>
-        @if (detectionEnabled()) {
+        @if (workerRunning()) {
           <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-black/50 text-white backdrop-blur-md border border-white/10">
             {{ platesInView() }} in view
           </span>
         }
         @if (anprError()) {
-          <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500/20 text-amber-300 backdrop-blur-md border border-amber-500/40">
+          <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500/20 text-amber-300 backdrop-blur-md border border-amber-500/40 max-w-[220px] truncate" [title]="anprError()">
             {{ anprError() }}
           </span>
         }
@@ -64,13 +64,12 @@
       <div class="absolute bottom-4 right-4 flex items-center gap-2 bg-black/70 backdrop-blur-md p-1.5 rounded-lg border border-white/10 z-10">
         <button
           type="button"
-          (click)="toggleDetection()"
-          class="p-2 rounded-md transition-colors"
-          [class.text-emerald-400]="detectionEnabled()"
-          [class.text-slate-300]="!detectionEnabled()"
-          [class.hover:bg-white\/10]="true"
-          [title]="detectionEnabled() ? 'Pause plate detection' : 'Resume plate detection'">
-          <i [class]="detectionEnabled() ? 'pi pi-eye' : 'pi pi-eye-slash'"></i>
+          (click)="toggleOverlay()"
+          class="p-2 rounded-md transition-colors hover:bg-white/10"
+          [class.text-emerald-400]="overlayEnabled()"
+          [class.text-slate-300]="!overlayEnabled()"
+          [title]="overlayEnabled() ? 'Hide detection overlay' : 'Show detection overlay'">
+          <i [class]="overlayEnabled() ? 'pi pi-eye' : 'pi pi-eye-slash'"></i>
         </button>
         <button
           type="button"
@@ -127,7 +126,7 @@
             <i class="pi pi-id-card text-emerald-600"></i>
             Live Plate Reads
           </h2>
-          <p class="text-xs text-slate-500">Detected by ANPR from the live feed</p>
+          <p class="text-xs text-slate-500">Detected server-side, even when this page is closed</p>
         </div>
         <span class="text-xs font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">
           {{ recentReads().length }} Reads
@@ -139,9 +138,9 @@
           <div class="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-slate-50 transition-all space-y-2">
             <div class="flex items-start justify-between">
               <div class="px-2.5 py-1 bg-amber-400/15 border border-amber-500/30 text-amber-900 rounded font-mono font-bold text-sm tracking-wider inline-block">
-                {{ item.plateNumber }}
+                {{ item.plateText }}
               </div>
-              <span class="text-slate-400 text-[10px] font-medium">{{ item.timestamp }}</span>
+              <span class="text-slate-400 text-[10px] font-medium">{{ item.time }}</span>
             </div>
 
             <div class="flex items-center gap-4 text-[11px] pt-2 border-t border-slate-200/60 text-slate-600">

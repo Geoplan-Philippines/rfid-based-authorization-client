@@ -13,15 +13,17 @@ import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { FormsModule } from '@angular/forms';
-import { AnprDetectResult, CctvService, PlateDetection } from '../../../../core/services/cctv.service';
+import {
+  AnprLatestState,
+  CctvService,
+  PlateDetection,
+  PlateReadRecord,
+} from '../../../../core/services/cctv.service';
 
-/** A distinct plate read, surfaced in the live log. */
-export interface PlateReadRecord {
+/** A plate read shown in the live log (server record + display fields). */
+export interface PlateReadDisplay extends PlateReadRecord {
   id: string;
-  plateNumber: string;
-  confidence: number;
-  textConfidence: number;
-  timestamp: string;
+  time: string;
 }
 
 /** A bounding box already projected into the on-screen video coordinate space. */
@@ -53,16 +55,24 @@ export class PlateFeed implements OnInit, OnDestroy {
   error = signal<string | null>(null);
   isMuted = signal<boolean>(true);
 
-  // ---- ANPR live detection state ----
-  detectionEnabled = signal<boolean>(true);
+  // ---- ANPR display state (detection itself runs server-side, continuously) ----
+  /** Controls the client overlay/log refresh only — the server keeps detecting. */
+  overlayEnabled = signal<boolean>(true);
+  workerRunning = signal<boolean>(false);
   scanning = signal<boolean>(false);
   anprError = signal<string | null>(null);
   overlayBoxes = signal<OverlayBox[]>([]);
   platesInView = signal<number>(0);
-  recentReads = signal<PlateReadRecord[]>([]);
+  recentReads = signal<PlateReadDisplay[]>([]);
 
-  /** How often to sample a frame for detection (ms). */
-  private readonly POLL_INTERVAL_MS = 1500;
+  /**
+   * How often to refresh the worker state for display (ms). Seeded with a
+   * sensible default, then driven by the interval the server worker reports
+   * (`state.intervalMs`) so the single ANPR_POLL_INTERVAL_MS knob controls both
+   * the server detection cadence and the client refresh rate.
+   */
+  private readonly MIN_POLL_INTERVAL_MS = 500;
+  private pollIntervalMs = 1500;
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
   private polling = false;
   /** Last raw detections + frame dims, kept so we can re-project boxes on resize. */
@@ -73,11 +83,13 @@ export class PlateFeed implements OnInit, OnDestroy {
   private peerConnection: RTCPeerConnection | null = null;
 
   ngOnInit(): void {
+    // Start showing server-side detections immediately — independent of the video.
+    this.startPolling();
     setTimeout(() => this.connectStream(), 100);
   }
 
   ngOnDestroy(): void {
-    this.stopDetectionLoop();
+    this.stopPolling();
     this.closePeerConnection();
   }
 
@@ -93,11 +105,6 @@ export class PlateFeed implements OnInit, OnDestroy {
         this.videoRef.nativeElement,
         (state) => {
           this.connectionState.set(state as any);
-          if (state === 'connected') {
-            this.startDetectionLoop();
-          } else if (state === 'failed' || state === 'disconnected') {
-            this.stopDetectionLoop();
-          }
         }
       );
     } catch (err: any) {
@@ -125,13 +132,14 @@ export class PlateFeed implements OnInit, OnDestroy {
     }
   }
 
-  toggleDetection(): void {
-    const next = !this.detectionEnabled();
-    this.detectionEnabled.set(next);
+  /** Show/hide the detection overlay (does not stop the server-side worker). */
+  toggleOverlay(): void {
+    const next = !this.overlayEnabled();
+    this.overlayEnabled.set(next);
     if (next) {
-      this.startDetectionLoop();
+      this.startPolling();
     } else {
-      this.stopDetectionLoop();
+      this.stopPolling();
       this.overlayBoxes.set([]);
       this.platesInView.set(0);
     }
@@ -142,16 +150,15 @@ export class PlateFeed implements OnInit, OnDestroy {
   }
 
   // --------------------------------------------------------------------- //
-  // ANPR detection loop
+  // Poll the continuous server-side ANPR worker (display only)
   // --------------------------------------------------------------------- //
-  private startDetectionLoop(): void {
-    if (this.polling || !this.detectionEnabled()) return;
+  private startPolling(): void {
+    if (this.polling || !this.overlayEnabled()) return;
     this.polling = true;
-    this.anprError.set(null);
-    this.scheduleNextDetection(0);
+    this.scheduleNextPoll(0);
   }
 
-  private stopDetectionLoop(): void {
+  private stopPolling(): void {
     this.polling = false;
     this.scanning.set(false);
     if (this.pollTimer) {
@@ -160,37 +167,49 @@ export class PlateFeed implements OnInit, OnDestroy {
     }
   }
 
-  private scheduleNextDetection(delay: number): void {
+  private scheduleNextPoll(delay: number): void {
     if (!this.polling) return;
-    this.pollTimer = setTimeout(() => this.runDetection(), delay);
+    this.pollTimer = setTimeout(() => this.pollLatest(), delay);
   }
 
-  private runDetection(): void {
+  private pollLatest(): void {
     if (!this.polling) return;
     this.scanning.set(true);
-    this.cctvService.detectPlates(this.streamId).subscribe({
-      next: (result) => {
-        this.anprError.set(null);
-        this.applyDetections(result);
+    this.cctvService.getAnprLatest().subscribe({
+      next: (state) => {
+        this.applyState(state);
         this.scanning.set(false);
-        this.scheduleNextDetection(this.POLL_INTERVAL_MS);
+        // Follow the server's reported cadence so one env knob drives both.
+        this.pollIntervalMs = Math.max(this.MIN_POLL_INTERVAL_MS, state.intervalMs || this.pollIntervalMs);
+        this.scheduleNextPoll(this.pollIntervalMs);
       },
       error: (err) => {
         this.anprError.set(err?.error?.message || 'Plate recognition unavailable.');
+        this.workerRunning.set(false);
         this.scanning.set(false);
-        // Back off a little longer on error so we don't hammer a down service.
-        this.scheduleNextDetection(this.POLL_INTERVAL_MS * 2);
+        this.scheduleNextPoll(this.pollIntervalMs * 2);
       },
     });
   }
 
-  private applyDetections(result: AnprDetectResult): void {
-    this.lastDetections = result.detections ?? [];
-    this.lastFrameW = result.frameWidth || 0;
-    this.lastFrameH = result.frameHeight || 0;
-    this.platesInView.set(result.platesDetected ?? 0);
+  private applyState(state: AnprLatestState): void {
+    this.workerRunning.set(state.running);
+    this.anprError.set(state.lastError);
+
+    const latest = state.latest;
+    this.lastDetections = latest?.detections ?? [];
+    this.lastFrameW = latest?.frameWidth ?? 0;
+    this.lastFrameH = latest?.frameHeight ?? 0;
+    this.platesInView.set(latest?.platesDetected ?? 0);
     this.projectOverlayBoxes();
-    this.recordReads(result);
+
+    this.recentReads.set(
+      state.recentReads.map((r, i) => ({
+        ...r,
+        id: `${r.plateText}-${r.capturedAt}-${i}`,
+        time: new Date(r.capturedAt).toLocaleTimeString(),
+      }))
+    );
   }
 
   /** Map frame-space bounding boxes onto the rendered (object-cover) video box. */
@@ -219,33 +238,6 @@ export class PlateFeed implements OnInit, OnDestroy {
       confidence: d.confidence,
     }));
     this.overlayBoxes.set(boxes);
-  }
-
-  /** Prepend newly-read plate texts to the live log, de-duplicating repeats. */
-  private recordReads(result: AnprDetectResult): void {
-    const named = (result.detections ?? []).filter((d) => d.plateText.trim().length > 0);
-    if (named.length === 0) return;
-
-    const time = new Date(result.capturedAt);
-    const stamp = time.toLocaleTimeString();
-
-    this.recentReads.update((current) => {
-      const recentText = current[0]?.plateNumber;
-      const next = [...current];
-      for (const d of named) {
-        const plate = d.plateText.trim();
-        // Skip if it's the same plate we just logged (steady vehicle in frame).
-        if (plate === recentText) continue;
-        next.unshift({
-          id: `${plate}-${time.getTime()}`,
-          plateNumber: plate,
-          confidence: d.confidence,
-          textConfidence: d.textConfidence,
-          timestamp: stamp,
-        });
-      }
-      return next.slice(0, 20);
-    });
   }
 
   @HostListener('window:resize')

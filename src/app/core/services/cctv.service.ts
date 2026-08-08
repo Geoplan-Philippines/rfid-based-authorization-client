@@ -35,6 +35,24 @@ export interface AnprDetectResult {
   capturedAt: string;
 }
 
+export interface PlateReadRecord {
+  plateText: string;
+  confidence: number;
+  textConfidence: number;
+  capturedAt: string;
+}
+
+/** State of the continuous server-side ANPR worker. */
+export interface AnprLatestState {
+  running: boolean;
+  streamId: string;
+  intervalMs: number;
+  lastError: string | null;
+  updatedAt: string | null;
+  latest: AnprDetectResult | null;
+  recentReads: PlateReadRecord[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class CctvService {
   private http = inject(HttpClient);
@@ -58,6 +76,13 @@ export class CctvService {
       .get<ApiResponse<AnprDetectResult>>(`${this.CCTV_URL}/anpr/detect`, {
         params: { streamId },
       })
+      .pipe(map(res => res.data));
+  }
+
+  /** Latest detections + read log from the continuous server-side ANPR worker. */
+  getAnprLatest(): Observable<AnprLatestState> {
+    return this.http
+      .get<ApiResponse<AnprLatestState>>(`${this.CCTV_URL}/anpr/latest`)
       .pipe(map(res => res.data));
   }
 
