@@ -12,6 +12,29 @@ export interface CCTVStreamMetadata {
   isOnline: boolean;
 }
 
+export interface PlateBoundingBox {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+
+export interface PlateDetection {
+  confidence: number;
+  plateText: string;
+  textConfidence: number;
+  bbox: PlateBoundingBox;
+}
+
+export interface AnprDetectResult {
+  streamId: string;
+  platesDetected: number;
+  detections: PlateDetection[];
+  frameWidth: number;
+  frameHeight: number;
+  capturedAt: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class CctvService {
   private http = inject(HttpClient);
@@ -26,6 +49,15 @@ export class CctvService {
   sendWhepOffer(sdp: string, streamId: string = 'eagle_cam_sub'): Observable<{ sdp: string }> {
     return this.http
       .post<ApiResponse<{ sdp: string }>>(`${this.CCTV_URL}/whep`, { sdp, streamId })
+      .pipe(map(res => res.data));
+  }
+
+  /** Grab a live still from the stream and return ANPR plate detections for it. */
+  detectPlates(streamId: string): Observable<AnprDetectResult> {
+    return this.http
+      .get<ApiResponse<AnprDetectResult>>(`${this.CCTV_URL}/anpr/detect`, {
+        params: { streamId },
+      })
       .pipe(map(res => res.data));
   }
 
