@@ -1,32 +1,29 @@
-<div class="flex flex-col flex-1 h-full w-full p-6 overflow-y-auto space-y-6 bg-slate-900 text-slate-100">
+<div class="flex flex-col flex-1 h-full w-full p-6 overflow-y-auto space-y-6 bg-white text-slate-900">
   
   <!-- Header / Controls Bar -->
-  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
     <div>
       <div class="flex items-center gap-3">
-        <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-          <i class="pi pi-video text-emerald-400 text-xl"></i>
+        <h1 class="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+          <i class="pi pi-video text-emerald-500 text-xl"></i>
           Eagle Cement CCTV Feeds
         </h1>
-        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
           LIVE STREAM
         </span>
       </div>
-      <p class="text-sm text-slate-400 mt-1">
-        Real-time security camera stream from Eagle Cement facility (192.168.100.134).
-      </p>
     </div>
 
     <!-- Stream Quality Selector -->
-    <div class="flex items-center gap-2 bg-slate-800/80 p-1.5 rounded-lg border border-slate-700">
+    <div class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-lg border border-slate-200">
       <button 
         type="button"
         (click)="switchStream('eagle_cam_sub')"
         [class.bg-emerald-600]="activeStreamId() === 'eagle_cam_sub'"
         [class.text-white]="activeStreamId() === 'eagle_cam_sub'"
-        [class.text-slate-400]="activeStreamId() !== 'eagle_cam_sub'"
-        class="px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-150 hover:text-white">
+        [class.text-slate-500]="activeStreamId() !== 'eagle_cam_sub'"
+        class="px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-150 hover:text-slate-900">
         Sub Stream (Fast SD)
       </button>
       <button 
@@ -34,8 +31,8 @@
         (click)="switchStream('eagle_cam_main')"
         [class.bg-emerald-600]="activeStreamId() === 'eagle_cam_main'"
         [class.text-white]="activeStreamId() === 'eagle_cam_main'"
-        [class.text-slate-400]="activeStreamId() !== 'eagle_cam_main'"
-        class="px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-150 hover:text-white">
+        [class.text-slate-500]="activeStreamId() !== 'eagle_cam_main'"
+        class="px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-150 hover:text-slate-900">
         Main Stream (HD 720p)
       </button>
     </div>
@@ -121,39 +118,6 @@
         </button>
       </div>
     }
-  </div>
-
-  <!-- Camera Details & Metadata Cards Footer -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <div class="bg-slate-800/50 border border-slate-800 rounded-lg p-4 flex items-center gap-4">
-      <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
-        <i class="pi pi-bolt text-lg"></i>
-      </div>
-      <div>
-        <p class="text-xs text-slate-400 font-medium">Protocol & Latency</p>
-        <p class="text-sm font-semibold text-white mt-0.5">WebRTC WHEP (&lt; 300ms)</p>
-      </div>
-    </div>
-
-    <div class="bg-slate-800/50 border border-slate-800 rounded-lg p-4 flex items-center gap-4">
-      <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
-        <i class="pi pi-desktop text-lg"></i>
-      </div>
-      <div>
-        <p class="text-xs text-slate-400 font-medium">Camera Source</p>
-        <p class="text-sm font-semibold text-white mt-0.5">Hikvision IP (192.168.100.134)</p>
-      </div>
-    </div>
-
-    <div class="bg-slate-800/50 border border-slate-800 rounded-lg p-4 flex items-center gap-4">
-      <div class="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400">
-        <i class="pi pi-shield text-lg"></i>
-      </div>
-      <div>
-        <p class="text-xs text-slate-400 font-medium">Security Proxy</p>
-        <p class="text-sm font-semibold text-white mt-0.5">NestJS Authenticated Gateway</p>
-      </div>
-    </div>
   </div>
 
 </div>
