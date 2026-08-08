@@ -1,0 +1,117 @@
+<div class="flex flex-col flex-1 h-full w-full p-6 overflow-y-auto bg-slate-50 text-slate-900">
+
+  <!-- Main Content Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-[500px]">
+    
+    <!-- Left 2 Cols: Main WebRTC Stream Player -->
+    <div class="lg:col-span-2 relative bg-slate-950 rounded-2xl overflow-hidden shadow-xl border border-slate-800 flex flex-col justify-center items-center group">
+      
+      <!-- Video Element -->
+      <video
+        #videoElement
+        autoplay
+        playsinline
+        [muted]="isMuted()"
+        class="w-full h-full object-cover bg-black">
+      </video>
+
+
+
+      <!-- Bottom Controls Bar -->
+      <div class="absolute bottom-4 right-4 flex items-center gap-2 bg-black/70 backdrop-blur-md p-1.5 rounded-lg border border-white/10 z-10">
+        <button 
+          type="button" 
+          (click)="toggleMute()" 
+          class="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors"
+          [title]="isMuted() ? 'Unmute' : 'Mute'">
+          <i [class]="isMuted() ? 'pi pi-volume-off' : 'pi pi-volume-up'"></i>
+        </button>
+        <button 
+          type="button" 
+          (click)="retry()" 
+          class="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors"
+          title="Reconnect Stream">
+          <i class="pi pi-refresh"></i>
+        </button>
+        <button 
+          type="button" 
+          (click)="toggleFullscreen()" 
+          class="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors"
+          title="Fullscreen">
+          <i class="pi pi-window-maximize"></i>
+        </button>
+      </div>
+
+      <!-- Loading State -->
+      @if (connectionState() === 'connecting') {
+        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3 z-20">
+          <i class="pi pi-spin pi-spinner text-emerald-400 text-4xl"></i>
+          <p class="text-sm text-slate-300 font-medium">Connecting to License Plate Camera...</p>
+        </div>
+      }
+
+      <!-- Error State -->
+      @if (error()) {
+        <div class="absolute inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center gap-3 p-6 text-center z-25">
+          <i class="pi pi-exclamation-triangle text-amber-400 text-3xl"></i>
+          <h3 class="text-sm font-semibold text-white">Stream Error</h3>
+          <p class="text-xs text-slate-400 max-w-sm">{{ error() }}</p>
+          <button 
+            type="button" 
+            (click)="retry()" 
+            class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow transition-colors">
+            Retry Connection
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- Right 1 Col: Recent License Plate Scans -->
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div>
+          <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <i class="pi pi-id-card text-emerald-600"></i>
+            Recent Plate Scans
+          </h2>
+          <p class="text-xs text-slate-500">Truck plate log records</p>
+        </div>
+        <span class="text-xs font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">
+          {{ recentScans().length }} Reads
+        </span>
+      </div>
+
+      <div class="space-y-3 flex-1 overflow-y-auto pr-1">
+        @for (item of recentScans(); track item.id) {
+          <div class="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-slate-50 transition-all space-y-2">
+            <div class="flex items-start justify-between">
+              <div>
+                <div class="px-2.5 py-1 bg-amber-400/15 border border-amber-500/30 text-amber-900 rounded font-mono font-bold text-sm tracking-wider inline-block">
+                  {{ item.plateNumber }}
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1 font-medium">{{ item.vehicleType }}</p>
+              </div>
+              <span 
+                [class.bg-emerald-500\/10]="item.status === 'MATCH'"
+                [class.text-emerald-700]="item.status === 'MATCH'"
+                [class.bg-red-500\/10]="item.status === 'UNREGISTERED'"
+                [class.text-red-700]="item.status === 'UNREGISTERED'"
+                class="px-2 py-0.5 rounded-full text-[10px] font-bold">
+                {{ item.status }}
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between text-[11px] pt-2 border-t border-slate-200/60 text-slate-600">
+              <span>Driver: <strong class="text-slate-800">{{ item.driverName }}</strong></span>
+              <span class="font-mono text-slate-500">Tag: {{ item.rfidTag }}</span>
+              <span class="text-slate-400 text-[10px]">{{ item.timestamp }}</span>
+            </div>
+          </div>
+        }
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

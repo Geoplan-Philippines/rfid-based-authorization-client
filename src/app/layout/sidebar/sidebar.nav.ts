@@ -2,6 +2,8 @@ export interface NavItem {
   label: string;
   route: string;
   icon: string;
+  /** When true, routerLinkActive requires an exact URL match. */
+  exactMatch?: boolean;
   /** When true, the item is shown but disabled with a "Coming soon" badge. */
   comingSoon?: boolean;
   /**
@@ -29,10 +31,10 @@ export const NAV_SECTIONS: readonly NavSection[] = [
   {
     title: 'CCTV',
     items: [
-      { label: 'Face Feed', route: '/cctv/face', icon: 'pi-face-smile', comingSoon: true },
-      { label: 'Plate Feed', route: '/cctv/plate', icon: 'pi-car', comingSoon: true },
-      { label: 'Dome Feed', route: '/cctv/dome', icon: 'pi-camera', comingSoon: true },
-      { label: 'CCTV Feeds', route: '/cctv', icon: 'pi-video' },
+      { label: 'Face Feed', route: '/cctv/face', icon: 'pi-face-smile' },
+      { label: 'Plate Feed', route: '/cctv/plate', icon: 'pi-truck' },
+      { label: 'Dome Feed', route: '/cctv/dome', icon: 'pi-camera' },
+      { label: 'CCTV Feeds', route: '/cctv', icon: 'pi-video', exactMatch: true },
     ],
   },
   {

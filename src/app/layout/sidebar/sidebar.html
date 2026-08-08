@@ -37,6 +37,7 @@
                 <a
                   [routerLink]="item.route"
                   routerLinkActive
+                  [routerLinkActiveOptions]="{ exact: item.exactMatch ?? false }"
                   #rla="routerLinkActive"
                   [class]="itemBase + ' ' + (rla.isActive ? itemActive : itemInactive)"
                   [attr.aria-current]="rla.isActive ? 'page' : null"

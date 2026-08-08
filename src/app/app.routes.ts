@@ -25,7 +25,10 @@ export const routes: Routes = [
     component: MainLayout,
     canActivate: [authGuard],
     children: [
-      { path: '', loadComponent: () => import('./modules/cctv/cctv').then(m => m.Cctv) }
+      { path: '', loadComponent: () => import('./modules/cctv/cctv').then(m => m.Cctv) },
+      { path: 'face', loadComponent: () => import('./modules/cctv/pages/face-feed/face-feed').then(m => m.FaceFeed) },
+      { path: 'plate', loadComponent: () => import('./modules/cctv/pages/plate-feed/plate-feed').then(m => m.PlateFeed) },
+      { path: 'dome', loadComponent: () => import('./modules/cctv/pages/dome-feed/dome-feed').then(m => m.DomeFeed) },
     ]
   },
   {
