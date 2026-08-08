@@ -1,0 +1,124 @@
+<main class="flex flex-col w-full h-full p-6 overflow-auto gap-6">
+  
+  <!-- Header / Controls Bar -->
+  <div class="flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-bold" style="color: var(--text-heading)">Eagle Cement CCTV Feeds</h1>
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          LIVE STREAM
+        </span>
+      </div>
+    </div>
+
+    <!-- Stream Quality Selector -->
+    <div class="flex items-center gap-2 bg-muted/30 p-1 rounded-md border border-border">
+      <button 
+        type="button"
+        (click)="switchStream('eagle_cam_sub')"
+        [class.bg-white]="activeStreamId() === 'eagle_cam_sub'"
+        [class.shadow-xs]="activeStreamId() === 'eagle_cam_sub'"
+        [class.text-heading]="activeStreamId() === 'eagle_cam_sub'"
+        [class.font-semibold]="activeStreamId() === 'eagle_cam_sub'"
+        [class.text-muted]="activeStreamId() !== 'eagle_cam_sub'"
+        class="px-3 py-1.5 text-xs rounded-sm transition-all duration-150">
+        Sub Stream (Fast SD)
+      </button>
+      <button 
+        type="button"
+        (click)="switchStream('eagle_cam_main')"
+        [class.bg-white]="activeStreamId() === 'eagle_cam_main'"
+        [class.shadow-xs]="activeStreamId() === 'eagle_cam_main'"
+        [class.text-heading]="activeStreamId() === 'eagle_cam_main'"
+        [class.font-semibold]="activeStreamId() === 'eagle_cam_main'"
+        [class.text-muted]="activeStreamId() !== 'eagle_cam_main'"
+        class="px-3 py-1.5 text-xs rounded-sm transition-all duration-150">
+        Main Stream (HD 720p)
+      </button>
+    </div>
+  </div>
+
+  <!-- CCTV Player Main Window -->
+  <div class="relative flex-1 min-h-[480px] w-full bg-black rounded-sm overflow-hidden border border-border flex flex-col justify-center items-center">
+
+    <!-- Live Stream Player Video Tag -->
+    <video
+      #cctvVideo
+      autoplay
+      playsinline
+      [muted]="isMuted()"
+      class="w-full h-full object-contain bg-black">
+    </video>
+
+    <!-- Overlay Info & Status Bar (Top Left) -->
+    <div class="absolute top-4 left-4 flex items-center gap-3 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-sm border border-white/10 text-xs font-medium text-white">
+      <span class="flex items-center gap-2">
+        <span [class.bg-emerald-500]="connectionState() === 'connected'"
+              [class.bg-amber-500]="connectionState() === 'connecting'"
+              [class.bg-red-500]="connectionState() === 'failed' || connectionState() === 'disconnected'"
+              class="w-2.5 h-2.5 rounded-full"></span>
+        <span class="capitalize">{{ connectionState() }}</span>
+      </span>
+      <span class="text-white/30">|</span>
+      <span class="text-slate-300 font-mono">192.168.100.134</span>
+      <span class="text-white/30">|</span>
+      <span class="text-slate-400">{{ activeStreamId() === 'eagle_cam_sub' ? 'Channel 102 (SD)' : 'Channel 101 (HD)' }}</span>
+    </div>
+
+    <!-- Overlay Controls (Bottom Right) -->
+    <div class="absolute bottom-4 right-4 flex items-center gap-1 bg-black/70 backdrop-blur-md p-1 rounded-sm border border-white/10">
+      <button 
+        type="button" 
+        (click)="toggleMute()" 
+        class="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-sm transition-colors"
+        [title]="isMuted() ? 'Unmute' : 'Mute'">
+        <i [class]="isMuted() ? 'pi pi-volume-off' : 'pi pi-volume-up'"></i>
+      </button>
+      <button 
+        type="button" 
+        (click)="retry()" 
+        class="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-sm transition-colors"
+        title="Reconnect Stream">
+        <i class="pi pi-refresh"></i>
+      </button>
+      <button 
+        type="button" 
+        (click)="toggleFullscreen()" 
+        class="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors"
+        title="Fullscreen">
+        <i class="pi pi-window-maximize"></i>
+      </button>
+    </div>
+
+    <!-- Loading State Overlay -->
+    @if (loading() || connectionState() === 'connecting') {
+      <div class="absolute inset-0 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3 z-10">
+        <i class="pi pi-spin pi-spinner text-emerald-400 text-4xl"></i>
+        <p class="text-sm text-slate-300 font-medium">Connecting to Eagle Cement Live Stream...</p>
+        <p class="text-xs text-slate-500">Establishing low-latency WebRTC connection</p>
+      </div>
+    }
+
+    <!-- Error / Disconnected Overlay -->
+    @if (error()) {
+      <div class="absolute inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center gap-4 p-6 text-center z-20">
+        <div class="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 text-xl">
+          <i class="pi pi-exclamation-triangle"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-semibold text-white">Stream Unavailable</h3>
+          <p class="text-xs text-slate-400 max-w-md mt-1">{{ error() }}</p>
+        </div>
+        <button 
+          type="button"
+          (click)="retry()"
+          class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-sm shadow-lg transition-all flex items-center gap-2">
+          <i class="pi pi-refresh"></i>
+          Retry Connection
+        </button>
+      </div>
+    }
+  </div>
+
+</main>

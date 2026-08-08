@@ -21,6 +21,14 @@ export const routes: Routes = [
     ]
   },
   {
+    path: 'cctv',
+    component: MainLayout,
+    canActivate: [authGuard],
+    children: [
+      { path: '', loadComponent: () => import('./modules/cctv/cctv').then(m => m.Cctv) }
+    ]
+  },
+  {
     path: 'transactions',
     component: MainLayout,
     canActivate: [authGuard],

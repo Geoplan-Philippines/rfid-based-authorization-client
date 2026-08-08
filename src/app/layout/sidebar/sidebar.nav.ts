@@ -23,7 +23,7 @@ export const NAV_SECTIONS: readonly NavSection[] = [
       { label: 'Dashboard', route: '/dashboard', icon: 'pi-chart-bar' },
       { label: 'Live Gate', route: '/gate-monitoring', icon: 'pi-sync', comingSoon: true },
       { label: 'Transactions', route: '/transactions', icon: 'pi-receipt' },
-      { label: 'CCTV Feeds', route: '/cctv', icon: 'pi-video', comingSoon: true },
+      { label: 'CCTV Feeds', route: '/cctv', icon: 'pi-video' },
     ],
   },
   {
