@@ -2,10 +2,27 @@
   <nav class="flex flex-col gap-7 py-5">
     @for (section of navSections(); track section.title) {
       <div>
-        <h3 class="mb-2 px-5 text-[11px] font-semibold tracking-[0.12em] uppercase text-body/60">
-          {{ section.title }}
-        </h3>
-        <ul class="flex flex-col">
+        @if (section.collapsible) {
+          <button
+            type="button"
+            class="mb-2 flex w-full items-center gap-1.5 px-5 text-[11px] font-semibold tracking-[0.12em] uppercase text-body/60 transition-colors hover:text-heading"
+            (click)="toggleSection(section.title)"
+            [attr.aria-expanded]="!collapsedSections().has(section.title)"
+          >
+            {{ section.title }}
+            <i
+              class="pi pi-chevron-down ml-auto text-xs transition-transform duration-150"
+              [class.-rotate-90]="collapsedSections().has(section.title)"
+              aria-hidden="true"
+            ></i>
+          </button>
+        } @else {
+          <h3 class="mb-2 px-5 text-[11px] font-semibold tracking-[0.12em] uppercase text-body/60">
+            {{ section.title }}
+          </h3>
+        }
+        @if (!collapsedSections().has(section.title)) {
+          <ul class="flex flex-col">
           @for (item of section.items; track item.route) {
             <li>
               @if (item.comingSoon) {
@@ -15,14 +32,12 @@
                 >
                   <i class="pi {{ item.icon }} text-base w-4 text-center" aria-hidden="true"></i>
                   <span class="truncate">{{ item.label }}</span>
-                  <span class="ml-auto shrink-0 rounded-full bg-foreground/10 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-body/60">
-                    Soon
-                  </span>
                 </span>
               } @else {
                 <a
                   [routerLink]="item.route"
                   routerLinkActive
+                  [routerLinkActiveOptions]="{ exact: item.exactMatch ?? false }"
                   #rla="routerLinkActive"
                   [class]="itemBase + ' ' + (rla.isActive ? itemActive : itemInactive)"
                   [attr.aria-current]="rla.isActive ? 'page' : null"
@@ -34,7 +49,8 @@
               }
             </li>
           }
-        </ul>
+          </ul>
+        }
       </div>
     }
   </nav>
@@ -51,7 +67,7 @@
 
 <aside
   id="mobile-sidebar"
-  class="fixed top-16 bottom-0 left-0 z-40 w-64 max-w-[calc(100vw-3rem)] transform overflow-y-auto overscroll-contain border-r border-border bg-background transition-transform duration-200 ease-in-out lg:hidden"
+  class="fixed top-16 bottom-0 left-0 z-40 w-64 max-w-[calc(100vw-3rem)] transform border-r border-border bg-background transition-transform duration-200 ease-in-out lg:hidden"
   aria-label="Primary navigation"
   [attr.aria-hidden]="!layoutService.sidebarOpen()"
   [attr.inert]="layoutService.sidebarOpen() ? null : ''"
@@ -59,12 +75,16 @@
   [class.translate-x-0]="layoutService.sidebarOpen()"
   (keydown.escape)="layoutService.closeSidebar()"
 >
-  <ng-container [ngTemplateOutlet]="navigation" />
+  <app-scroll-area class="h-full w-full">
+    <ng-container [ngTemplateOutlet]="navigation" />
+  </app-scroll-area>
 </aside>
 
 <aside
-  class="hidden h-full w-64 shrink-0 overflow-y-auto border-r border-border bg-background lg:block"
+  class="hidden h-full w-64 shrink-0 border-r border-border bg-background lg:block"
   aria-label="Primary navigation"
 >
-  <ng-container [ngTemplateOutlet]="navigation" />
+  <app-scroll-area class="h-full w-full">
+    <ng-container [ngTemplateOutlet]="navigation" />
+  </app-scroll-area>
 </aside>

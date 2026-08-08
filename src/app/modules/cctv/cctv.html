@@ -1,0 +1,299 @@
+<div class="flex flex-col flex-1 h-full w-full p-0 m-0 overflow-hidden bg-black text-slate-900">
+
+  <!-- Global Error Overlay -->
+  @if (globalError()) {
+    <div class="absolute top-4 inset-x-4 z-50 p-4 bg-red-950/90 backdrop-blur-md border border-red-500/30 rounded-xl flex items-center justify-between gap-4 text-red-200 text-sm shadow-2xl">
+      <div class="flex items-center gap-3">
+        <i class="pi pi-exclamation-triangle text-xl text-red-400"></i>
+        <span>{{ globalError() }}</span>
+      </div>
+      <button 
+        type="button" 
+        (click)="retryAll()" 
+        class="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-semibold rounded-lg shadow transition-colors">
+        Retry Connection
+      </button>
+    </div>
+  }
+
+  <!-- Split View Layout Container -->
+  <div class="flex-1 w-full h-full overflow-hidden">
+    
+    <!-- Focused Camera View (100% Screen) -->
+    @if (activeFocusedStreamId() !== null) {
+      @let feed = getFeedById(activeFocusedStreamId()!);
+      <div class="relative w-full h-full bg-black overflow-hidden group">
+        
+        <!-- Top-Left Camera Tag -->
+        <div class="absolute top-3 left-3 z-10 flex items-center gap-2 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-md border border-white/10 text-white text-xs font-semibold pointer-events-none">
+          <i [class]="'pi ' + feed.icon + ' text-emerald-400 text-xs'"></i>
+          <span>{{ feed.name }}</span>
+          <span 
+            [class.bg-emerald-500]="feed.connectionState === 'connected'"
+            [class.bg-amber-500]="feed.connectionState === 'connecting'"
+            [class.bg-red-500]="feed.connectionState === 'failed' || feed.connectionState === 'disconnected'"
+            class="w-2 h-2 rounded-full"></span>
+        </div>
+
+        <!-- Video Player -->
+        <video
+          #cameraVideo
+          autoplay
+          playsinline
+          [muted]="feed.isMuted"
+          class="w-full h-full object-cover bg-black">
+        </video>
+
+        <!-- Loading Overlay -->
+        @if (feed.connectionState === 'connecting' || loading()) {
+          <div class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex flex-col items-center justify-center gap-2 z-20">
+            <i class="pi pi-spin pi-spinner text-emerald-400 text-3xl"></i>
+            <p class="text-xs text-slate-300 font-medium">Connecting WebRTC feed...</p>
+          </div>
+        }
+
+        <!-- Bottom Controls Bar -->
+        <div class="absolute bottom-3 right-3 z-10 flex items-center gap-1 bg-black/70 backdrop-blur-md p-1 rounded-lg border border-white/10 opacity-90 group-hover:opacity-100 transition-opacity">
+          <button 
+            type="button" 
+            (click)="toggleMute(feed.id, $event)" 
+            class="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors text-xs"
+            [title]="feed.isMuted ? 'Unmute' : 'Mute'">
+            <i [class]="feed.isMuted ? 'pi pi-volume-off' : 'pi pi-volume-up'"></i>
+          </button>
+
+          <button 
+            type="button" 
+            (click)="toggleFocusStream(feed.id)" 
+            class="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors text-xs"
+            title="Restore Split Grid">
+            <i class="pi pi-th-large"></i>
+          </button>
+
+          <button 
+            type="button" 
+            (click)="retryFeed(feed.id, $event)" 
+            class="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors text-xs"
+            title="Reconnect Stream">
+            <i class="pi pi-refresh"></i>
+          </button>
+
+          <button 
+            type="button" 
+            (click)="toggleFullscreen(feed.id, $event)" 
+            class="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors text-xs"
+            title="Fullscreen">
+            <i class="pi pi-window-maximize"></i>
+          </button>
+        </div>
+      </div>
+    } @else {
+      <!-- Unfocused 50/25/25 Split Layout Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-0 w-full h-full">
+        
+        <!-- Left Half (50% Width): Dome PTZ Overview Camera -->
+        @let domeFeed = getFeedById('gate_dome');
+        <div class="relative w-full h-full bg-black overflow-hidden border-r border-slate-900 group">
+          
+          <div class="absolute top-3 left-3 z-10 flex items-center gap-2 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-md border border-white/10 text-white text-xs font-semibold pointer-events-none">
+            <i [class]="'pi ' + domeFeed.icon + ' text-emerald-400 text-xs'"></i>
+            <span>{{ domeFeed.name }}</span>
+            <span 
+              [class.bg-emerald-500]="domeFeed.connectionState === 'connected'"
+              [class.bg-amber-500]="domeFeed.connectionState === 'connecting'"
+              [class.bg-red-500]="domeFeed.connectionState === 'failed' || domeFeed.connectionState === 'disconnected'"
+              class="w-2 h-2 rounded-full"></span>
+          </div>
+
+          <video
+            #cameraVideo
+            autoplay
+            playsinline
+            [muted]="domeFeed.isMuted"
+            class="w-full h-full object-cover bg-black">
+          </video>
+
+          @if (domeFeed.connectionState === 'connecting' || loading()) {
+            <div class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex flex-col items-center justify-center gap-2 z-20">
+              <i class="pi pi-spin pi-spinner text-emerald-400 text-3xl"></i>
+              <p class="text-xs text-slate-300 font-medium">Connecting WebRTC feed...</p>
+            </div>
+          }
+
+          <div class="absolute bottom-3 right-3 z-10 flex items-center gap-1 bg-black/70 backdrop-blur-md p-1 rounded-lg border border-white/10 opacity-90 group-hover:opacity-100 transition-opacity">
+            <button 
+              type="button" 
+              (click)="toggleMute(domeFeed.id, $event)" 
+              class="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors text-xs"
+              [title]="domeFeed.isMuted ? 'Unmute' : 'Mute'">
+              <i [class]="domeFeed.isMuted ? 'pi pi-volume-off' : 'pi pi-volume-up'"></i>
+            </button>
+
+            <button 
+              type="button" 
+              (click)="toggleFocusStream(domeFeed.id)" 
+              class="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors text-xs"
+              title="Focus Expand">
+              <i class="pi pi-search-plus"></i>
+            </button>
+
+            <button 
+              type="button" 
+              (click)="retryFeed(domeFeed.id, $event)" 
+              class="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors text-xs"
+              title="Reconnect Stream">
+              <i class="pi pi-refresh"></i>
+            </button>
+
+            <button 
+              type="button" 
+              (click)="toggleFullscreen(domeFeed.id, $event)" 
+              class="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors text-xs"
+              title="Fullscreen">
+              <i class="pi pi-window-maximize"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Half (50% Width): Face (Top) and Plate (Bottom) -->
+        <div class="grid grid-rows-2 gap-0 w-full h-full">
+          
+          <!-- Top Right Row (25% Total Area): Face Camera -->
+          @let faceFeed = getFeedById('gate_face');
+          <div class="relative w-full h-full bg-black overflow-hidden border-b border-slate-900 group">
+            
+            <div class="absolute top-3 left-3 z-10 flex items-center gap-2 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-md border border-white/10 text-white text-xs font-semibold pointer-events-none">
+              <i [class]="'pi ' + faceFeed.icon + ' text-emerald-400 text-xs'"></i>
+              <span>{{ faceFeed.name }}</span>
+              <span 
+                [class.bg-emerald-500]="faceFeed.connectionState === 'connected'"
+                [class.bg-amber-500]="faceFeed.connectionState === 'connecting'"
+                [class.bg-red-500]="faceFeed.connectionState === 'failed' || faceFeed.connectionState === 'disconnected'"
+                class="w-2 h-2 rounded-full"></span>
+            </div>
+
+            <video
+              #cameraVideo
+              autoplay
+              playsinline
+              [muted]="faceFeed.isMuted"
+              class="w-full h-full object-cover bg-black">
+            </video>
+
+            @if (faceFeed.connectionState === 'connecting' || loading()) {
+              <div class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex flex-col items-center justify-center gap-2 z-20">
+                <i class="pi pi-spin pi-spinner text-emerald-400 text-3xl"></i>
+                <p class="text-xs text-slate-300 font-medium">Connecting WebRTC feed...</p>
+              </div>
+            }
+
+            <div class="absolute bottom-3 right-3 z-10 flex items-center gap-1 bg-black/70 backdrop-blur-md p-1 rounded-lg border border-white/10 opacity-90 group-hover:opacity-100 transition-opacity">
+              <button 
+                type="button" 
+                (click)="toggleMute(faceFeed.id, $event)" 
+                class="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors text-xs"
+                [title]="faceFeed.isMuted ? 'Unmute' : 'Mute'">
+                <i [class]="faceFeed.isMuted ? 'pi pi-volume-off' : 'pi pi-volume-up'"></i>
+              </button>
+
+              <button 
+                type="button" 
+                (click)="toggleFocusStream(faceFeed.id)" 
+                class="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors text-xs"
+                title="Focus Expand">
+                <i class="pi pi-search-plus"></i>
+              </button>
+
+              <button 
+                type="button" 
+                (click)="retryFeed(faceFeed.id, $event)" 
+                class="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors text-xs"
+                title="Reconnect Stream">
+                <i class="pi pi-refresh"></i>
+              </button>
+
+              <button 
+                type="button" 
+                (click)="toggleFullscreen(faceFeed.id, $event)" 
+                class="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors text-xs"
+                title="Fullscreen">
+                <i class="pi pi-window-maximize"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Bottom Right Row (25% Total Area): Plate Camera -->
+          @let plateFeed = getFeedById('gate_plate');
+          <div class="relative w-full h-full bg-black overflow-hidden group">
+            
+            <div class="absolute top-3 left-3 z-10 flex items-center gap-2 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-md border border-white/10 text-white text-xs font-semibold pointer-events-none">
+              <i [class]="'pi ' + plateFeed.icon + ' text-emerald-400 text-xs'"></i>
+              <span>{{ plateFeed.name }}</span>
+              <span 
+                [class.bg-emerald-500]="plateFeed.connectionState === 'connected'"
+                [class.bg-amber-500]="plateFeed.connectionState === 'connecting'"
+                [class.bg-red-500]="plateFeed.connectionState === 'failed' || plateFeed.connectionState === 'disconnected'"
+                class="w-2 h-2 rounded-full"></span>
+            </div>
+
+            <video
+              #cameraVideo
+              autoplay
+              playsinline
+              [muted]="plateFeed.isMuted"
+              class="w-full h-full object-cover bg-black">
+            </video>
+
+            @if (plateFeed.connectionState === 'connecting' || loading()) {
+              <div class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex flex-col items-center justify-center gap-2 z-20">
+                <i class="pi pi-spin pi-spinner text-emerald-400 text-3xl"></i>
+                <p class="text-xs text-slate-300 font-medium">Connecting WebRTC feed...</p>
+              </div>
+            }
+
+            <div class="absolute bottom-3 right-3 z-10 flex items-center gap-1 bg-black/70 backdrop-blur-md p-1 rounded-lg border border-white/10 opacity-90 group-hover:opacity-100 transition-opacity">
+              <button 
+                type="button" 
+                (click)="toggleMute(plateFeed.id, $event)" 
+                class="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors text-xs"
+                [title]="plateFeed.isMuted ? 'Unmute' : 'Mute'">
+                <i [class]="plateFeed.isMuted ? 'pi pi-volume-off' : 'pi pi-volume-up'"></i>
+              </button>
+
+              <button 
+                type="button" 
+                (click)="toggleFocusStream(plateFeed.id)" 
+                class="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors text-xs"
+                title="Focus Expand">
+                <i class="pi pi-search-plus"></i>
+              </button>
+
+              <button 
+                type="button" 
+                (click)="retryFeed(plateFeed.id, $event)" 
+                class="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors text-xs"
+                title="Reconnect Stream">
+                <i class="pi pi-refresh"></i>
+              </button>
+
+              <button 
+                type="button" 
+                (click)="toggleFullscreen(plateFeed.id, $event)" 
+                class="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors text-xs"
+                title="Fullscreen">
+                <i class="pi pi-window-maximize"></i>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    }
+
+  </div>
+
+</div>
+
+
+
