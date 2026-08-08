@@ -31,7 +31,7 @@ import { CCTVStreamMetadata, CctvService } from '../../core/services/cctv.servic
   templateUrl: './cctv.html',
   styleUrl: './cctv.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex flex-col w-full overflow-hidden' },
+  host: { class: 'flex flex-1 overflow-hidden' },
 })
 export class Cctv implements OnInit, OnDestroy {
   private cctvService = inject(CctvService);
