@@ -13,6 +13,8 @@ export interface NavItem {
 
 export interface NavSection {
   title: string;
+  /** When true, the section header becomes a toggle button that collapses/expands the item list. */
+  collapsible?: boolean;
   items: NavItem[];
 }
 
@@ -21,8 +23,15 @@ export const NAV_SECTIONS: readonly NavSection[] = [
     title: 'Operations',
     items: [
       { label: 'Dashboard', route: '/dashboard', icon: 'pi-chart-bar' },
-      { label: 'Live Gate', route: '/gate-monitoring', icon: 'pi-sync', comingSoon: true },
       { label: 'Transactions', route: '/transactions', icon: 'pi-receipt' },
+    ],
+  },
+  {
+    title: 'CCTV',
+    items: [
+      { label: 'Face Feed', route: '/cctv/face', icon: 'pi-face-smile', comingSoon: true },
+      { label: 'Plate Feed', route: '/cctv/plate', icon: 'pi-car', comingSoon: true },
+      { label: 'Dome Feed', route: '/cctv/dome', icon: 'pi-camera', comingSoon: true },
       { label: 'CCTV Feeds', route: '/cctv', icon: 'pi-video' },
     ],
   },
