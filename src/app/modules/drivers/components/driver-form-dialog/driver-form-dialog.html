@@ -4,82 +4,262 @@
   [draggable]="false"
   [resizable]="false"
   [dismissableMask]="true"
-  [style]="{ width: '34rem' }"
-  [breakpoints]="{ '640px': '92vw' }"
+  [style]="{
+    width: '52rem',
+    maxWidth: '94vw',
+  }"
+  [breakpoints]="{ '640px': '96vw' }"
   [header]="title"
+  (onHide)="resetFacePhotos()"
 >
   <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 pt-2">
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    @if (mode() === 'create') {
       <div class="flex flex-col gap-2">
-        <label for="driver-first" class="font-medium text-sm">First name</label>
+        <label for="driver-id" class="text-sm font-medium">
+          Driver ID <span class="text-destructive" aria-hidden="true">*</span>
+          <span class="sr-only">(required)</span>
+        </label>
+        <input
+          pInputText
+          id="driver-id"
+          formControlName="driverId"
+          required
+          maxlength="9"
+          placeholder="DRV-00001"
+          autocomplete="off"
+          spellcheck="false"
+          class="w-full font-mono uppercase"
+          [attr.aria-invalid]="form.controls.driverId.invalid && form.controls.driverId.touched"
+          [attr.aria-describedby]="
+            form.controls.driverId.invalid && form.controls.driverId.touched
+              ? 'driver-id-help driver-id-error'
+              : 'driver-id-help'
+          "
+          [class.ng-invalid]="form.controls.driverId.invalid && form.controls.driverId.touched"
+          [class.ng-dirty]="form.controls.driverId.invalid && form.controls.driverId.touched"
+        />
+        <small id="driver-id-help" class="text-muted">
+          Permanent identifier. Use DRV- followed by five digits, starting at 00001.
+        </small>
+        @if (form.controls.driverId.invalid && form.controls.driverId.touched) {
+          <small id="driver-id-error" class="text-destructive">
+            {{ form.controls.driverId.hasError('required') ? 'Driver ID is required.' : 'Use the format DRV-00001.' }}
+          </small>
+        }
+      </div>
+    }
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div class="flex flex-col gap-2">
+        <label for="driver-first" class="text-sm font-medium">
+          First name <span class="text-destructive" aria-hidden="true">*</span>
+          <span class="sr-only">(required)</span>
+        </label>
         <input
           pInputText
           id="driver-first"
           formControlName="firstName"
+          required
           autocomplete="off"
           class="w-full"
+          [attr.aria-invalid]="form.controls.firstName.invalid && form.controls.firstName.touched"
+          [attr.aria-describedby]="form.controls.firstName.invalid && form.controls.firstName.touched ? 'driver-first-error' : null"
           [class.ng-invalid]="form.controls.firstName.invalid && form.controls.firstName.touched"
           [class.ng-dirty]="form.controls.firstName.invalid && form.controls.firstName.touched"
         />
         @if (form.controls.firstName.invalid && form.controls.firstName.touched) {
-          <small class="text-destructive">First name is required.</small>
+          <small id="driver-first-error" class="text-destructive">First name is required.</small>
         }
       </div>
 
       <div class="flex flex-col gap-2">
-        <label for="driver-last" class="font-medium text-sm">Last name</label>
+        <label for="driver-last" class="text-sm font-medium">
+          Last name <span class="text-destructive" aria-hidden="true">*</span>
+          <span class="sr-only">(required)</span>
+        </label>
         <input
           pInputText
           id="driver-last"
           formControlName="lastName"
+          required
           autocomplete="off"
           class="w-full"
+          [attr.aria-invalid]="form.controls.lastName.invalid && form.controls.lastName.touched"
+          [attr.aria-describedby]="form.controls.lastName.invalid && form.controls.lastName.touched ? 'driver-last-error' : null"
           [class.ng-invalid]="form.controls.lastName.invalid && form.controls.lastName.touched"
           [class.ng-dirty]="form.controls.lastName.invalid && form.controls.lastName.touched"
         />
         @if (form.controls.lastName.invalid && form.controls.lastName.touched) {
-          <small class="text-destructive">Last name is required.</small>
+          <small id="driver-last-error" class="text-destructive">Last name is required.</small>
         }
       </div>
     </div>
 
     <div class="flex flex-col gap-2">
-      <label for="driver-license" class="font-medium text-sm">License number</label>
+      <label for="driver-license" class="text-sm font-medium">
+        License number <span class="text-destructive" aria-hidden="true">*</span>
+        <span class="sr-only">(required)</span>
+      </label>
       <input
         pInputText
         id="driver-license"
         formControlName="licenseNumber"
+        required
         placeholder="e.g. N03-12-345678"
         autocomplete="off"
         class="w-full uppercase"
+        [attr.aria-invalid]="form.controls.licenseNumber.invalid && form.controls.licenseNumber.touched"
+        [attr.aria-describedby]="form.controls.licenseNumber.invalid && form.controls.licenseNumber.touched ? 'driver-license-error' : null"
         [class.ng-invalid]="form.controls.licenseNumber.invalid && form.controls.licenseNumber.touched"
         [class.ng-dirty]="form.controls.licenseNumber.invalid && form.controls.licenseNumber.touched"
       />
       @if (form.controls.licenseNumber.invalid && form.controls.licenseNumber.touched) {
-        <small class="text-destructive">License number is required.</small>
+        <small id="driver-license-error" class="text-destructive">License number is required.</small>
       }
     </div>
 
-    <div class="flex flex-col gap-2">
-      <label for="driver-photo" class="font-medium text-sm">Photo <span class="text-body/50 font-normal">(optional)</span></label>
-      <div class="flex items-center gap-3">
-        @if (existingPhotoUrl()) {
-          <img [src]="existingPhotoUrl()" alt="Current driver photo" class="w-14 h-14 rounded-sm object-cover border border-border" />
-        }
-        <input
-          id="driver-photo"
-          type="file"
-          accept="image/*"
-          (change)="onFileSelected($event)"
-          class="text-sm"
-          aria-label="Driver photo"
-        />
+    <fieldset class="rounded-sm border border-border bg-white p-4">
+      <legend class="px-1 text-sm font-semibold text-heading">
+        Face registration
+        <span class="ml-1 font-normal text-muted">4 required photos</span>
+      </legend>
+
+      <div class="mb-4 flex flex-wrap items-start justify-between gap-2">
+        <p id="face-photo-help" class="max-w-xl text-sm text-body">
+          Upload one clear image for each view, with only the driver visible in the frame.
+        </p>
+        <span
+          class="rounded-sm bg-secondary px-2 py-1 text-xs font-medium text-primary"
+          aria-live="polite"
+        >
+          {{ selectedFacePhotoCount() }} / 4 added
+        </span>
       </div>
-    </div>
+
+      <ol class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-describedby="face-photo-help">
+        @for (photo of facePhotoRequirements; track photo.angle; let index = $index) {
+          <li
+            class="overflow-hidden rounded-sm border bg-white"
+            [class.border-destructive]="facePhotoMissing(photo.angle)"
+            [class.border-border]="!facePhotoMissing(photo.angle)"
+          >
+            <div
+              class="group relative aspect-4/3 overflow-hidden bg-secondary focus-within:ring-2 focus-within:ring-ring focus-within:ring-inset"
+            >
+              @if (facePhotoPreview(photo.angle); as preview) {
+                <img
+                  [src]="preview"
+                  [alt]="photo.label + ' preview'"
+                  class="h-full w-full object-cover"
+                />
+                <span
+                  class="pointer-events-none absolute inset-x-0 bottom-0 bg-black/65 px-2 py-1.5 text-center text-xs font-medium text-white"
+                >
+                  Click image to replace
+                </span>
+              } @else {
+                <div
+                  class="pointer-events-none flex h-full flex-col items-center justify-center gap-2 p-4 text-center text-muted"
+                >
+                  <span
+                    class="flex h-10 w-10 items-center justify-center rounded-sm border border-border bg-white text-primary"
+                  >
+                    <i [class]="'pi ' + photo.icon" aria-hidden="true"></i>
+                  </span>
+                  <span class="text-xs font-medium">Choose image</span>
+                </div>
+              }
+
+              <input
+                #facePhotoInput
+                [id]="'driver-face-' + photo.angle.toLowerCase()"
+                type="file"
+                accept="image/*"
+                required
+                class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                [attr.aria-label]="(facePhotoFile(photo.angle) ? 'Replace ' : 'Upload ') + photo.label + ' photo'"
+                [attr.aria-invalid]="facePhotoMissing(photo.angle)"
+                [attr.aria-describedby]="
+                  'driver-face-' + photo.angle.toLowerCase() + '-help' +
+                  (facePhotoMissing(photo.angle)
+                    ? ' driver-face-' + photo.angle.toLowerCase() + '-error'
+                    : '')
+                "
+                (change)="onFacePhotoSelected(photo.angle, $event)"
+              />
+            </div>
+
+            <div class="flex min-h-28 flex-col p-3">
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <label
+                    [for]="'driver-face-' + photo.angle.toLowerCase()"
+                    class="text-sm font-semibold text-heading"
+                  >
+                    <span class="mr-1 text-xs font-medium text-muted">0{{ index + 1 }}</span>
+                    {{ photo.label }}
+                    <span class="text-destructive" aria-hidden="true">*</span>
+                    <span class="sr-only">(required)</span>
+                  </label>
+                  <p
+                    [id]="'driver-face-' + photo.angle.toLowerCase() + '-help'"
+                    class="mt-1 text-xs text-muted"
+                  >
+                    {{ photo.instruction }}
+                  </p>
+                </div>
+
+                @if (facePhotoFile(photo.angle)) {
+                  <button
+                    type="button"
+                    class="-mr-1 -mt-1 shrink-0 rounded-sm p-1.5 text-muted hover:bg-foreground/5 hover:text-destructive focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                    [attr.aria-label]="'Remove ' + photo.label + ' photo'"
+                    (click)="removeFacePhoto(photo.angle, facePhotoInput)"
+                  >
+                    <i class="pi pi-times text-xs" aria-hidden="true"></i>
+                  </button>
+                }
+              </div>
+
+              <div class="mt-auto pt-2">
+                @if (facePhotoFile(photo.angle); as file) {
+                  <div class="flex items-center gap-1.5 text-xs text-success-text">
+                    <i class="pi pi-check-circle" aria-hidden="true"></i>
+                    <span class="min-w-0 truncate">{{ file.name }}</span>
+                    <span class="shrink-0 text-muted">{{ formatFileSize(file) }}</span>
+                  </div>
+                } @else if (facePhotoMissing(photo.angle)) {
+                  <p
+                    [id]="'driver-face-' + photo.angle.toLowerCase() + '-error'"
+                    class="flex items-center gap-1.5 text-xs text-destructive"
+                  >
+                    <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+                    Photo is required.
+                  </p>
+                }
+              </div>
+            </div>
+          </li>
+        }
+      </ol>
+
+      @if (facePhotosTouched() && missingFacePhotoCount() > 0) {
+        <p class="mt-3 text-sm text-destructive" role="alert">
+          Add all four face photos before saving this driver.
+        </p>
+      }
+
+      <div
+        class="mt-4 flex items-start gap-2 rounded-sm border border-border bg-secondary p-3 text-xs text-body"
+      >
+        <i class="pi pi-info-circle mt-0.5 text-muted" aria-hidden="true"></i>
+        <span>Preview mode: selected photos stay in this browser and are not uploaded yet.</span>
+      </div>
+    </fieldset>
   </form>
 
   <ng-template #footer>
-    <p-button label="Cancel" severity="secondary" [text]="true" (onClick)="visible.set(false)" />
+    <p-button label="Cancel" severity="secondary" [text]="true" (onClick)="cancel()" />
     <p-button label="Save" icon="pi pi-check" [loading]="saving()" (onClick)="submit()" />
   </ng-template>
 </p-dialog>

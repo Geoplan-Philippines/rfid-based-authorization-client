@@ -8,6 +8,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EMPTY, Subject, catchError, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
@@ -32,6 +33,7 @@ import { TruckFormDialog } from './components/truck-form-dialog/truck-form-dialo
 @Component({
   selector: 'app-trucks',
   imports: [
+    DatePipe,
     TableModule,
     AvatarModule,
     TagModule,

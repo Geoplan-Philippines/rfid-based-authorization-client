@@ -84,12 +84,17 @@
             <th scope="col" class="bg-primary! text-primary-foreground!">Plate Read</th>
             <th scope="col" class="bg-primary! text-primary-foreground!">Truck</th>
             <th scope="col" class="bg-primary! text-primary-foreground!">Driver</th>
-            <th scope="col" class="bg-primary! text-primary-foreground!"><span class="sr-only">Action</span></th>
           </tr>
         </ng-template>
 
         <ng-template #body let-item>
-          <tr class="cursor-pointer hover:bg-foreground/5" (click)="openTransaction(item.id)">
+          <tr
+            class="cursor-pointer hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
+            tabindex="0"
+            [attr.aria-label]="'View transaction ' + item.eventCode"
+            (click)="openTransaction(item.id)"
+            (keydown.enter)="$event.target === $event.currentTarget ? openTransaction(item.id) : null"
+          >
             <td class="whitespace-nowrap">{{ item.occurredAt | date: 'MMM d, HH:mm:ss' }}</td>
             <td class="font-mono text-sm">{{ item.eventCode }}</td>
             <td>
@@ -147,22 +152,12 @@
                 <span class="text-body/40">—</span>
               }
             </td>
-            <td class="text-right">
-              <button
-                type="button"
-                class="p-2 rounded-sm text-body/50 hover:text-primary hover:bg-primary/10"
-                [attr.aria-label]="'View transaction ' + item.eventCode"
-                (click)="$event.stopPropagation(); openTransaction(item.id)"
-              >
-                <i class="pi pi-chevron-right" aria-hidden="true"></i>
-              </button>
-            </td>
           </tr>
         </ng-template>
 
         <ng-template #emptymessage>
           <tr>
-            <td colspan="9">
+            <td colspan="8">
               <div class="flex flex-col items-center justify-center py-14" style="color: var(--p-primary-200)">
                 @if (hasFilters()) {
                   <i class="pi pi-filter-slash text-4xl mb-3" aria-hidden="true"></i>

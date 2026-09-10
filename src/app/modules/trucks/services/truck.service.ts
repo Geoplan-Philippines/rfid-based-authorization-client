@@ -5,6 +5,7 @@ import { Observable, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { ApiResponse } from '../../../core/types/api-response.types';
 import { Truck, TruckDetail, TruckListResult, UntaggedTruck } from '../types/truck.types';
+import { BanMutationResult, BanRequest } from '../../../shared/types/ban';
 
 export interface GetTrucksParams {
   page: number;
@@ -66,6 +67,18 @@ export class TruckService {
   restore(id: string): Observable<Truck> {
     return this.http
       .post<ApiResponse<Truck>>(`${this.TRUCKS_URL}/${id}/restore`, {})
+      .pipe(map(response => response.data));
+  }
+
+  ban(id: string, request: BanRequest): Observable<BanMutationResult> {
+    return this.http
+      .post<ApiResponse<BanMutationResult>>(`${this.TRUCKS_URL}/${id}/ban`, request)
+      .pipe(map(response => response.data));
+  }
+
+  liftBan(id: string): Observable<BanMutationResult> {
+    return this.http
+      .post<ApiResponse<BanMutationResult>>(`${this.TRUCKS_URL}/${id}/lift-ban`, {})
       .pipe(map(response => response.data));
   }
 

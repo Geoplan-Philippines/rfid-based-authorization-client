@@ -42,6 +42,17 @@
         <p-button label="Edit details" icon="pi pi-pencil" (onClick)="openEdit()" />
       </div>
     </header>
+    <app-ban-controls
+      class="mb-6 block"
+      [(visible)]="banVisible"
+      [state]="truck"
+      entityLabel="truck"
+      [subjectLabel]="truck.plateNumber"
+      [busy]="busy()"
+      (banRequested)="onBanRequested($event)"
+      (liftRequested)="confirmLiftBan()"
+    />
+
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Left: photo + facts -->

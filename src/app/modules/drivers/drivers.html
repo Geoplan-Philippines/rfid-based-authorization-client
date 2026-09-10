@@ -45,15 +45,21 @@
         <tr>
           <th scope="col" class="bg-primary! text-primary-foreground!">Driver</th>
           <th scope="col" class="bg-primary! text-primary-foreground!">License #</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Eligibility</th>
           <th scope="col" class="bg-primary! text-primary-foreground!">Trucks</th>
           <th scope="col" class="bg-primary! text-primary-foreground!">Last Event</th>
           <th scope="col" class="bg-primary! text-primary-foreground!">Events · 30d</th>
-          <th scope="col" class="bg-primary! text-primary-foreground!"><span class="sr-only">Action</span></th>
         </tr>
       </ng-template>
 
       <ng-template #body let-driver>
-        <tr class="cursor-pointer hover:bg-foreground/5" (click)="openDriver(driver.id)">
+        <tr
+          class="cursor-pointer hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
+          tabindex="0"
+          [attr.aria-label]="'Open ' + driver.firstName + ' ' + driver.lastName"
+          (click)="openDriver(driver.id)"
+          (keydown.enter)="$event.target === $event.currentTarget ? openDriver(driver.id) : null"
+        >
           <td>
             <div class="flex items-center gap-3">
               <p-avatar
@@ -72,6 +78,16 @@
           </td>
           <td class="font-mono text-sm">{{ driver.licenseNumber }}</td>
           <td>
+            <div class="flex flex-wrap items-center gap-2">
+              <p-tag [value]="driver.isBanned ? 'Banned' : 'Eligible'" [severity]="driver.isBanned ? 'danger' : 'success'" />
+              @if (driver.isBanned) {
+                <span class="text-xs text-muted">
+                  {{ driver.isPermanentlyBanned ? 'Permanent' : ('Through ' + (driver.bannedUntil | date: 'mediumDate')) }}
+                </span>
+              }
+            </div>
+          </td>
+          <td>
             @if (driver.trucksCount > 0) {
               <span>{{ driver.trucksCount }} {{ driver.trucksCount === 1 ? 'truck' : 'trucks' }}</span>
             } @else {
@@ -82,16 +98,6 @@
             {{ driver.lastEventAt ? (driver.lastEventAt | date: 'MMM d, HH:mm') : '—' }}
           </td>
           <td>{{ driver.events30d }}</td>
-          <td class="text-right">
-            <button
-              type="button"
-              class="p-2 rounded-sm text-body/50 hover:text-primary hover:bg-primary/10"
-              [attr.aria-label]="'Open ' + driver.firstName + ' ' + driver.lastName"
-              (click)="$event.stopPropagation(); openDriver(driver.id)"
-            >
-              <i class="pi pi-chevron-right" aria-hidden="true"></i>
-            </button>
-          </td>
         </tr>
       </ng-template>
 

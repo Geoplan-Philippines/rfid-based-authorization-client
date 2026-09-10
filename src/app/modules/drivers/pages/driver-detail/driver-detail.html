@@ -40,9 +40,9 @@
             }
           </div>
           <p class="text-sm text-body/60 mt-1">
-            License <span class="font-mono text-heading">{{ driver.licenseNumber }}</span>
+            Driver ID <span class="font-mono text-heading">{{ driver.driverId }}</span>
             <span class="text-body/30">·</span>
-            <span class="font-mono text-xs">{{ driver.id }}</span>
+            License <span class="font-mono text-heading">{{ driver.licenseNumber }}</span>
           </p>
         </div>
       </div>
@@ -51,6 +51,17 @@
         <p-button label="Edit details" icon="pi pi-pencil" (onClick)="openEdit()" />
       </div>
     </header>
+    <app-ban-controls
+      class="mb-6 block"
+      [(visible)]="banVisible"
+      [state]="driver"
+      entityLabel="driver"
+      [subjectLabel]="fullName()"
+      [busy]="busy()"
+      (banRequested)="onBanRequested($event)"
+      (liftRequested)="confirmLiftBan()"
+    />
+
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Left: facts -->

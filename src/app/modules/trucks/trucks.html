@@ -50,16 +50,22 @@
         <tr>
           <th scope="col" class="bg-primary! text-primary-foreground!">Truck</th>
           <th scope="col" class="bg-primary! text-primary-foreground!">Model</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Eligibility</th>
           <th scope="col" class="bg-primary! text-primary-foreground!">Drivers</th>
           <th scope="col" class="bg-primary! text-primary-foreground!">Bound Tag</th>
           <th scope="col" class="bg-primary! text-primary-foreground!">Tag Status</th>
           <th scope="col" class="bg-primary! text-primary-foreground!">Events · 30d</th>
-          <th scope="col" class="bg-primary! text-primary-foreground!"><span class="sr-only">Action</span></th>
         </tr>
       </ng-template>
 
       <ng-template #body let-truck>
-        <tr class="cursor-pointer hover:bg-foreground/5" (click)="openTruck(truck.id)">
+        <tr
+          class="cursor-pointer hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
+          tabindex="0"
+          [attr.aria-label]="'Open ' + truck.plateNumber"
+          (click)="openTruck(truck.id)"
+          (keydown.enter)="$event.target === $event.currentTarget ? openTruck(truck.id) : null"
+        >
           <td>
             <div class="flex items-center gap-3">
               <p-avatar
@@ -77,6 +83,16 @@
             </div>
           </td>
           <td>{{ truck.model ?? '—' }}</td>
+          <td>
+            <div class="flex flex-wrap items-center gap-2">
+              <p-tag [value]="truck.isBanned ? 'Banned' : 'Eligible'" [severity]="truck.isBanned ? 'danger' : 'success'" />
+              @if (truck.isBanned) {
+                <span class="text-xs text-muted">
+                  {{ truck.isPermanentlyBanned ? 'Permanent' : ('Through ' + (truck.bannedUntil | date: 'mediumDate')) }}
+                </span>
+              }
+            </div>
+          </td>
           <td>
             @if (truck.driversCount > 0) {
               <span>{{ truck.driversCount }} {{ truck.driversCount === 1 ? 'driver' : 'drivers' }}</span>
@@ -102,16 +118,6 @@
             }
           </td>
           <td>{{ truck.events30d }}</td>
-          <td class="text-right">
-            <button
-              type="button"
-              class="p-2 rounded-sm text-body/50 hover:text-primary hover:bg-primary/10"
-              [attr.aria-label]="'Open ' + truck.plateNumber"
-              (click)="$event.stopPropagation(); openTruck(truck.id)"
-            >
-              <i class="pi pi-chevron-right" aria-hidden="true"></i>
-            </button>
-          </td>
         </tr>
       </ng-template>
 

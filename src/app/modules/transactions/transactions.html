@@ -69,12 +69,17 @@
           <th scope="col" class="bg-primary! text-primary-foreground!">Plate Read</th>
           <th scope="col" class="bg-primary! text-primary-foreground!">Truck</th>
           <th scope="col" class="bg-primary! text-primary-foreground!">Driver</th>
-          <th scope="col" class="bg-primary! text-primary-foreground!"><span class="sr-only">Action</span></th>
         </tr>
       </ng-template>
 
       <ng-template #body let-tx>
-        <tr class="cursor-pointer hover:bg-foreground/5" (click)="openTransaction(tx.id)">
+        <tr
+          class="cursor-pointer hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
+          tabindex="0"
+          [attr.aria-label]="'View transaction ' + tx.eventCode"
+          (click)="openTransaction(tx.id)"
+          (keydown.enter)="$event.target === $event.currentTarget ? openTransaction(tx.id) : null"
+        >
           <td class="whitespace-nowrap">{{ tx.occurredAt | date: 'MMM d, HH:mm:ss' }}</td>
           <td class="font-mono text-sm">{{ tx.eventCode }}</td>
           <td>
@@ -121,22 +126,12 @@
               <span class="text-body/40">—</span>
             }
           </td>
-          <td class="text-right">
-            <button
-              type="button"
-              class="p-2 rounded-sm text-body/50 hover:text-primary hover:bg-primary/10"
-              [attr.aria-label]="'View transaction ' + tx.eventCode"
-              (click)="$event.stopPropagation(); openTransaction(tx.id)"
-            >
-              <i class="pi pi-chevron-right" aria-hidden="true"></i>
-            </button>
-          </td>
         </tr>
       </ng-template>
 
       <ng-template #emptymessage>
         <tr>
-          <td colspan="8">
+          <td colspan="7">
             <div class="flex flex-col items-center justify-center py-14" style="color: var(--p-primary-200)">
               <i class="pi pi-receipt text-4xl mb-3" aria-hidden="true"></i>
               <p class="text-sm">No transactions found.</p>

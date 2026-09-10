@@ -1,6 +1,7 @@
 import { AssignmentRole, GateEventResult, RfidTagStatus } from '../../../shared/ui/status-tags';
 import { PaginationMeta } from '../../../core/types/api-response.types';
 import { RecentGateEvent } from '../../../shared/types/gate-event';
+import { BanState } from '../../../shared/types/ban';
 
 /** Plain truck entity (returned by create/update/archive/photo). */
 export interface Truck {
@@ -31,7 +32,7 @@ export interface UntaggedTruck {
   model: string | null;
 }
 
-export interface TruckListItem {
+export interface TruckListItem extends BanState {
   id: string;
   plateNumber: string;
   model: string | null;
@@ -62,7 +63,7 @@ export interface TruckDetailDriver {
   photoUrl: string | null;
 }
 
-export interface TruckDetail {
+export interface TruckDetail extends BanState {
   id: string;
   plateNumber: string;
   model: string | null;

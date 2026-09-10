@@ -68,12 +68,17 @@
           <th scope="col" class="bg-primary! text-primary-foreground!">Last Seen</th>
           <th scope="col" class="bg-primary! text-primary-foreground!">Last Result</th>
           <th scope="col" class="bg-primary! text-primary-foreground!">30d Events</th>
-          <th scope="col" class="bg-primary! text-primary-foreground!"><span class="sr-only">Action</span></th>
         </tr>
       </ng-template>
 
       <ng-template #body let-tag>
-        <tr class="cursor-pointer hover:bg-foreground/5" (click)="openTag(tag.id)">
+        <tr
+          class="cursor-pointer hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
+          tabindex="0"
+          [attr.aria-label]="'Open tag ' + tag.epcId"
+          (click)="openTag(tag.id)"
+          (keydown.enter)="$event.target === $event.currentTarget ? openTag(tag.id) : null"
+        >
           <td class="font-mono text-sm font-medium">{{ tag.epcId }}</td>
           <td class="text-sm">{{ tag.serialNo ?? '—' }}</td>
           <td>
@@ -98,22 +103,12 @@
             }
           </td>
           <td>{{ tag.events30d }}</td>
-          <td class="text-right">
-            <button
-              type="button"
-              class="p-2 rounded-sm text-body/50 hover:text-primary hover:bg-primary/10"
-              [attr.aria-label]="'Open tag ' + tag.epcId"
-              (click)="$event.stopPropagation(); openTag(tag.id)"
-            >
-              <i class="pi pi-chevron-right" aria-hidden="true"></i>
-            </button>
-          </td>
         </tr>
       </ng-template>
 
       <ng-template #emptymessage>
         <tr>
-          <td colspan="8">
+          <td colspan="7">
             <div class="flex flex-col items-center justify-center py-14 text-primary-200">
               <i class="pi pi-tag text-4xl mb-3" aria-hidden="true"></i>
               <p class="text-sm">No RFID tags found.</p>

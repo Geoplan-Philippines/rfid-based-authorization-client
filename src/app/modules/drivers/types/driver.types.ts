@@ -1,10 +1,12 @@
 import { AssignmentRole, GateEventResult, RfidTagStatus } from '../../../shared/ui/status-tags';
 import { PaginationMeta } from '../../../core/types/api-response.types';
 import { RecentGateEvent } from '../../../shared/types/gate-event';
+import { BanState } from '../../../shared/types/ban';
 
 /** Plain driver entity (returned by create/update/archive/photo). */
 export interface Driver {
   id: string;
+  driverId: string;
   firstName: string;
   lastName: string;
   licenseNumber: string;
@@ -19,8 +21,9 @@ export interface DriverTruckListSummary {
   plateNumber: string;
 }
 
-export interface DriverListItem {
+export interface DriverListItem extends BanState {
   id: string;
+  driverId: string;
   firstName: string;
   lastName: string;
   licenseNumber: string;
@@ -48,8 +51,9 @@ export interface DriverDetailTruck {
   tagStatus: RfidTagStatus | null;
 }
 
-export interface DriverDetail {
+export interface DriverDetail extends BanState {
   id: string;
+  driverId: string;
   firstName: string;
   lastName: string;
   licenseNumber: string;

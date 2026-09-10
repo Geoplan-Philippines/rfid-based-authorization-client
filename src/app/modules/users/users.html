@@ -71,9 +71,12 @@
 
       <ng-template #body let-user>
         <tr
-          class="cursor-pointer hover:bg-foreground/5"
+          class="cursor-pointer hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
           [class.opacity-60]="busyId() === user.id"
+          tabindex="0"
+          [attr.aria-label]="'Open ' + displayName(user)"
           (click)="openUser(user.id)"
+          (keydown.enter)="$event.target === $event.currentTarget ? openUser(user.id) : null"
         >
           <td>
             <div class="flex items-center gap-3">
@@ -162,14 +165,6 @@
               }
             }
 
-            <button
-              type="button"
-              class="p-2 rounded-sm text-body/50 hover:text-primary hover:bg-primary/10"
-              [attr.aria-label]="'Open ' + displayName(user)"
-              (click)="openUser(user.id)"
-            >
-              <i class="pi pi-chevron-right" aria-hidden="true"></i>
-            </button>
           </td>
         </tr>
       </ng-template>

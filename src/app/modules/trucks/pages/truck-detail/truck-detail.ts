@@ -33,6 +33,8 @@ import {
   AssignPicker,
   AssignedEntry,
 } from '../../../../shared/components/assign-picker/assign-picker';
+import { BanControls } from '../../../../shared/components/ban-controls/ban-controls';
+import { BanRequest } from '../../../../shared/types/ban';
 import { DriverService } from '../../../drivers/services/driver.service';
 import { TruckService } from '../../services/truck.service';
 import { TruckDetail as TruckDetailModel } from '../../types/truck.types';
@@ -49,6 +51,7 @@ import { TruckFormDialog } from '../../components/truck-form-dialog/truck-form-d
     ProgressSpinnerModule,
     AssignPicker,
     TruckFormDialog,
+    BanControls,
   ],
   templateUrl: './truck-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -78,6 +81,7 @@ export class TruckDetail implements OnInit {
 
   editVisible = signal(false);
   assignVisible = signal(false);
+  banVisible = signal(false);
 
   assignedDrivers = computed<AssignedEntry[]>(() =>
     (this.detail()?.drivers ?? []).map(driver => ({
@@ -195,6 +199,53 @@ export class TruckDetail implements OnInit {
           error: error => {
             this.busy.set(false);
             this.notifications.fromHttpError(error, 'Failed to unassign driver.');
+          },
+        });
+      },
+    });
+  }
+
+  onBanRequested(request: BanRequest): void {
+    const detail = this.detail();
+    if (!detail) return;
+
+    this.busy.set(true);
+    this.truckService.ban(detail.id, request).subscribe({
+      next: () => {
+        this.busy.set(false);
+        this.banVisible.set(false);
+        this.notifications.success('Truck ban updated.');
+        this.reload();
+      },
+      error: error => {
+        this.busy.set(false);
+        this.notifications.fromHttpError(error, 'Failed to update truck ban.');
+      },
+    });
+  }
+
+  confirmLiftBan(): void {
+    const detail = this.detail();
+    if (!detail) return;
+
+    this.confirmationService.confirm({
+      header: 'Lift truck ban',
+      message: `Lift the ban on ${detail.plateNumber}? The truck becomes eligible at the gate immediately.`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Lift ban',
+      rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => {
+        this.busy.set(true);
+        this.truckService.liftBan(detail.id).subscribe({
+          next: () => {
+            this.busy.set(false);
+            this.notifications.success('Truck ban lifted.');
+            this.reload();
+          },
+          error: error => {
+            this.busy.set(false);
+            this.notifications.fromHttpError(error, 'Failed to lift truck ban.');
           },
         });
       },

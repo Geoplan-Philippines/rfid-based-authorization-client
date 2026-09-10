@@ -1,0 +1,134 @@
+<section class="flex flex-wrap items-center justify-between gap-4 rounded-sm border border-border bg-white p-4">
+  <div class="flex min-w-0 items-start gap-3">
+    <i
+      class="pi mt-0.5 text-lg"
+      [class.pi-ban]="state().isBanned"
+      [class.pi-check-circle]="!state().isBanned"
+      [class.text-destructive]="state().isBanned"
+      [class.text-success-text]="!state().isBanned"
+      aria-hidden="true"
+    ></i>
+    <div class="min-w-0">
+      <div class="flex flex-wrap items-center gap-2">
+        <h2 class="text-sm font-semibold text-heading">Gate eligibility</h2>
+        <p-tag [value]="state().isBanned ? 'Banned' : 'Eligible'" [severity]="state().isBanned ? 'danger' : 'success'" />
+      </div>
+      @if (state().isBanned && state().isPermanentlyBanned) {
+        <p class="mt-1 text-sm text-muted">Permanent ban. This {{ entityLabel() }} is not eligible at the gate.</p>
+      } @else if (state().isBanned && state().bannedUntil) {
+        <p class="mt-1 text-sm text-muted">
+          Banned through {{ state().bannedUntil | date: 'mediumDate' }}, inclusive. This {{ entityLabel() }} is not eligible at the gate.
+        </p>
+      } @else if (!state().isBanned && state().bannedUntil) {
+        <p class="mt-1 text-sm text-muted">
+          Eligible. The timed ban ended {{ state().bannedUntil | date: 'mediumDate' }}.
+        </p>
+      } @else {
+        <p class="mt-1 text-sm text-muted">No active ban. This {{ entityLabel() }} is eligible at the gate.</p>
+      }
+    </div>
+  </div>
+
+  <div class="flex shrink-0 flex-wrap items-center gap-2">
+    @if (state().isBanned) {
+      <p-button
+        label="Lift ban"
+        icon="pi pi-lock-open"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="busy()"
+        (onClick)="liftRequested.emit()"
+      />
+    }
+    <p-button
+      [label]="state().isBanned ? 'Change ban' : 'Ban ' + entityLabel()"
+      icon="pi pi-ban"
+      severity="danger"
+      [outlined]="true"
+      [disabled]="busy()"
+      (onClick)="openDialog()"
+    />
+  </div>
+</section>
+
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="!busy()"
+  [closable]="!busy()"
+  [closeOnEscape]="!busy()"
+  [style]="{ width: '32rem' }"
+  [breakpoints]="{ '640px': '92vw' }"
+  [header]="'Ban ' + entityLabel()"
+>
+  <form (ngSubmit)="submit()" class="flex flex-col gap-5 pt-2">
+    <div class="rounded-sm border border-border bg-foreground/3 p-3">
+      <p class="text-sm font-medium text-heading">{{ subjectLabel() }}</p>
+      @if (state().isBanned && state().isPermanentlyBanned) {
+        <p class="mt-1 text-xs text-muted">Current server status: permanently banned.</p>
+      } @else if (state().isBanned && state().bannedUntil) {
+        <p class="mt-1 text-xs text-muted">
+          Current server status: banned through {{ state().bannedUntil | date: 'mediumDate' }}, inclusive.
+        </p>
+      } @else {
+        <p class="mt-1 text-xs text-muted">Current server status: eligible.</p>
+      }
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <span id="ban-duration-label" class="text-sm font-medium text-heading">Ban duration</span>
+      <p-selectButton
+        [options]="modeOptions"
+        [ngModel]="mode()"
+        (ngModelChange)="selectMode($event)"
+        [ngModelOptions]="{ standalone: true }"
+        optionLabel="label"
+        optionValue="value"
+        [allowEmpty]="false"
+        ariaLabelledBy="ban-duration-label"
+      />
+      <p class="text-xs text-muted">
+        {{ mode() === 'permanent' ? 'No automatic expiry.' : 'Choose the last calendar day this ' + entityLabel() + ' remains ineligible.' }}
+      </p>
+    </div>
+
+    @if (mode() === 'timed') {
+      <div class="flex flex-col gap-2">
+        <label for="ban-until-date" class="text-sm font-medium text-heading">Ban through</label>
+        <p-datepicker
+          inputId="ban-until-date"
+          [ngModel]="untilDate()"
+          (ngModelChange)="selectUntilDate($event)"
+          [ngModelOptions]="{ standalone: true }"
+          [minDate]="today"
+          [showIcon]="true"
+          iconDisplay="input"
+          [readonlyInput]="true"
+          appendTo="body"
+          dateFormat="M d, yy"
+          placeholder="Choose a date"
+          styleClass="w-full"
+          [class.ng-invalid]="dateTouched() && timedDateInvalid()"
+          [class.ng-dirty]="dateTouched() && timedDateInvalid()"
+        />
+        @if (dateTouched() && timedDateInvalid()) {
+          <small class="text-destructive">Choose today or a future date.</small>
+        }
+      </div>
+    }
+  </form>
+
+  <ng-template #footer>
+    <p-button label="Cancel" severity="secondary" [text]="true" [disabled]="busy()" (onClick)="cancel()" />
+    <p-button
+      label="Apply ban"
+      icon="pi pi-ban"
+      severity="danger"
+      [loading]="busy()"
+      [disabled]="timedDateInvalid()"
+      (onClick)="submit()"
+    />
+  </ng-template>
+</p-dialog>
