@@ -1,6 +1,6 @@
 export interface BanState {
   isPermanentlyBanned: boolean;
-  bannedFrom: string | null;
+  bannedFrom?: string | null;
   bannedUntil: string | null;
   isBanned: boolean;
 }
@@ -14,7 +14,7 @@ export type BanRequest =
 export interface BanMutationResult {
   id: string;
   isPermanentlyBanned: boolean;
-  bannedFrom: string | null;
+  bannedFrom?: string | null;
   bannedUntil: string | null;
   isBanned?: boolean;
 }

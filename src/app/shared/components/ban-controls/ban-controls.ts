@@ -69,8 +69,7 @@ export class BanControls {
   });
 
   protected readonly fromDateInvalid = computed(() => {
-    if (this.mode() !== 'timed') return false;
-    return !this.fromDate();
+    return false;
   });
 
   protected readonly toDateInvalid = computed(() => {
@@ -89,7 +88,11 @@ export class BanControls {
 
   protected readonly timedDateInvalid = computed(() => {
     if (this.mode() !== 'timed') return false;
-    return this.fromDateInvalid() || this.toDateInvalid() || this.dateRangeInvalid();
+    const to = this.toDate();
+    if (!to || to.getTime() < this.today.getTime()) return true;
+    const from = this.fromDate();
+    if (from && from.getTime() > to.getTime()) return true;
+    return false;
   });
 
   constructor() {
@@ -104,10 +107,6 @@ export class BanControls {
           const existingTo = state.bannedUntil ? parseQueryDate(state.bannedUntil) : null;
           this.fromDate.set(existingFrom);
           this.toDate.set(existingTo);
-        } else if (state.isPermanentlyBanned) {
-          this.mode.set('permanent');
-          this.fromDate.set(this.today);
-          this.toDate.set(null);
         } else {
           this.mode.set('permanent');
           this.fromDate.set(this.today);
@@ -150,19 +149,28 @@ export class BanControls {
 
   protected submit(): void {
     if (this.mode() === 'permanent') {
-      this.banRequested.emit({ permanent: true });
+      this.banRequested.emit({ isPermanent: true });
       return;
     }
 
     this.dateTouched.set(true);
-    const from = this.fromDate();
     const to = this.toDate();
-    if (!from || !to || this.timedDateInvalid()) return;
+    if (!to || this.timedDateInvalid()) return;
 
-    this.banRequested.emit({
-      permanent: false,
-      from: toQueryDate(from),
-      to: toQueryDate(to),
-    });
+    const toStr = toQueryDate(to);
+    const from = this.fromDate();
+
+    if (from) {
+      this.banRequested.emit({
+        isPermanent: false,
+        from: toQueryDate(from),
+        until: toStr,
+      });
+    } else {
+      this.banRequested.emit({
+        isPermanent: false,
+        until: toStr,
+      });
+    }
   }
 }
