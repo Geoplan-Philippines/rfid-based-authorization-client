@@ -88,7 +88,11 @@
               <p-tag [value]="truck.isBanned ? 'Banned' : 'Eligible'" [severity]="truck.isBanned ? 'danger' : 'success'" />
               @if (truck.isBanned) {
                 <span class="text-xs text-muted">
-                  {{ truck.isPermanentlyBanned ? 'Permanent' : ('Through ' + (truck.bannedUntil | date: 'mediumDate')) }}
+                  {{ truck.isPermanentlyBanned ? 'Permanent' : (truck.bannedFrom ? ((truck.bannedFrom | date: 'mediumDate') + ' – ' + (truck.bannedUntil | date: 'mediumDate')) : ('Through ' + (truck.bannedUntil | date: 'mediumDate'))) }}
+                </span>
+              } @else if (truck.bannedFrom && truck.bannedUntil && !truck.isPermanentlyBanned && isFutureScheduled(truck.bannedFrom)) {
+                <span class="text-xs text-muted">
+                  Scheduled {{ truck.bannedFrom | date: 'mediumDate' }} – {{ truck.bannedUntil | date: 'mediumDate' }}
                 </span>
               }
             </div>

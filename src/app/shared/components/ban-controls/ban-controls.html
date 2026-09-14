@@ -3,21 +3,34 @@
     <i
       class="pi mt-0.5 text-lg"
       [class.pi-ban]="state().isBanned"
-      [class.pi-check-circle]="!state().isBanned"
+      [class.pi-clock]="!state().isBanned && isFutureBan()"
+      [class.pi-check-circle]="!state().isBanned && !isFutureBan()"
       [class.text-destructive]="state().isBanned"
-      [class.text-success-text]="!state().isBanned"
+      [class.text-amber-500]="!state().isBanned && isFutureBan()"
+      [class.text-success-text]="!state().isBanned && !isFutureBan()"
       aria-hidden="true"
     ></i>
     <div class="min-w-0">
       <div class="flex flex-wrap items-center gap-2">
         <h2 class="text-sm font-semibold text-heading">Gate eligibility</h2>
         <p-tag [value]="state().isBanned ? 'Banned' : 'Eligible'" [severity]="state().isBanned ? 'danger' : 'success'" />
+        @if (!state().isBanned && isFutureBan()) {
+          <p-tag value="Ban scheduled" severity="warn" />
+        }
       </div>
       @if (state().isBanned && state().isPermanentlyBanned) {
         <p class="mt-1 text-sm text-muted">Permanent ban. This {{ entityLabel() }} is not eligible at the gate.</p>
       } @else if (state().isBanned && state().bannedUntil) {
         <p class="mt-1 text-sm text-muted">
-          Banned through {{ state().bannedUntil | date: 'mediumDate' }}, inclusive. This {{ entityLabel() }} is not eligible at the gate.
+          @if (state().bannedFrom) {
+            Banned from {{ state().bannedFrom | date: 'mediumDate' }} through {{ state().bannedUntil | date: 'mediumDate' }}, inclusive. This {{ entityLabel() }} is not eligible at the gate.
+          } @else {
+            Banned through {{ state().bannedUntil | date: 'mediumDate' }}, inclusive. This {{ entityLabel() }} is not eligible at the gate.
+          }
+        </p>
+      } @else if (!state().isBanned && isFutureBan()) {
+        <p class="mt-1 text-sm text-muted">
+          Scheduled ban: will be banned from {{ state().bannedFrom | date: 'mediumDate' }} through {{ state().bannedUntil | date: 'mediumDate' }}, inclusive. Currently eligible.
         </p>
       } @else if (!state().isBanned && state().bannedUntil) {
         <p class="mt-1 text-sm text-muted">
@@ -30,7 +43,7 @@
   </div>
 
   <div class="flex shrink-0 flex-wrap items-center gap-2">
-    @if (state().isBanned) {
+    @if (state().isBanned || isFutureBan()) {
       <p-button
         label="Lift ban"
         icon="pi pi-lock-open"
@@ -41,7 +54,7 @@
       />
     }
     <p-button
-      [label]="state().isBanned ? 'Change ban' : 'Ban ' + entityLabel()"
+      [label]="state().isBanned || isFutureBan() ? 'Change ban' : 'Ban ' + entityLabel()"
       icon="pi pi-ban"
       severity="danger"
       [outlined]="true"
@@ -70,7 +83,15 @@
         <p class="mt-1 text-xs text-muted">Current server status: permanently banned.</p>
       } @else if (state().isBanned && state().bannedUntil) {
         <p class="mt-1 text-xs text-muted">
-          Current server status: banned through {{ state().bannedUntil | date: 'mediumDate' }}, inclusive.
+          @if (state().bannedFrom) {
+            Current server status: banned from {{ state().bannedFrom | date: 'mediumDate' }} through {{ state().bannedUntil | date: 'mediumDate' }}, inclusive.
+          } @else {
+            Current server status: banned through {{ state().bannedUntil | date: 'mediumDate' }}, inclusive.
+          }
+        </p>
+      } @else if (!state().isBanned && isFutureBan()) {
+        <p class="mt-1 text-xs text-muted">
+          Current server status: scheduled ban from {{ state().bannedFrom | date: 'mediumDate' }} through {{ state().bannedUntil | date: 'mediumDate' }}, inclusive. Currently eligible.
         </p>
       } @else {
         <p class="mt-1 text-xs text-muted">Current server status: eligible.</p>
@@ -90,32 +111,59 @@
         ariaLabelledBy="ban-duration-label"
       />
       <p class="text-xs text-muted">
-        {{ mode() === 'permanent' ? 'No automatic expiry.' : 'Choose the last calendar day this ' + entityLabel() + ' remains ineligible.' }}
+        {{ mode() === 'permanent' ? 'No automatic expiry.' : 'Choose the calendar date range this ' + entityLabel() + ' remains ineligible. The start date may be today or scheduled for the future.' }}
       </p>
     </div>
 
     @if (mode() === 'timed') {
-      <div class="flex flex-col gap-2">
-        <label for="ban-until-date" class="text-sm font-medium text-heading">Ban through</label>
-        <p-datepicker
-          inputId="ban-until-date"
-          [ngModel]="untilDate()"
-          (ngModelChange)="selectUntilDate($event)"
-          [ngModelOptions]="{ standalone: true }"
-          [minDate]="today"
-          [showIcon]="true"
-          iconDisplay="input"
-          [readonlyInput]="true"
-          appendTo="body"
-          dateFormat="M d, yy"
-          placeholder="Choose a date"
-          styleClass="w-full"
-          [class.ng-invalid]="dateTouched() && timedDateInvalid()"
-          [class.ng-dirty]="dateTouched() && timedDateInvalid()"
-        />
-        @if (dateTouched() && timedDateInvalid()) {
-          <small class="text-destructive">Choose today or a future date.</small>
-        }
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-2">
+          <label for="ban-from-date" class="text-sm font-medium text-heading">Ban from</label>
+          <p-datepicker
+            inputId="ban-from-date"
+            [ngModel]="fromDate()"
+            (ngModelChange)="selectFromDate($event)"
+            [ngModelOptions]="{ standalone: true }"
+            [minDate]="today"
+            [showIcon]="true"
+            iconDisplay="input"
+            [readonlyInput]="true"
+            appendTo="body"
+            dateFormat="M d, yy"
+            placeholder="Choose start date"
+            styleClass="w-full"
+            [class.ng-invalid]="dateTouched() && fromDateInvalid()"
+            [class.ng-dirty]="dateTouched() && fromDateInvalid()"
+          />
+          @if (dateTouched() && fromDateInvalid()) {
+            <small class="text-destructive">Choose a start date.</small>
+          }
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="ban-to-date" class="text-sm font-medium text-heading">Ban through</label>
+          <p-datepicker
+            inputId="ban-to-date"
+            [ngModel]="toDate()"
+            (ngModelChange)="selectToDate($event)"
+            [ngModelOptions]="{ standalone: true }"
+            [minDate]="fromDate() ?? today"
+            [showIcon]="true"
+            iconDisplay="input"
+            [readonlyInput]="true"
+            appendTo="body"
+            dateFormat="M d, yy"
+            placeholder="Choose end date"
+            styleClass="w-full"
+            [class.ng-invalid]="dateTouched() && (toDateInvalid() || dateRangeInvalid())"
+            [class.ng-dirty]="dateTouched() && (toDateInvalid() || dateRangeInvalid())"
+          />
+          @if (dateTouched() && toDateInvalid()) {
+            <small class="text-destructive">Choose today or a future date.</small>
+          } @else if (dateTouched() && dateRangeInvalid()) {
+            <small class="text-destructive">End date must be on or after start date.</small>
+          }
+        </div>
       </div>
     }
   </form>

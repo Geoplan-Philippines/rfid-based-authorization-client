@@ -25,6 +25,7 @@ import { InputTextModule } from 'primeng/inputtext';
 
 import { isTypingTarget } from '../../core/utils/keyboard';
 import { resolvePhotoUrl } from '../../core/utils/photo-url';
+import { isFutureDate } from '../../shared/utils/date';
 import { GetDriversParams, DriverService } from './services/driver.service';
 import { DriverListItem } from './types/driver.types';
 import { DriverFormDialog } from './components/driver-form-dialog/driver-form-dialog';
@@ -59,6 +60,7 @@ export class Drivers implements OnInit {
   private searchInput$ = new Subject<string>();
 
   protected readonly resolvePhotoUrl = resolvePhotoUrl;
+  protected readonly isFutureScheduled = isFutureDate;
 
   private searchBox = viewChild<ElementRef<HTMLInputElement>>('searchBox');
 
