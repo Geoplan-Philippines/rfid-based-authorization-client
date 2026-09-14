@@ -167,6 +167,20 @@ export class TransactionDetail implements OnInit {
         this.transaction.set(tx);
         this.loading.set(false);
       });
+
+    // Realtime updates: refresh detail when server emits updates for this transaction (GEO-101)
+    this.transactionService
+      .getTransactionStream()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(event => {
+        const current = this.transaction();
+        if (current && event.data.id === current.id) {
+          this.transactionService
+            .getTransactionById(current.id)
+            .pipe(catchError(() => EMPTY))
+            .subscribe(tx => this.transaction.set(tx));
+        }
+      });
   }
 
   setSnapshotFilter(filter: SnapshotFilter): void {

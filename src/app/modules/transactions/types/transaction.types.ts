@@ -34,6 +34,7 @@ export interface TransactionListItem {
   id: string;
   eventCode: string;
   occurredAt: string;
+  createdAt?: string;
   result: GateEventResult;
   rfidTag: { epcId: string; status: RFIDTagStatus } | null;
   plateRead: string | null;
@@ -42,6 +43,13 @@ export interface TransactionListItem {
   truckInRegistry: boolean;
   driver: DriverSummary | null;
   isOpen: boolean;
+}
+
+export type TransactionEventType = 'transaction.created' | 'transaction.updated';
+
+export interface TransactionStreamEvent {
+  type: TransactionEventType;
+  data: TransactionListItem;
 }
 
 /** Live totals per result, returned in the list `meta`. Respects search, ignores the selected result. */

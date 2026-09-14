@@ -14,7 +14,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 
 import { GetTransactionsParams, TransactionService } from './services/transaction.service';
-import { GateEventResult, TransactionListItem, TransactionResultCounts } from './types/transaction.types';
+import { GateEventResult, TransactionListItem, TransactionResultCounts, TransactionStreamEvent } from './types/transaction.types';
 import { TagSeverity, resultTag, tagStatusTag } from './utils/transaction-display';
 
 type ResultFilter = GateEventResult | 'ALL';
@@ -126,7 +126,114 @@ export class Transactions implements OnInit {
         this.load();
       });
 
+    // Realtime updates: subscribe to server-sent EventStream (GEO-101)
+    this.transactionService
+      .getTransactionStream()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(event => {
+        this.handleStreamEvent(event);
+      });
+
     this.load();
+  }
+
+  private handleStreamEvent(event: TransactionStreamEvent): void {
+    const tx = event.data;
+    if (!tx || !tx.id) return;
+
+    if (event.type === 'transaction.created') {
+      this.handleTransactionCreated(tx);
+    } else if (event.type === 'transaction.updated') {
+      this.handleTransactionUpdated(tx);
+    } else {
+      const exists = this.transactions().some(t => t.id === tx.id);
+      if (exists) {
+        this.handleTransactionUpdated(tx);
+      } else {
+        this.handleTransactionCreated(tx);
+      }
+    }
+  }
+
+  private handleTransactionCreated(newTx: TransactionListItem): void {
+    // 1. Update live result counts
+    const currentCounts = this.counts();
+    if (currentCounts && newTx.result in currentCounts) {
+      this.counts.set({
+        ...currentCounts,
+        [newTx.result]: (currentCounts[newTx.result] ?? 0) + 1,
+      });
+    }
+
+    // 2. Check if newTx matches current result filter
+    const activeResult = this.selectedResult();
+    if (activeResult !== 'ALL' && activeResult !== newTx.result) {
+      return;
+    }
+
+    // 3. Check if newTx matches search filter
+    const term = this.search().trim().toLowerCase();
+    if (term) {
+      const matches =
+        newTx.eventCode.toLowerCase().includes(term) ||
+        (newTx.plateRead?.toLowerCase().includes(term) ?? false) ||
+        (newTx.rfidTag?.epcId.toLowerCase().includes(term) ?? false) ||
+        (newTx.truck?.plateNumber.toLowerCase().includes(term) ?? false);
+      if (!matches) return;
+    }
+
+    // 4. Update the list if on page 1
+    if (this.page() === 1) {
+      this.loading.set(false);
+      const currentList = this.transactions();
+      const existingIndex = currentList.findIndex(t => t.id === newTx.id);
+
+      if (existingIndex >= 0) {
+        const updated = [...currentList];
+        updated[existingIndex] = newTx;
+        this.transactions.set(updated);
+      } else {
+        const updated = [newTx, ...currentList];
+        if (updated.length > this.limit()) {
+          updated.pop();
+        }
+        this.transactions.set(updated);
+        this.total.update(n => n + 1);
+      }
+    } else {
+      this.total.update(n => n + 1);
+    }
+  }
+
+  private handleTransactionUpdated(updatedTx: TransactionListItem): void {
+    const currentList = this.transactions();
+    const index = currentList.findIndex(t => t.id === updatedTx.id);
+    if (index >= 0) {
+      const oldTx = currentList[index];
+      if (oldTx.result !== updatedTx.result) {
+        const currentCounts = this.counts();
+        if (currentCounts) {
+          const updatedCounts = { ...currentCounts };
+          if (updatedCounts[oldTx.result] !== undefined) {
+            updatedCounts[oldTx.result] = Math.max(0, updatedCounts[oldTx.result] - 1);
+          }
+          if (updatedCounts[updatedTx.result] !== undefined) {
+            updatedCounts[updatedTx.result] = (updatedCounts[updatedTx.result] ?? 0) + 1;
+          }
+          this.counts.set(updatedCounts);
+        }
+      }
+
+      const activeResult = this.selectedResult();
+      if (activeResult !== 'ALL' && activeResult !== updatedTx.result) {
+        this.transactions.set(currentList.filter(t => t.id !== updatedTx.id));
+        this.total.update(n => Math.max(0, n - 1));
+      } else {
+        const updated = [...currentList];
+        updated[index] = updatedTx;
+        this.transactions.set(updated);
+      }
+    }
   }
 
   private load(): void {
