@@ -82,7 +82,11 @@
               <p-tag [value]="driver.isBanned ? 'Banned' : 'Eligible'" [severity]="driver.isBanned ? 'danger' : 'success'" />
               @if (driver.isBanned) {
                 <span class="text-xs text-muted">
-                  {{ driver.isPermanentlyBanned ? 'Permanent' : ('Through ' + (driver.bannedUntil | date: 'mediumDate')) }}
+                  {{ driver.isPermanentlyBanned ? 'Permanent' : (driver.bannedFrom ? ((driver.bannedFrom | date: 'mediumDate') + ' – ' + (driver.bannedUntil | date: 'mediumDate')) : ('Through ' + (driver.bannedUntil | date: 'mediumDate'))) }}
+                </span>
+              } @else if (driver.bannedFrom && driver.bannedUntil && !driver.isPermanentlyBanned && isFutureScheduled(driver.bannedFrom)) {
+                <span class="text-xs text-muted">
+                  Scheduled {{ driver.bannedFrom | date: 'mediumDate' }} – {{ driver.bannedUntil | date: 'mediumDate' }}
                 </span>
               }
             </div>

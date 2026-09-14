@@ -18,10 +18,16 @@ export function toQueryDate(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-/** Parses a `YYYY-MM-DD` string into a local Date; `null` if absent/malformed. */
+/** Parses a `YYYY-MM-DD` or ISO date string into a local Date; `null` if absent/malformed. */
 export function parseQueryDate(value: string | null | undefined): Date | null {
-  const match = value ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(value) : null;
+  const match = value ? /^(\d{4})-(\d{2})-(\d{2})/.exec(value) : null;
   if (!match) return null;
   const [, y, m, d] = match;
   return new Date(Number(y), Number(m) - 1, Number(d));
 }
+
+export function isFutureDate(value: string | null | undefined, today = startOfToday()): boolean {
+  const date = parseQueryDate(value);
+  return date !== null && date.getTime() > today.getTime();
+}
+

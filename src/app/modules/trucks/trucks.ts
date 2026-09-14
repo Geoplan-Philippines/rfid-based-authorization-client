@@ -25,6 +25,7 @@ import { InputTextModule } from 'primeng/inputtext';
 
 import { isTypingTarget } from '../../core/utils/keyboard';
 import { resolvePhotoUrl } from '../../core/utils/photo-url';
+import { isFutureDate } from '../../shared/utils/date';
 import { rfidTagStatusTag } from '../../shared/ui/status-tags';
 import { GetTrucksParams, TruckService } from './services/truck.service';
 import { TruckListItem } from './types/truck.types';
@@ -61,6 +62,7 @@ export class Trucks implements OnInit {
 
   protected readonly resolvePhotoUrl = resolvePhotoUrl;
   protected readonly rfidTagStatusTag = rfidTagStatusTag;
+  protected readonly isFutureScheduled = isFutureDate;
 
   private searchBox = viewChild<ElementRef<HTMLInputElement>>('searchBox');
 

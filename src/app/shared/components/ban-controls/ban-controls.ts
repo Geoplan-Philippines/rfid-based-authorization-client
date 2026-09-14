@@ -19,7 +19,7 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { TagModule } from 'primeng/tag';
 
 import { BanRequest, BanState } from '../../types/ban';
-import { startOfToday, toQueryDate } from '../../utils/date';
+import { parseQueryDate, startOfToday, toQueryDate } from '../../utils/date';
 
 type BanMode = 'permanent' | 'timed';
 
@@ -47,15 +47,49 @@ export class BanControls {
   protected readonly today = startOfToday();
   protected readonly modeOptions: BanModeOption[] = [
     { label: 'Permanent', value: 'permanent' },
-    { label: 'Until a date', value: 'timed' },
+    { label: 'Timed ban', value: 'timed' },
   ];
   protected readonly mode = signal<BanMode>('permanent');
-  protected readonly untilDate = signal<Date | null>(null);
+  protected readonly fromDate = signal<Date | null>(null);
+  protected readonly toDate = signal<Date | null>(null);
   protected readonly dateTouched = signal(false);
+
+  /** Backward-compatible alias for toDate */
+  get untilDate() {
+    return this.toDate;
+  }
+
+  protected readonly isFutureBan = computed(() => {
+    const state = this.state();
+    if (state.isBanned || state.isPermanentlyBanned || !state.bannedFrom || !state.bannedUntil) {
+      return false;
+    }
+    const from = parseQueryDate(state.bannedFrom);
+    return from !== null && from.getTime() > this.today.getTime();
+  });
+
+  protected readonly fromDateInvalid = computed(() => {
+    if (this.mode() !== 'timed') return false;
+    return !this.fromDate();
+  });
+
+  protected readonly toDateInvalid = computed(() => {
+    if (this.mode() !== 'timed') return false;
+    const to = this.toDate();
+    return !to || to.getTime() < this.today.getTime();
+  });
+
+  protected readonly dateRangeInvalid = computed(() => {
+    if (this.mode() !== 'timed') return false;
+    const from = this.fromDate();
+    const to = this.toDate();
+    if (!from || !to) return false;
+    return from.getTime() > to.getTime();
+  });
+
   protected readonly timedDateInvalid = computed(() => {
     if (this.mode() !== 'timed') return false;
-    const date = this.untilDate();
-    return !date || date.getTime() < this.today.getTime();
+    return this.fromDateInvalid() || this.toDateInvalid() || this.dateRangeInvalid();
   });
 
   constructor() {
@@ -64,13 +98,20 @@ export class BanControls {
 
       const state = this.state();
       untracked(() => {
-        if (state.isBanned && !state.isPermanentlyBanned && state.bannedUntil) {
-          const existingDate = new Date(state.bannedUntil);
+        if (!state.isPermanentlyBanned && (state.isBanned || this.isFutureBan())) {
           this.mode.set('timed');
-          this.untilDate.set(Number.isNaN(existingDate.getTime()) ? null : existingDate);
+          const existingFrom = state.bannedFrom ? parseQueryDate(state.bannedFrom) : this.today;
+          const existingTo = state.bannedUntil ? parseQueryDate(state.bannedUntil) : null;
+          this.fromDate.set(existingFrom);
+          this.toDate.set(existingTo);
+        } else if (state.isPermanentlyBanned) {
+          this.mode.set('permanent');
+          this.fromDate.set(this.today);
+          this.toDate.set(null);
         } else {
           this.mode.set('permanent');
-          this.untilDate.set(null);
+          this.fromDate.set(this.today);
+          this.toDate.set(null);
         }
         this.dateTouched.set(false);
       });
@@ -84,11 +125,23 @@ export class BanControls {
   protected selectMode(mode: BanMode): void {
     this.mode.set(mode);
     this.dateTouched.set(false);
+    if (mode === 'timed' && !this.fromDate()) {
+      this.fromDate.set(this.today);
+    }
+  }
+
+  protected selectFromDate(date: Date | null): void {
+    this.fromDate.set(date);
+    this.dateTouched.set(true);
+  }
+
+  protected selectToDate(date: Date | null): void {
+    this.toDate.set(date);
+    this.dateTouched.set(true);
   }
 
   protected selectUntilDate(date: Date | null): void {
-    this.untilDate.set(date);
-    this.dateTouched.set(true);
+    this.selectToDate(date);
   }
 
   protected cancel(): void {
@@ -97,14 +150,19 @@ export class BanControls {
 
   protected submit(): void {
     if (this.mode() === 'permanent') {
-      this.banRequested.emit({ isPermanent: true });
+      this.banRequested.emit({ permanent: true });
       return;
     }
 
     this.dateTouched.set(true);
-    const until = this.untilDate();
-    if (!until || this.timedDateInvalid()) return;
+    const from = this.fromDate();
+    const to = this.toDate();
+    if (!from || !to || this.timedDateInvalid()) return;
 
-    this.banRequested.emit({ isPermanent: false, until: toQueryDate(until) });
+    this.banRequested.emit({
+      permanent: false,
+      from: toQueryDate(from),
+      to: toQueryDate(to),
+    });
   }
 }
