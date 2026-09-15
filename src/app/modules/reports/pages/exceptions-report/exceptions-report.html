@@ -112,10 +112,14 @@
               @if (item.rfidTag) {
                 <div class="flex items-center gap-2">
                   <span class="font-mono text-sm">{{ item.rfidTag.epcId }}</span>
-                  <p-tag
-                    [value]="rfidTagStatusTag(item.rfidTag.status).label"
-                    [severity]="rfidTagStatusTag(item.rfidTag.status).severity"
-                  />
+                  @if (item.rfidTag.status) {
+                    <p-tag
+                      [value]="rfidTagStatusTag(item.rfidTag.status).label"
+                      [severity]="rfidTagStatusTag(item.rfidTag.status).severity"
+                    />
+                  } @else {
+                    <p-tag value="Unauthorized" severity="danger" />
+                  }
                 </div>
               } @else {
                 <span class="text-body/40">—</span>

@@ -5,6 +5,8 @@ import { PaginationMeta } from '../../../core/types/api-response.types';
 export type GateEventResult =
   | 'VERIFIED'
   | 'UNKNOWN_TAG'
+  | 'UNAUTHORIZED'
+  | 'EXPRESSWAY_TAG'
   | 'FACE_MISMATCH'
   | 'PLATE_MISMATCH'
   | 'MANUAL_OVERRIDE'
@@ -36,7 +38,7 @@ export interface TransactionListItem {
   occurredAt: string;
   createdAt?: string;
   result: GateEventResult;
-  rfidTag: { epcId: string; status: RFIDTagStatus } | null;
+  rfidTag: { epcId: string; status: RFIDTagStatus | null } | null;
   plateRead: string | null;
   plateMismatch: boolean;
   truck: { plateNumber: string; model: string | null } | null;
@@ -95,7 +97,7 @@ export interface TransactionDetail {
   plateMismatch: boolean;
   verification: TransactionVerification | null;
   timeline: TransactionTimelineEvent[];
-  rfidTag: { epcId: string; status: RFIDTagStatus; assignedTruckPlate: string | null } | null;
+  rfidTag: { epcId: string; status: RFIDTagStatus | null; assignedTruckPlate: string | null } | null;
   truck: { plateNumber: string; model: string | null; assignedDriver: DriverSummary | null } | null;
   truckInRegistry: boolean;
   driver: (DriverSummary & { id: string }) | null;

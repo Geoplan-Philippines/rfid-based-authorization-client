@@ -69,7 +69,7 @@ export interface MonthlyBreakdownData {
   days: MonthlyBreakdownDay[];
 }
 
-export type ExceptionResult = 'UNKNOWN_TAG' | 'FACE_MISMATCH' | 'PLATE_MISMATCH' | 'DENIED' | 'ERROR';
+export type ExceptionResult = 'UNKNOWN_TAG' | 'UNAUTHORIZED' | 'EXPRESSWAY_TAG' | 'FACE_MISMATCH' | 'PLATE_MISMATCH' | 'DENIED' | 'ERROR';
 
 export interface ExceptionReportItem {
   /** Also the id for GET /transactions/:id. */
@@ -80,7 +80,7 @@ export interface ExceptionReportItem {
   /** Backend-built display explanation. */
   reason: string;
   plateRead: string | null;
-  rfidTag: { epcId: string; status: RfidTagStatus } | null;
+  rfidTag: { epcId: string; status: RfidTagStatus | null } | null;
   truck: { id: string; plateNumber: string; model: string | null } | null;
   driver: { id: string; firstName: string; lastName: string } | null;
   verification: {

@@ -13,6 +13,8 @@ export type AssignmentRole = 'PRIMARY' | 'RELIEF';
 export type GateEventResult =
   | 'VERIFIED'
   | 'UNKNOWN_TAG'
+  | 'UNAUTHORIZED'
+  | 'EXPRESSWAY_TAG'
   | 'FACE_MISMATCH'
   | 'PLATE_MISMATCH'
   | 'MANUAL_OVERRIDE'
@@ -22,7 +24,8 @@ export type GateEventResult =
 /** Canonical display order for the full GateEventResult set (filter chips, breakdown rows). */
 export const GATE_EVENT_RESULT_ORDER: readonly GateEventResult[] = [
   'VERIFIED',
-  'UNKNOWN_TAG',
+  'UNAUTHORIZED',
+  'EXPRESSWAY_TAG',
   'FACE_MISMATCH',
   'PLATE_MISMATCH',
   'MANUAL_OVERRIDE',
@@ -40,7 +43,9 @@ const RFID_TAG_STATUS_TAGS: Record<RfidTagStatus, DisplayTag> = {
 
 const GATE_RESULT_TAGS: Record<GateEventResult, DisplayTag> = {
   VERIFIED: { label: 'Verified', severity: 'success' },
-  UNKNOWN_TAG: { label: 'Unknown Tag', severity: 'danger' },
+  UNAUTHORIZED: { label: 'Unauthorized', severity: 'danger' },
+  EXPRESSWAY_TAG: { label: 'Expressway Tag', severity: 'warn' },
+  UNKNOWN_TAG: { label: 'Unauthorized', severity: 'danger' },
   FACE_MISMATCH: { label: 'Face Mismatch', severity: 'warn' },
   PLATE_MISMATCH: { label: 'Plate Mismatch', severity: 'warn' },
   MANUAL_OVERRIDE: { label: 'Manual Override', severity: 'info' },

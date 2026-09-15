@@ -23,6 +23,8 @@ type ResultFilter = ExceptionResult | 'ALL';
 
 /** Chip order, matching the API's ExceptionResult union. */
 const EXCEPTION_RESULT_ORDER: readonly ExceptionResult[] = [
+  'UNAUTHORIZED',
+  'EXPRESSWAY_TAG',
   'UNKNOWN_TAG',
   'FACE_MISMATCH',
   'PLATE_MISMATCH',

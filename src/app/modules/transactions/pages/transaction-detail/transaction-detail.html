@@ -150,7 +150,13 @@
             </div>
             <div class="flex items-center gap-2">
               <dt class="text-body/50 text-xs">Status</dt>
-              <dd><p-tag [value]="tagStatusTag(tag.status).label" [severity]="tagStatusTag(tag.status).severity" /></dd>
+              <dd>
+                @if (tag.status) {
+                  <p-tag [value]="tagStatusTag(tag.status).label" [severity]="tagStatusTag(tag.status).severity" />
+                } @else {
+                  <p-tag value="Unauthorized" severity="danger" />
+                }
+              </dd>
             </div>
             @if (tag.assignedTruckPlate) {
               <div>

@@ -22,7 +22,8 @@ type ResultFilter = GateEventResult | 'ALL';
 /** Order of the result filter chips (after the leading "All" chip). */
 const RESULT_FILTER_ORDER: GateEventResult[] = [
   'VERIFIED',
-  'UNKNOWN_TAG',
+  'UNAUTHORIZED',
+  'EXPRESSWAY_TAG',
   'FACE_MISMATCH',
   'PLATE_MISMATCH',
   'MANUAL_OVERRIDE',
