@@ -91,8 +91,6 @@
                 <span class="font-mono text-sm">{{ tx.rfidTag.epcId }}</span>
                 @if (tx.rfidTag.status) {
                   <p-tag [value]="tagStatusTag(tx.rfidTag.status).label" [severity]="tagStatusTag(tx.rfidTag.status).severity" />
-                } @else {
-                  <p-tag value="Unauthorized" severity="danger" />
                 }
               </div>
             } @else {
