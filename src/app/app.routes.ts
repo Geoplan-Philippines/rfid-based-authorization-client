@@ -98,5 +98,14 @@ export const routes: Routes = [
       { path: ':id', loadComponent: () => import('./modules/rfid-tags/pages/rfid-tag-detail/rfid-tag-detail').then(m => m.RfidTagDetail) }
     ]
   },
+  {
+    path: 'expressway-tags',
+    component: MainLayout,
+    canActivate: [authGuard],
+    children: [
+      { path: '', loadComponent: () => import('./modules/expressway-tags/expressway-tags').then(m => m.ExpresswayTags) },
+      { path: ':id', loadComponent: () => import('./modules/expressway-tags/pages/expressway-tag-detail/expressway-tag-detail').then(m => m.ExpresswayTagDetail) }
+    ]
+  },
   { path: '**', redirectTo: 'dashboard' }
 ];

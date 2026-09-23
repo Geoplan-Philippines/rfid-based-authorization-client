@@ -1,0 +1,123 @@
+<main class="flex flex-col w-full p-6 overflow-auto">
+  <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-heading">Expressway Tags</h1>
+      <p class="text-sm text-body/60 mt-1">{{ total() }} tags · registered expressway tags bound to trucks.</p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <p-iconfield>
+        <p-inputicon class="pi pi-search" />
+        <input
+          #searchBox
+          pInputText
+          type="text"
+          [value]="search()"
+          (input)="onSearchInput($event)"
+          placeholder="Search EPC, label, plate…  ( / )"
+          aria-label="Search expressway tags"
+          class="w-64"
+        />
+      </p-iconfield>
+      <p-button label="Register tag" icon="pi pi-plus" (onClick)="openRegister()" />
+    </div>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+    @for (card of statCards(); track card.label) {
+      <div class="rounded-sm border border-border p-3">
+        <p class="text-xs uppercase tracking-wide text-body/50">{{ card.label }}</p>
+        <p class="text-2xl font-bold text-heading">{{ card.count }}</p>
+      </div>
+    }
+  </div>
+
+  <!-- Status filter chips -->
+  <div class="flex flex-wrap items-center gap-2 mb-4" role="group" aria-label="Filter by status">
+    @for (chip of statusChips(); track chip.value) {
+      <p-button
+        [label]="chip.label"
+        [badge]="chip.count.toString()"
+        size="small"
+        [severity]="chip.severity"
+        [outlined]="selectedStatus() !== chip.value"
+        (onClick)="selectStatus(chip.value)"
+        [attr.aria-pressed]="selectedStatus() === chip.value"
+      />
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="flex justify-center py-14">
+      <p-progressSpinner [style]="{ width: '42px', height: '42px' }" aria-label="Loading expressway tags" />
+    </div>
+  } @else if (error()) {
+    <div class="flex items-center gap-2 p-4 rounded-sm border border-destructive/30 bg-muted-destructive text-destructive text-sm" role="alert">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <span>{{ error() }}</span>
+    </div>
+  } @else {
+    <p-table [value]="tags()" styleClass="w-full">
+      <ng-template #header>
+        <tr>
+          <th scope="col" class="bg-primary! text-primary-foreground!">EPC ID</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Label</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Status</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Linked Truck</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Last Seen</th>
+          <th scope="col" class="bg-primary! text-primary-foreground!">Created</th>
+        </tr>
+      </ng-template>
+
+      <ng-template #body let-tag>
+        <tr
+          class="cursor-pointer hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
+          tabindex="0"
+          [attr.aria-label]="'Open tag ' + tag.epcId"
+          (click)="openTag(tag.id)"
+          (keydown.enter)="$event.target === $event.currentTarget ? openTag(tag.id) : null"
+        >
+          <td class="font-mono text-sm font-medium">{{ tag.epcId }}</td>
+          <td class="text-sm">{{ tag.label ?? '—' }}</td>
+          <td>
+            <p-tag [value]="expresswayTagStatusTag(tag.status).label" [severity]="expresswayTagStatusTag(tag.status).severity" />
+          </td>
+          <td>
+            @if (tag.truck) {
+              <div class="flex flex-col">
+                <span class="font-medium">{{ tag.truck.plateNumber }}</span>
+                <span class="text-xs text-body/60">{{ tag.truck.model ?? '—' }}</span>
+              </div>
+            } @else {
+              <span class="text-body/40">—</span>
+            }
+          </td>
+          <td class="text-sm text-body/70">{{ tag.lastSeenAt ? (tag.lastSeenAt | date: 'MMM d, HH:mm') : '—' }}</td>
+          <td class="text-sm text-body/70">{{ tag.createdAt | date: 'MMM d, yyyy' }}</td>
+        </tr>
+      </ng-template>
+
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="6">
+            <div class="flex flex-col items-center justify-center py-14 text-primary-200">
+              <i class="pi pi-tags text-4xl mb-3" aria-hidden="true"></i>
+              <p class="text-sm">No expressway tags found.</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <p-paginator
+      [first]="(page() - 1) * limit()"
+      [rows]="limit()"
+      [totalRecords]="total()"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      (onPageChange)="onPageChange($event)"
+    />
+  }
+</main>
+
+<app-expressway-tag-form-dialog [(visible)]="registerVisible" (saved)="reload()" />

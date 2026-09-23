@@ -136,6 +136,42 @@
       </section>
     }
 
+    <!-- Expressway Tag Info -->
+    @if (tx.result === 'EXPRESSWAY_TAG') {
+      <section class="rounded-sm border border-border bg-white p-5 mb-6">
+        <h3 class="text-sm font-semibold text-heading mb-3 flex items-center gap-2">
+          <i class="pi pi-directions text-body/40" aria-hidden="true"></i> Expressway Tag
+        </h3>
+        @if (expresswayTagLoading()) {
+          <div class="flex py-2">
+             <p-progressSpinner [style]="{ width: '24px', height: '24px' }" aria-label="Loading expressway tag" />
+          </div>
+        } @else if (expresswayTag(); as tag) {
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+             <dl class="space-y-2 text-sm">
+               <div>
+                 <dt class="text-body/50 text-xs">Registry Status</dt>
+                 <dd>Registered</dd>
+               </div>
+               <div>
+                 <dt class="text-body/50 text-xs">Linked Truck</dt>
+                 <dd class="font-mono">{{ tag.truck ? tag.truck.plateNumber : 'Unbound' }}</dd>
+               </div>
+             </dl>
+             <p-button label="View Tag" icon="pi pi-eye" size="small" [outlined]="true" [routerLink]="'/expressway-tags/' + tag.id" />
+          </div>
+        } @else {
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-muted/50 p-4 rounded-sm border border-border/50">
+             <div>
+               <p class="text-sm font-medium text-heading">Unregistered Tag</p>
+               <p class="text-xs text-body/60 mt-0.5">This expressway tag is not yet registered in the system.</p>
+             </div>
+             <p-button label="Register Expressway Tag" icon="pi pi-plus" size="small" (onClick)="openRegisterExpresswayTag()" />
+          </div>
+        }
+      </section>
+    }
+
     <!-- Entity cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <section class="rounded-sm border border-border bg-white p-5">
@@ -240,22 +276,51 @@
       @if (filteredSnapshots().length) {
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           @for (snapshot of filteredSnapshots(); track snapshot.id) {
-            <figure>
-              <div class="relative aspect-video rounded-sm border border-border bg-foreground/5 overflow-hidden flex items-center justify-center">
+            <figure class="flex flex-col">
+              <a
+                [href]="resolvePhotoUrl(snapshot.imageUrl)"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="group relative block aspect-video rounded-sm border border-border bg-foreground/5 overflow-hidden flex items-center justify-center cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-primary shadow-2xs hover:shadow-md transition-all"
+                title="Click to zoom / view full snapshot in new tab"
+              >
                 <i class="pi pi-image text-2xl text-body/20" aria-hidden="true"></i>
                 <img
                   [src]="resolvePhotoUrl(snapshot.imageUrl)"
                   [alt]="snapshotLabel(snapshot.type) + ' snapshot'"
                   width="320"
                   height="180"
-                  class="absolute inset-0 w-full h-full object-cover"
+                  class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
                   (error)="onImageError($event)"
                 />
-                <span class="absolute top-1.5 left-1.5">
+                <span class="absolute top-1.5 left-1.5 z-10 pointer-events-none">
                   <p-tag [value]="snapshotLabel(snapshot.type)" severity="contrast" />
                 </span>
+
+                <!-- Hover overlay with zoom icon -->
+                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center gap-1 text-white z-10 pointer-events-none">
+                  <div class="w-8 h-8 rounded-full bg-black/60 backdrop-blur-xs flex items-center justify-center border border-white/20 shadow-sm transform group-hover:scale-110 transition-transform duration-200">
+                    <i class="pi pi-search-plus text-sm"></i>
+                  </div>
+                  <span class="text-[11px] font-medium tracking-tight drop-shadow-xs flex items-center gap-1">
+                    Zoom image <i class="pi pi-external-link text-[9px]"></i>
+                  </span>
+                </div>
+              </a>
+              <div class="flex items-center justify-between gap-1 mt-1 px-0.5">
+                <figcaption class="text-xs text-body/50 font-mono truncate" [title]="fileName(snapshot.imageUrl)">
+                  {{ fileName(snapshot.imageUrl) }}
+                </figcaption>
+                <a
+                  [href]="resolvePhotoUrl(snapshot.imageUrl)"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-[11px] text-body/40 hover:text-primary transition-colors flex items-center shrink-0 p-0.5"
+                  title="Open full resolution in new tab"
+                >
+                  <i class="pi pi-external-link text-[10px]"></i>
+                </a>
               </div>
-              <figcaption class="text-xs text-body/50 mt-1 font-mono truncate">{{ fileName(snapshot.imageUrl) }}</figcaption>
             </figure>
           }
         </div>
@@ -263,5 +328,12 @@
         <p class="text-sm text-body/50">No snapshots for this filter.</p>
       }
     </section>
+
+    <app-expressway-tag-form-dialog
+      [(visible)]="registerExpresswayTagVisible"
+      [prefilledEpcId]="tx.rfidTag?.epcId ?? null"
+      [prefilledPlateNumber]="tx.plateRead ?? null"
+      (saved)="onExpresswayTagRegistered()"
+    />
   }
 </main>

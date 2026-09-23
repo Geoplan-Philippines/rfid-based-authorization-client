@@ -76,3 +76,15 @@ export function gateResultTag(result: GateEventResult): DisplayTag {
 export function assignmentRoleTag(role: AssignmentRole): DisplayTag {
   return ASSIGNMENT_ROLE_TAGS[role] ?? { label: role, severity: 'secondary' };
 }
+
+export type ExpresswayTagStatus = 'ACTIVE' | 'INACTIVE' | 'BLOCKED';
+
+const EXPRESSWAY_TAG_STATUS_TAGS: Record<ExpresswayTagStatus, DisplayTag> = {
+  ACTIVE: { label: 'Active', severity: 'success' },
+  INACTIVE: { label: 'Inactive', severity: 'secondary' },
+  BLOCKED: { label: 'Blocked', severity: 'danger' },
+};
+
+export function expresswayTagStatusTag(status: ExpresswayTagStatus): DisplayTag {
+  return EXPRESSWAY_TAG_STATUS_TAGS[status] ?? { label: status, severity: 'secondary' };
+}

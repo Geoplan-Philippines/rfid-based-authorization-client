@@ -60,7 +60,23 @@
         <div class="rounded-sm border border-border bg-white overflow-hidden">
           <div class="aspect-video w-full bg-foreground/5 flex items-center justify-center">
             @if (resolvePhotoUrl(truck.photoUrl); as photo) {
-              <img [src]="photo" [alt]="truck.plateNumber + ' photo'" class="w-full h-full object-cover" />
+              <a
+                [href]="photo"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="group relative block w-full h-full overflow-hidden cursor-pointer"
+                title="Click to zoom / view truck photo in new tab"
+              >
+                <img [src]="photo" [alt]="truck.plateNumber + ' photo'" class="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-105" />
+                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-1.5 text-white">
+                  <div class="w-8 h-8 rounded-full bg-black/60 backdrop-blur-xs flex items-center justify-center border border-white/20 shadow-sm">
+                    <i class="pi pi-search-plus text-sm"></i>
+                  </div>
+                  <span class="text-xs font-medium flex items-center gap-1">
+                    Zoom photo <i class="pi pi-external-link text-[10px]"></i>
+                  </span>
+                </div>
+              </a>
             } @else {
               <i class="pi pi-truck text-4xl text-body/20" aria-hidden="true"></i>
             }
