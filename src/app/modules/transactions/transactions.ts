@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EMPTY, Subject, catchError, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 
+import { FormsModule } from '@angular/forms';
+
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
@@ -12,12 +14,20 @@ import { ButtonModule } from 'primeng/button';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
+import { DatePickerModule } from 'primeng/datepicker';
 
 import { GetTransactionsParams, TransactionService } from './services/transaction.service';
 import { GateEventResult, TransactionListItem, TransactionResultCounts, TransactionStreamEvent } from './types/transaction.types';
 import { TagSeverity, resultTag, tagStatusTag } from './utils/transaction-display';
+import { isSameDay, startOfToday, toQueryDate } from '../../shared/utils/date';
 
 type ResultFilter = GateEventResult | 'ALL';
+export type DatePresetValue = 'all' | 'today' | 'yesterday' | 'last7' | 'month' | 'custom';
+
+export interface DatePresetOption {
+  label: string;
+  value: DatePresetValue;
+}
 
 /** Order of the result filter chips (after the leading "All" chip). */
 const RESULT_FILTER_ORDER: GateEventResult[] = [
@@ -42,6 +52,7 @@ interface ResultChip {
   selector: 'app-transactions',
   imports: [
     DatePipe,
+    FormsModule,
     TableModule,
     TagModule,
     PaginatorModule,
@@ -50,6 +61,7 @@ interface ResultChip {
     IconFieldModule,
     InputIconModule,
     InputTextModule,
+    DatePickerModule,
   ],
   templateUrl: './transactions.html',
   styleUrl: './transactions.css',
@@ -65,6 +77,15 @@ export class Transactions implements OnInit {
 
   protected readonly resultTag = resultTag;
   protected readonly tagStatusTag = tagStatusTag;
+  readonly today = startOfToday();
+
+  readonly presetOptions: DatePresetOption[] = [
+    { label: 'All Time', value: 'all' },
+    { label: 'Today', value: 'today' },
+    { label: 'Yesterday', value: 'yesterday' },
+    { label: 'Last 7 Days', value: 'last7' },
+    { label: 'This Month', value: 'month' },
+  ];
 
   transactions = signal<TransactionListItem[]>([]);
   loading = signal(true);
@@ -75,6 +96,25 @@ export class Transactions implements OnInit {
   counts = signal<TransactionResultCounts | null>(null);
   search = signal('');
   selectedResult = signal<ResultFilter>('ALL');
+  dateRange = signal<[Date, Date] | null>(null);
+
+  calendarDates = computed<(Date | null)[] | null>(() => {
+    const range = this.dateRange();
+    return range ? [range[0], range[1]] : null;
+  });
+
+  activePreset = computed<DatePresetValue>(() => {
+    const range = this.dateRange();
+    if (!range) return 'all';
+
+    const match = this.presetOptions.find(option => {
+      if (option.value === 'all') return false;
+      const preset = this.getPresetRange(option.value);
+      if (!preset) return false;
+      return isSameDay(preset[0], range[0]) && isSameDay(preset[1], range[1]);
+    });
+    return match?.value ?? 'custom';
+  });
 
   resultChips = computed<ResultChip[]>(() => {
     const counts = this.counts();
@@ -183,6 +223,19 @@ export class Transactions implements OnInit {
       if (!matches) return;
     }
 
+    // 3b. Check if newTx matches active date range
+    const range = this.dateRange();
+    if (range) {
+      const [from, to] = range;
+      const txDate = new Date(newTx.occurredAt);
+      const txDay = new Date(txDate.getFullYear(), txDate.getMonth(), txDate.getDate());
+      const fromDay = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+      const toDay = new Date(to.getFullYear(), to.getMonth(), to.getDate());
+      if (txDay < fromDay || txDay > toDay) {
+        return;
+      }
+    }
+
     // 4. Update the list if on page 1
     if (this.page() === 1) {
       this.loading.set(false);
@@ -239,12 +292,63 @@ export class Transactions implements OnInit {
 
   private load(): void {
     const result = this.selectedResult();
+    const range = this.dateRange();
     this.pageRequest$.next({
       page: this.page(),
       limit: this.limit(),
       search: this.search() || undefined,
       result: result === 'ALL' ? undefined : result,
+      from: range ? toQueryDate(range[0]) : undefined,
+      to: range ? toQueryDate(range[1]) : undefined,
     });
+  }
+
+  private getPresetRange(preset: DatePresetValue): [Date, Date] | null {
+    const to = this.today;
+    switch (preset) {
+      case 'all':
+        return null;
+      case 'today':
+        return [to, to];
+      case 'yesterday': {
+        const yesterday = new Date(to);
+        yesterday.setDate(yesterday.getDate() - 1);
+        return [yesterday, yesterday];
+      }
+      case 'last7': {
+        const from = new Date(to);
+        from.setDate(from.getDate() - 6);
+        return [from, to];
+      }
+      case 'month': {
+        const from = new Date(to.getFullYear(), to.getMonth(), 1);
+        return [from, to];
+      }
+      default:
+        return null;
+    }
+  }
+
+  selectPreset(preset: DatePresetValue): void {
+    const range = this.getPresetRange(preset);
+    this.dateRange.set(range);
+    this.page.set(1);
+    this.load();
+  }
+
+  onCalendarSelect(dates: (Date | null)[] | null): void {
+    if (!dates || dates.length === 0 || !dates[0]) {
+      this.selectPreset('all');
+      return;
+    }
+    const [from, to] = dates;
+    if (!to) {
+      // First click in range selection; wait for end date
+      return;
+    }
+    this.dateRange.set([from, to]);
+    this.page.set(1);
+    this.load();
   }
 
   onSearchInput(event: Event): void {

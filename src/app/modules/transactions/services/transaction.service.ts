@@ -19,6 +19,8 @@ export interface GetTransactionsParams {
   limit: number;
   search?: string;
   result?: GateEventResult;
+  from?: string;
+  to?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -30,6 +32,8 @@ export class TransactionService {
     const httpParams: Record<string, string | number> = { page: params.page, limit: params.limit };
     if (params.search) httpParams['search'] = params.search;
     if (params.result) httpParams['result'] = params.result;
+    if (params.from) httpParams['from'] = params.from;
+    if (params.to) httpParams['to'] = params.to;
 
     return this.http
       .get<ApiResponse<TransactionListItem[]> & { meta: TransactionListMeta }>(this.TRANSACTIONS_URL, { params: httpParams })
