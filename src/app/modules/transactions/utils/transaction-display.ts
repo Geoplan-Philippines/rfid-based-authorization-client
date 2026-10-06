@@ -22,6 +22,7 @@ const SNAPSHOT_LABELS: Record<SnapshotType, string> = {
   FACE: 'Face',
   PLATE: 'Plate',
   WIDE: 'Wide',
+  EXPRESSWAY: 'Expressway',
 };
 
 export function resultTag(result: GateEventResult): DisplayTag {

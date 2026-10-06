@@ -15,7 +15,7 @@ export type GateEventResult =
 
 export type RFIDTagStatus = 'ACTIVE' | 'INACTIVE' | 'LOST' | 'BLOCKED';
 
-export type SnapshotType = 'FACE' | 'PLATE' | 'WIDE';
+export type SnapshotType = 'FACE' | 'PLATE' | 'WIDE' | 'EXPRESSWAY';
 
 export type TimelineEventType =
   | 'RFID_SCANNED'

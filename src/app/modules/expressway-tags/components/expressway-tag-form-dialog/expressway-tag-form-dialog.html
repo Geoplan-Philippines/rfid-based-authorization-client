@@ -1,0 +1,242 @@
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '36rem' }"
+  [breakpoints]="{ '640px': '92vw' }"
+  header="Register Expressway tag"
+  (onShow)="onShow()"
+>
+  <p class="text-sm text-muted mt-0 mb-3">
+    Register an expressway tag to allow trucks to pass. Optionally connect it to a truck.
+  </p>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4">
+    <!-- EPC ID -->
+    <div class="flex flex-col gap-2">
+      <label for="tag-epc" class="font-medium text-sm">
+        EPC ID <span class="text-destructive" aria-hidden="true">*</span>
+      </label>
+      <input
+        pInputText
+        id="tag-epc"
+        formControlName="epcId"
+        placeholder="e.g. E2-80-11-0C-20-00"
+        autocomplete="off"
+        spellcheck="false"
+        aria-required="true"
+        aria-describedby="tag-epc-help tag-epc-error"
+        class="w-full font-mono uppercase"
+        [class.ng-invalid]="form.controls.epcId.invalid && form.controls.epcId.touched"
+        [class.ng-dirty]="form.controls.epcId.invalid && form.controls.epcId.touched"
+      />
+      @if (form.controls.epcId.hasError('required') && form.controls.epcId.touched) {
+        <small id="tag-epc-error" class="text-destructive">EPC ID is required.</small>
+      } @else if (form.controls.epcId.hasError('maxlength')) {
+        <small id="tag-epc-error" class="text-destructive">EPC ID must be 64 characters or fewer.</small>
+      } @else {
+        <small id="tag-epc-help" class="text-muted">The unique identifier read from the tag.</small>
+      }
+    </div>
+
+    <!-- Label -->
+    <div class="flex flex-col gap-2">
+      <label for="tag-label" class="font-medium text-sm">
+        Label <span class="text-body/50 font-normal">(optional)</span>
+      </label>
+      <input
+        pInputText
+        id="tag-label"
+        formControlName="label"
+        placeholder="e.g. NLEX Autosweep / SLEX Easytrip"
+        autocomplete="off"
+        spellcheck="false"
+        class="w-full"
+      />
+    </div>
+
+    <!-- Connected Truck Section -->
+    <div class="flex flex-col gap-2 border-t border-border pt-4">
+      <div class="flex items-center justify-between">
+        <label class="font-medium text-sm">
+          Connect to Truck <span class="text-body/50 font-normal">(optional)</span>
+        </label>
+        @if (selectedTruck() || isRegisteringNewTruck()) {
+          <button
+            type="button"
+            class="text-xs text-body/60 hover:text-destructive flex items-center gap-1 cursor-pointer"
+            (click)="disconnectTruck()"
+          >
+            <i class="pi pi-times text-[10px]"></i> Disconnect / Unbind
+          </button>
+        }
+      </div>
+
+      <!-- State A: Already Connected to a Truck -->
+      @if (selectedTruck(); as truck) {
+        <div class="flex items-center justify-between p-3 rounded-sm border border-emerald-500/30 bg-emerald-500/5">
+          <div class="flex items-center gap-2.5">
+            <i class="pi pi-check-circle text-emerald-600 text-lg"></i>
+            <div>
+              <p class="text-sm font-semibold text-heading font-mono">{{ truck.plateNumber }}</p>
+              <p class="text-xs text-body/60">{{ truck.model ?? 'No model specified' }}</p>
+            </div>
+          </div>
+          <p-button
+            label="Change"
+            icon="pi pi-pencil"
+            size="small"
+            [text]="true"
+            severity="secondary"
+            (onClick)="disconnectTruck()"
+          />
+        </div>
+      }
+
+      <!-- State B: Registering a New Truck Inline -->
+      @else if (isRegisteringNewTruck()) {
+        <div class="p-3.5 rounded-sm border border-primary/20 bg-primary/5 flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-primary flex items-center gap-1.5">
+              <i class="pi pi-plus-circle"></i> Register New Truck
+            </span>
+            <button
+              type="button"
+              class="text-xs text-body/50 hover:underline cursor-pointer"
+              (click)="cancelRegisterTruck()"
+            >
+              Back to search
+            </button>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label for="new-truck-plate" class="text-xs font-medium">Plate Number <span class="text-destructive">*</span></label>
+            <input
+              pInputText
+              id="new-truck-plate"
+              formControlName="newPlateNumber"
+              placeholder="e.g. ABC123"
+              class="w-full font-mono uppercase text-sm"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label for="new-truck-model" class="text-xs font-medium text-body/60">Model / Make (optional)</label>
+            <input
+              pInputText
+              id="new-truck-model"
+              formControlName="newModel"
+              placeholder="e.g. Isuzu 10-Wheeler"
+              class="w-full text-sm"
+            />
+          </div>
+          <small class="text-xs text-body/60">This plate will be created in the registry and connected to this tag.</small>
+        </div>
+      }
+
+      <!-- State C: Searching for Registered Plates -->
+      @else {
+        <div class="flex flex-col gap-2">
+          <p-iconfield>
+            <p-inputicon class="pi pi-search" />
+            <input
+              pInputText
+              type="text"
+              [value]="searchQuery()"
+              (input)="onSearchInput($any($event.target).value)"
+              placeholder="Type plate number to search... (e.g. ABC123)"
+              class="w-full font-mono uppercase text-sm"
+            />
+          </p-iconfield>
+
+          <!-- Loading state -->
+          @if (searching()) {
+            <div class="flex items-center gap-2 py-2 text-xs text-body/50">
+              <p-progressSpinner [style]="{ width: '16px', height: '16px' }" strokeWidth="4" />
+              <span>Searching registered trucks...</span>
+            </div>
+          }
+
+          <!-- Found registered trucks list -->
+          @else if (searchResults().length > 0) {
+            <div class="rounded-sm border border-border divide-y divide-border overflow-hidden mt-1">
+              @for (truck of searchResults(); track truck.id) {
+                <div class="flex items-center justify-between p-2.5 hover:bg-muted/40 transition-colors">
+                  <div class="flex items-center gap-2">
+                    <i class="pi pi-truck text-body/40"></i>
+                    <div>
+                      <span class="font-mono text-sm font-semibold text-heading">{{ truck.plateNumber }}</span>
+                      @if (truck.model) {
+                        <span class="text-xs text-body/50 ml-2">· {{ truck.model }}</span>
+                      }
+                    </div>
+                  </div>
+                  <p-button
+                    label="Connect"
+                    icon="pi pi-link"
+                    size="small"
+                    [outlined]="true"
+                    (onClick)="connectTruck(truck)"
+                  />
+                </div>
+              }
+            </div>
+          }
+
+          <!-- No results found for query -->
+          @else if (hasSearched() && searchQuery().trim().length > 0) {
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 rounded-sm border border-dashed border-border bg-muted/20 mt-1">
+              <div>
+                <p class="text-xs font-medium text-heading">No registered truck found for <span class="font-mono font-bold">"{{ searchQuery() }}"</span></p>
+                <p class="text-[11px] text-body/50">You can register this plate directly and connect it to the tag.</p>
+              </div>
+              <p-button
+                label="Register Truck"
+                icon="pi pi-plus"
+                size="small"
+                (onClick)="startRegisterTruck()"
+              />
+            </div>
+          }
+
+          @else {
+            <small class="text-xs text-body/50">Search for an existing plate to connect, or leave empty for an unbound tag.</small>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Initial status -->
+    <div class="flex flex-col gap-2 border-t border-border pt-3">
+      <label for="tag-status" class="font-medium text-sm">Status</label>
+      <p-select
+        inputId="tag-status"
+        formControlName="status"
+        [options]="statusOptions"
+        optionLabel="label"
+        optionValue="value"
+        styleClass="w-full"
+        appendTo="body"
+      >
+        <ng-template let-option #selectedItem>
+          <p-tag
+            [value]="expresswayTagStatusTag(option.value).label"
+            [severity]="expresswayTagStatusTag(option.value).severity"
+          />
+        </ng-template>
+        <ng-template let-option #item>
+          <p-tag
+            [value]="expresswayTagStatusTag(option.value).label"
+            [severity]="expresswayTagStatusTag(option.value).severity"
+          />
+        </ng-template>
+      </p-select>
+    </div>
+  </form>
+
+  <ng-template #footer>
+    <p-button label="Cancel" severity="secondary" [text]="true" (onClick)="visible.set(false)" />
+    <p-button label="Register tag" icon="pi pi-check" [loading]="saving()" (onClick)="submit()" />
+  </ng-template>
+</p-dialog>

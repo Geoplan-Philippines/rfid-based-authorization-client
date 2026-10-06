@@ -15,6 +15,10 @@ import { SnapshotType, TimelineEventType, TransactionDetail as TransactionDetail
 import { DisplayTag, resultTag, snapshotLabel, tagStatusTag, timelineLabel } from '../../utils/transaction-display';
 import { resolvePhotoUrl } from '../../../../core/utils/photo-url';
 
+import { ExpresswayTagsService } from '../../../expressway-tags/services/expressway-tags.service';
+import { ExpresswayTagDetail as ExpresswayTagModel } from '../../../expressway-tags/types/expressway-tags.types';
+import { ExpresswayTagFormDialog } from '../../../expressway-tags/components/expressway-tag-form-dialog/expressway-tag-form-dialog';
+
 type SnapshotFilter = 'ALL' | SnapshotType;
 type StepState = 'done' | 'failed' | 'pending';
 
@@ -42,7 +46,7 @@ const PIPELINE_STEPS: { type: TimelineEventType; icon: string }[] = [
 
 @Component({
   selector: 'app-transaction-detail',
-  imports: [DatePipe, RouterLink, TagModule, ProgressBarModule, ProgressSpinnerModule, ButtonModule],
+  imports: [DatePipe, RouterLink, TagModule, ProgressBarModule, ProgressSpinnerModule, ButtonModule, ExpresswayTagFormDialog],
   templateUrl: './transaction-detail.html',
   styleUrl: './transaction-detail.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -51,6 +55,7 @@ const PIPELINE_STEPS: { type: TimelineEventType; icon: string }[] = [
 export class TransactionDetail implements OnInit {
   private route = inject(ActivatedRoute);
   private transactionService = inject(TransactionService);
+  private expresswayTagsService = inject(ExpresswayTagsService);
   private destroyRef = inject(DestroyRef);
 
   protected readonly resultTag = resultTag;
@@ -64,6 +69,10 @@ export class TransactionDetail implements OnInit {
   error = signal<string | null>(null);
   notFound = signal(false);
   snapshotFilter = signal<SnapshotFilter>('ALL');
+
+  expresswayTag = signal<ExpresswayTagModel | null>(null);
+  expresswayTagLoading = signal(false);
+  registerExpresswayTagVisible = signal(false);
 
   filteredSnapshots = computed(() => {
     const tx = this.transaction();
@@ -166,6 +175,7 @@ export class TransactionDetail implements OnInit {
       .subscribe(tx => {
         this.transaction.set(tx);
         this.loading.set(false);
+        this.checkExpresswayTag(tx);
       });
 
     // Realtime updates: refresh detail when server emits updates for this transaction (GEO-101)
@@ -178,9 +188,42 @@ export class TransactionDetail implements OnInit {
           this.transactionService
             .getTransactionById(current.id)
             .pipe(catchError(() => EMPTY))
-            .subscribe(tx => this.transaction.set(tx));
+            .subscribe(tx => {
+               this.transaction.set(tx);
+               this.checkExpresswayTag(tx);
+            });
         }
       });
+  }
+
+  private checkExpresswayTag(tx: TransactionDetailModel): void {
+    if (tx.result === 'EXPRESSWAY_TAG' && tx.rfidTag?.epcId) {
+      this.expresswayTagLoading.set(true);
+      this.expresswayTagsService.findByEpc(tx.rfidTag.epcId).subscribe({
+        next: tag => {
+          this.expresswayTag.set(tag);
+          this.expresswayTagLoading.set(false);
+        },
+        error: () => {
+          this.expresswayTag.set(null);
+          this.expresswayTagLoading.set(false);
+        }
+      });
+    } else {
+      this.expresswayTag.set(null);
+      this.expresswayTagLoading.set(false);
+    }
+  }
+
+  openRegisterExpresswayTag(): void {
+    this.registerExpresswayTagVisible.set(true);
+  }
+
+  onExpresswayTagRegistered(): void {
+    const tx = this.transaction();
+    if (tx) {
+      this.checkExpresswayTag(tx);
+    }
   }
 
   setSnapshotFilter(filter: SnapshotFilter): void {
